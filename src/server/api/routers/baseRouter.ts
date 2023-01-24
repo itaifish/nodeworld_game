@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc';
+import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
+import { Resource_Type } from '@prisma/client';
 import { Building_Type } from '@prisma/client';
 import BuildingManager from '../../../game/logic/buildings/BuildingManager';
-import { Constants } from '../../../utils/constants';
 import type { BaseDetails } from '../../../game/interfaces/base';
 import BaseManager from '../../../game/logic/base/BaseManager';
 
 type tRPCContext = Parameters<Parameters<typeof protectedProcedure.query>[0]>[0]['ctx'];
 
 const baseInclude = { buildings: true, owner: false, resources: true, military: true, inventory: true };
+
+const BUILDING_ID_INPUT = z.object({ buildingId: z.string() });
 
 async function getBaseDataFromUser(ctx: tRPCContext) {
 	const id = ctx.session.user.id;
@@ -20,17 +22,60 @@ async function getBaseDataFromUser(ctx: tRPCContext) {
 }
 
 export const baseRouter = createTRPCRouter({
-	hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => {
-		return {
-			greeting: `Hello ${input.text}`,
-		};
-	}),
+	giveUserResources: adminProcedure
+		.input(
+			z.object({
+				userId: z.string().optional(),
+				resources: z.record(
+					z.enum(Object.keys(Resource_Type) as [Resource_Type, ...Resource_Type[]]),
+					z.number().int(),
+				),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const userId = input.userId ?? ctx.session.user.id;
+			const currentResources = await ctx.prisma.base.findUnique({
+				where: { userId },
+				include: baseInclude,
+			});
+			if (currentResources == null) {
+				return null;
+			}
+			BaseManager.modifyResources(currentResources.resources, input.resources);
+			return ctx.prisma.base.update({
+				where: { id: currentResources.id },
+				data: { resources: { set: currentResources.resources } },
+			});
+		}),
 	createBaseIfNotExists: protectedProcedure.mutation(async ({ ctx }) => {
 		const id = ctx.session.user.id;
-		return ctx.prisma.base.create({ data: { userId: id } });
+		return ctx.prisma.base.create({
+			data: { userId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
+		});
 	}),
 
-	//scrapBuilding: protectedProcedure.input
+	scrapBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
+		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
+		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
+		if (baseUser == null || building == null) {
+			return null;
+		}
+		await ctx.prisma.building.delete({ where: { id: input.buildingId } });
+		const now = new Date().getTime();
+		const returnedResources = { ...BuildingManager.costs[building.type] };
+		if (building.finishedAt.getTime() >= now) {
+			for (const key in returnedResources) {
+				returnedResources[key as Resource_Type] = Math.floor(returnedResources[key as Resource_Type]! / 2);
+			}
+		}
+		BaseManager.modifyResources(baseUser.resources, returnedResources);
+		const update = await ctx.prisma.base.update({
+			where: { id: baseUser.id },
+			data: { resources: { set: baseUser.resources } },
+			include: baseInclude,
+		});
+		return update;
+	}),
 
 	harvestAllBuildings: protectedProcedure.mutation(async ({ ctx, input }) => {
 		const baseUser = await getBaseDataFromUser(ctx);
@@ -57,7 +102,7 @@ export const baseRouter = createTRPCRouter({
 		return update;
 	}),
 
-	harvestBuilding: protectedProcedure.input(z.object({ buildingId: z.string() })).mutation(async ({ ctx, input }) => {
+	harvestBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
 		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
 		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
 		if (baseUser == null || building == null) {
@@ -125,6 +170,7 @@ export const baseRouter = createTRPCRouter({
 			});
 			return baseAfter;
 		}),
+
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {
 		return getBaseDataFromUser(ctx);
 	}),

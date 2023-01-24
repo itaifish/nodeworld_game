@@ -2,6 +2,14 @@
 import type { Resource, Resource_Type } from '@prisma/client';
 
 export default class BaseManager {
+	static readonly STARTING_RESOURCES: Array<{ type: Resource_Type; amount: number }> = [
+		{ type: 'FOOD', amount: 200 },
+		{ type: 'ALUMNINUM', amount: 200 },
+		{ type: 'GOLD', amount: 200 },
+		{ type: 'IRON', amount: 200 },
+		{ type: 'PLUTONIUM', amount: 200 },
+	];
+
 	/**
 	 * Does an in-place modification to the current resources, and returns it
 	 * @param currentResources Resources to modify

@@ -64,7 +64,7 @@ model Building {
     id          String        @id @default(cuid())
     Base        Base?         @relation(fields: [baseId], references: [id])
     baseId      String?
-    finishedAt  DateTime?
+    finishedAt  DateTime
     lastHarvest DateTime      @default(now())
     type        Building_Type
     hp          Int
@@ -132,6 +132,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     Base          Base[]
+    isAdmin       Boolean   @default(false)
 }
 
 model VerificationToken {
