@@ -1,6 +1,15 @@
 import type { Building_Type, Resource, Resource_Type } from '@prisma/client';
 
-export default class Building_Manager {
+export default class BuildingManager {
+	static readonly maxHP: Record<Building_Type, number> = {
+		CAPITAL_BUILDING: 100,
+		DWELLING: 100,
+		HARVESTOR: 100,
+		BARRACKS: 100,
+		POWER_STATION: 100,
+		EXTRACTOR: 100,
+	};
+
 	static readonly buildTimeSeconds: Record<Building_Type, number> = {
 		CAPITAL_BUILDING: 10,
 		DWELLING: 3,
