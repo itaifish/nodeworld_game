@@ -13,6 +13,11 @@ const baseInclude = { buildings: true, owner: false, resources: true, military: 
 
 const BUILDING_ID_INPUT = z.object({ buildingId: z.string() });
 
+const RESOURCES_INPUT = z.record(
+	z.enum(Object.keys(Resource_Type) as [Resource_Type, ...Resource_Type[]]),
+	z.number().int(),
+);
+
 async function getBaseDataFromUser(ctx: tRPCContext) {
 	const id = ctx.session.user.id;
 	return ctx.prisma.base.findUnique({
@@ -26,10 +31,7 @@ export const baseRouter = createTRPCRouter({
 		.input(
 			z.object({
 				userId: z.string().optional(),
-				resources: z.record(
-					z.enum(Object.keys(Resource_Type) as [Resource_Type, ...Resource_Type[]]),
-					z.number().int(),
-				),
+				resources: RESOURCES_INPUT,
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -47,11 +49,20 @@ export const baseRouter = createTRPCRouter({
 				data: { resources: { set: currentResources.resources } },
 			});
 		}),
+
 	createBaseIfNotExists: protectedProcedure.mutation(async ({ ctx }) => {
 		const id = ctx.session.user.id;
 		return ctx.prisma.base.create({
 			data: { userId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
 		});
+	}),
+
+	deleteBase: protectedProcedure.mutation(async ({ ctx }) => {
+		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
+		if (baseUser == null) {
+			return null;
+		}
+		return ctx.prisma.base.delete({ where: { id: baseUser.id } });
 	}),
 
 	scrapBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
