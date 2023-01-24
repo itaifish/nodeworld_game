@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure, adminProcedure } from '../trpc';
 import { Resource_Type } from '@prisma/client';
 import { Building_Type } from '@prisma/client';
 import BuildingManager from '../../../game/logic/buildings/BuildingManager';
@@ -88,7 +88,7 @@ export const baseRouter = createTRPCRouter({
 		return update;
 	}),
 
-	harvestAllBuildings: protectedProcedure.mutation(async ({ ctx, input }) => {
+	harvestAllBuildings: protectedProcedure.mutation(async ({ ctx }) => {
 		const baseUser = await getBaseDataFromUser(ctx);
 		if (baseUser == null) {
 			return;
