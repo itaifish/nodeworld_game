@@ -1,4 +1,5 @@
-import type { Building_Type, Resource, Resource_Type } from '@prisma/client';
+import type { Building, Building_Type, Resource, Resource_Type } from '@prisma/client';
+import { Constants } from '../../../utils/constants';
 
 export default class BuildingManager {
 	static readonly maxHP: Record<Building_Type, number> = {
@@ -20,6 +21,8 @@ export default class BuildingManager {
 	};
 
 	/** Interval is 20 minutes by default - plan to mess with it */
+	static readonly HARVEST_INTERVAL_MINS = 20;
+
 	static readonly generatedResourcesPerInterval: Record<Building_Type, Partial<Record<Resource_Type, number>>> = {
 		CAPITAL_BUILDING: {
 			FOOD: 10,
@@ -96,5 +99,26 @@ export default class BuildingManager {
 			newResourcePool.push({ ...resource, amount: newAmount });
 		}
 		return newResourcePool;
+	}
+
+	static getHarvestAmountAndTimeForBuilding(building: Building) {
+		const now = new Date().getTime();
+		const timeDifferenceMs = now - building.lastHarvest.getTime();
+		const harvestMs = Constants.MS_IN_A_MINUTE * BuildingManager.HARVEST_INTERVAL_MINS;
+		const amountOfHarvests = Math.floor(timeDifferenceMs / harvestMs);
+		if (amountOfHarvests <= 0) {
+			return null;
+		}
+		const newLastHarvestDate = new Date(building.lastHarvest.getTime() + amountOfHarvests * harvestMs);
+		const harvestYieldPerInterval = BuildingManager.generatedResourcesPerInterval[building.type];
+		const totalHarvest: Partial<Record<Resource_Type, number>> = {};
+		for (const harvestKey in harvestYieldPerInterval) {
+			totalHarvest[harvestKey as Resource_Type] =
+				(harvestYieldPerInterval[harvestKey as Resource_Type] ?? 0) * amountOfHarvests;
+		}
+		return {
+			harvest: totalHarvest,
+			lastHarvested: newLastHarvestDate,
+		};
 	}
 }
