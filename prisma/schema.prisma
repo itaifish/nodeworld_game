@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
+    provider = "postgresql"
     // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
@@ -14,11 +14,87 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// GAME SECTION BELOW
+
+enum Resource_Type {
+    FOOD
+    IRON
+    ALUMNINUM
+    PLUTONIUM
+    GOLD
 }
+
+enum Building_Type {
+    CAPITAL_BUILDING
+    DWELLING
+    HARVESTOR
+    BARRACKS
+    POWER_STATION
+    EXTRACTOR
+}
+
+enum Unit_Type {
+    MARINE
+    COMMANDER
+    TANK
+}
+
+enum Item_Type {
+    WARP_DRIVE
+    REPAIR_KIT
+}
+
+model Unit {
+    id     String    @id @default(cuid())
+    type   Unit_Type
+    amount Int
+    Base   Base?     @relation(fields: [baseId], references: [id])
+    baseId String?
+}
+
+model Resource {
+    id     String        @id @default(cuid())
+    type   Resource_Type
+    amount Int
+    Base   Base?         @relation(fields: [baseId], references: [id])
+    baseId String?
+}
+
+model Building {
+    id          String        @id @default(cuid())
+    Base        Base?         @relation(fields: [baseId], references: [id])
+    baseId      String?
+    finishedAt  DateTime?
+    lastHarvest DateTime      @default(now())
+    type        Building_Type
+    hp          Int
+    level       Int           @default(1)
+    x           Int
+    y           Int
+}
+
+model InventoryItem {
+    id     String    @id @default(cuid())
+    type   Item_Type
+    amount Int
+    Base   Base?     @relation(fields: [baseId], references: [id])
+    baseId String?
+}
+
+model Base {
+    id        String          @id @default(cuid())
+    userId    String          @unique
+    createdAt DateTime        @default(now())
+    level     Int             @default(1)
+    buildings Building[]
+    owner     User            @relation(fields: [userId], references: [id])
+    resources Resource[]
+    military  Unit[]
+    inventory InventoryItem[]
+}
+
+// ENG GAME SECTION
+// LOGIN SECTION BELOW
 
 // Necessary for Next auth
 model Account {
@@ -27,12 +103,12 @@ model Account {
     type              String
     provider          String
     providerAccountId String
-    refresh_token     String? // @db.Text
-    access_token      String? // @db.Text
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
     expires_at        Int?
     token_type        String?
     scope             String?
-    id_token          String? // @db.Text
+    id_token          String? @db.Text
     session_state     String?
     user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -55,6 +131,7 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    Base          Base[]
 }
 
 model VerificationToken {
