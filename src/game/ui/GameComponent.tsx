@@ -12,11 +12,13 @@ const gameConfig: Types.Core.GameConfig = {
 		mode: Phaser.Scale.FIT,
 		autoCenter: Phaser.Scale.CENTER_BOTH,
 	},
+	autoFocus: true,
+	title: 'Nodeworld',
 	scene: MainScene,
 };
 
 interface GameComponentProps {
-	sessionData: Session;
+	sessionData: Session | null;
 }
 
 export function GameComponent({ sessionData }: GameComponentProps) {
