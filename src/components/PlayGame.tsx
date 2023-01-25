@@ -1,5 +1,4 @@
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { GameComponent } from '../game/ui/GameComponent';
 import styles from '../pages/index.module.css';
@@ -17,15 +16,14 @@ const Play = () => {
 			<>
 				<div className={styles.authContainer}>
 					<h2 className={styles.title}>
-						<span className={styles.pinkSpan}>Loading Session Data</span>
+						<span className={styles.pinkSpan}>You aren{"'"}t logged in!</span>
 					</h2>
 					<h2 className={styles.showcaseContainer}>
-						Taking a while? Try logging in again{' '}
+						Try logging in{' '}
 						<Link href="/" style={{ color: 'blue' }}>
 							here
 						</Link>
 					</h2>
-					<Image src="/loadingIcon.svg" height={100} width={100} alt={'Loading Icon'} />
 				</div>
 			</>
 		);
