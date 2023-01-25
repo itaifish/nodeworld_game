@@ -9,8 +9,13 @@ export function useGame(
 	const [game, setGame] = useState<Game>();
 	useEffect(() => {
 		if (!game && containerRef.current) {
-			const newGame = new Game({ ...config, parent: containerRef.current });
-			setGame(newGame);
+			setGame((oldGame) => {
+				if (!oldGame && containerRef.current) {
+					return new Game({ ...config, parent: containerRef.current });
+				} else {
+					return oldGame;
+				}
+			});
 		}
 		return () => {
 			game?.destroy(true);
