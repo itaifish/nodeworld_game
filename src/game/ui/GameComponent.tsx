@@ -6,11 +6,12 @@ import MainScene from '../scene/MainScene';
 
 const gameConfig: Types.Core.GameConfig = {
 	width: '100%',
-	height: '100%',
+	height: '80%',
 	type: Phaser.AUTO,
 	scale: {
 		mode: Phaser.Scale.FIT,
 		autoCenter: Phaser.Scale.CENTER_BOTH,
+		resizeInterval: 100,
 	},
 	autoFocus: true,
 	title: 'Nodeworld',
