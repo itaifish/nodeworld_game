@@ -18,7 +18,12 @@ const LoginButton: React.FC = () => {
 				{baseData && <> {baseData} </>}
 			</p>
 			{sessionData && (
-				<button className={styles.loginButton} onClick={() => {}}>
+				<button
+					className={styles.loginButton}
+					onClick={() => {
+						window.location.href = '/play';
+					}}
+				>
 					Enter Game
 				</button>
 			)}
