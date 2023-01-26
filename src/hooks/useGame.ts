@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { Types } from 'phaser';
-import { Game } from 'phaser';
+import type { Game } from 'phaser';
+import NodeworldGame from '../game/nodeworldGame';
+import GameSyncManager from '../game/manager/GameSyncManager';
 
 export function useGame(
 	config: Types.Core.GameConfig,
@@ -11,7 +13,7 @@ export function useGame(
 		if (!game && containerRef.current) {
 			setGame((oldGame) => {
 				if (!oldGame && containerRef.current) {
-					return new Game({ ...config, parent: containerRef.current });
+					return new NodeworldGame({ ...config, parent: containerRef.current }, new GameSyncManager());
 				} else {
 					return oldGame;
 				}

@@ -2,7 +2,6 @@ import type { Session } from 'next-auth';
 import type { Types } from 'phaser';
 import { useRef } from 'react';
 import { useGame } from '../../hooks/useGame';
-import MainScene from '../scene/MainScene';
 
 const gameConfig: Types.Core.GameConfig = {
 	width: '100%',
@@ -15,7 +14,6 @@ const gameConfig: Types.Core.GameConfig = {
 	},
 	autoFocus: true,
 	title: 'Nodeworld',
-	scene: MainScene,
 };
 
 interface GameComponentProps {
