@@ -76,7 +76,7 @@ export const baseRouter = createTRPCRouter({
 		}
 		await ctx.prisma.building.delete({ where: { id: input.buildingId } });
 		const now = new Date().getTime();
-		const returnedResources = { ...BuildingManager.costs[building.type] };
+		const returnedResources = { ...BuildingManager.BUILDING_DATA[building.type].costs };
 		if (building.finishedAt.getTime() >= now) {
 			for (const key in returnedResources) {
 				returnedResources[key as Resource_Type] = Math.floor(returnedResources[key as Resource_Type]! / 2);
@@ -153,7 +153,7 @@ export const baseRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const userBase = await getBaseDataFromUser(ctx);
+			const userBase: BaseDetails | null = await getBaseDataFromUser(ctx);
 			const newBuilding = input.building as Building_Type;
 			if (userBase == null) {
 				return null;
@@ -162,10 +162,20 @@ export const baseRouter = createTRPCRouter({
 			if (resourcesAfter == null) {
 				return null;
 			}
+			if (
+				!BaseManager.canBuildAtPosition(
+					input.position,
+					newBuilding,
+					userBase.buildings,
+					BaseManager.getBaseSize(userBase.level),
+				)
+			) {
+				return null;
+			}
+
 			const now = new Date();
-			const finishedAt = new Date(now.getTime() + BuildingManager.buildTimeSeconds[newBuilding] * 1_000);
+			const finishedAt = new Date(now.getTime() + BuildingManager.BUILDING_DATA[newBuilding].buildTimeSeconds * 1_000);
 			// TODO: Verify this works as intended, could create a memory leak in DB
-			// TODO Collision Detection
 			const baseAfter = await ctx.prisma.base.update({
 				where: { id: userBase.id },
 				data: {
@@ -175,7 +185,7 @@ export const baseRouter = createTRPCRouter({
 							type: newBuilding,
 							x: input.position.x,
 							y: input.position.y,
-							hp: BuildingManager.maxHP[newBuilding],
+							hp: BuildingManager.BUILDING_DATA[newBuilding].maxHP,
 							finishedAt,
 						},
 					},

@@ -1,5 +1,6 @@
 import type { Building, Building_Type, Resource, Resource_Type } from '@prisma/client';
 import { Constants } from '../../../utils/constants';
+import type { Size } from '../../interfaces/general';
 
 type BuildingStats = {
 	maxHP: number;
@@ -7,10 +8,7 @@ type BuildingStats = {
 	generatedResourcesPerInterval: Partial<Record<Resource_Type, number>>;
 	energyDraw: number;
 	costs: Partial<Record<Resource_Type, number>>;
-	size: {
-		width: number;
-		height: number;
-	};
+	size: Size;
 };
 
 export default class BuildingManager {
