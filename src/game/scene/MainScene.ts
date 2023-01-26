@@ -1,4 +1,5 @@
 import type GameSyncManager from '../manager/GameSyncManager';
+import Phaser from 'phaser';
 
 export default class MainScene extends Phaser.Scene {
 	gameSyncManager: GameSyncManager;

@@ -52,8 +52,11 @@ export const baseRouter = createTRPCRouter({
 
 	createBaseIfNotExists: protectedProcedure.mutation(async ({ ctx }) => {
 		const id = ctx.session.user.id;
-		return ctx.prisma.base.create({
-			data: { userId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
+		return ctx.prisma.base.upsert({
+			where: { userId: id },
+			create: { userId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
+			update: {},
+			include: baseInclude,
 		});
 	}),
 
