@@ -20,7 +20,9 @@ export default class UIScene extends Phaser.Scene {
 		});
 	}
 
-	update(time: number, delta: number): void {}
+	update(time: number, delta: number): void {
+		//
+	}
 
 	private displayStats() {
 		const stats = this.gameSyncManager.getBaseData();

@@ -22,7 +22,7 @@ interface GameComponentProps {
 
 export function GameComponent({ sessionData }: GameComponentProps) {
 	const parentEl = useRef<HTMLDivElement>(null);
-	const _game = useGame(gameConfig, parentEl);
+	useGame(gameConfig, parentEl);
 
 	return (
 		<>
