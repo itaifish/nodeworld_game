@@ -9,14 +9,9 @@ import { api } from '../utils/api';
 const LoginButton: React.FC = () => {
 	const { data: sessionData } = useSession();
 
-	const { data: baseData } = api.base.getBaseData.useQuery();
-
 	return (
 		<div className={styles.authContainer}>
-			<p className={styles.showcaseText}>
-				{sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-				{baseData && <> {baseData} </>}
-			</p>
+			<p className={styles.showcaseText}>{sessionData && <span>Logged in as {sessionData.user?.name}</span>}</p>
 			{sessionData && (
 				<button
 					className={styles.loginButton}
