@@ -3,6 +3,7 @@ import type { AppRouter } from '../../server/api/root';
 import superjson from 'superjson';
 import type { BaseDetails } from '../interfaces/base';
 import EventEmitter from 'events';
+import { clientEnv } from '../../env/schema.mjs';
 
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
@@ -18,7 +19,7 @@ export default class GameSyncManager extends EventEmitter {
 		this.client = createTRPCProxyClient<AppRouter>({
 			links: [
 				httpBatchLink({
-					url: 'http://localhost:3000/api/trpc',
+					url: `${clientEnv.NEXT_PUBLIC_TRPC_URL}`,
 				}),
 			],
 			transformer: superjson,
