@@ -10,6 +10,13 @@ export default class BaseGridBoard extends Board {
 		super(scene, { ...config, ...size });
 		this.scene = scene;
 		this.size = size;
+		this.init();
+	}
+
+	init() {
+		this.once('destroy', () => {
+			// cleanup
+		});
 	}
 
 	getWorldCameraOrigin(): { x: number; y: number } {
