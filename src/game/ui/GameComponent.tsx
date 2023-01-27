@@ -31,7 +31,7 @@ interface GameComponentProps {
 	sessionData: Session | null;
 }
 
-export function GameComponent({ sessionData }: GameComponentProps) {
+export function GameComponent({}: GameComponentProps) {
 	const parentEl = useRef<HTMLDivElement>(null);
 	useGame(gameConfig, parentEl);
 

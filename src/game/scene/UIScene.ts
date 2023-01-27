@@ -1,5 +1,4 @@
 import GameSyncManager from '../manager/GameSyncManager';
-import GoldSpaceBackground from '../resources/images/backgrounds/GoldSpaceBackground.png';
 
 export default class UIScene extends Phaser.Scene {
 	gameSyncManager: GameSyncManager;
@@ -20,6 +19,7 @@ export default class UIScene extends Phaser.Scene {
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.displayStats());
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	update(time: number, delta: number): void {
 		//
 	}

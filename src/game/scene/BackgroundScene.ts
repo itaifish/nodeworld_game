@@ -1,4 +1,3 @@
-import { log } from '../../utility/logger';
 import GoldSpaceBackground from '../resources/images/backgrounds/GoldSpaceBackground.png';
 
 export default class BackgroundScene extends Phaser.Scene {

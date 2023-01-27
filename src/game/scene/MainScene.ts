@@ -127,7 +127,7 @@ export default class MainScene extends Phaser.Scene {
 		board.forEachTileXY((tileXY) => {
 			const tileImage = this.add.image(0, 0, 'tile').setAlpha(0.5);
 			tileImage.setDisplaySize(cellSize.width, cellSize.height);
-			const tile = board.addChess(tileImage, tileXY.x, tileXY.y, 0);
+			board.addChess(tileImage, tileXY.x, tileXY.y, 0);
 		});
 		this.board = board;
 
