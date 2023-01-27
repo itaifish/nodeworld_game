@@ -6,11 +6,11 @@ import { useGame } from '../../hooks/useGame';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
 	width: '100%',
-	height: '80%',
+	height: '100%',
 	type: Phaser.AUTO,
 	scale: {
 		mode: Phaser.Scale.FIT,
-		autoCenter: Phaser.Scale.CENTER_BOTH,
+		autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
 		resizeInterval: 100,
 	},
 	autoFocus: true,

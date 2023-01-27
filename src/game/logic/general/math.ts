@@ -14,3 +14,7 @@ export function isRectCollision(rect1: Rect, rect2: Rect) {
 		rect1.height + rect1.y > rect2.y
 	);
 }
+
+export function clamp(num: number, max: number, min: number): number {
+	return Math.min(Math.max(num, min), max);
+}
