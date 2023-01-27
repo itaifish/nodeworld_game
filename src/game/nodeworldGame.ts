@@ -4,7 +4,7 @@ import MainScene from './scene/MainScene';
 import UIScene from './scene/UIScene';
 
 export default class NodeworldGame extends Phaser.Game {
-	private readonly gameSyncManager: GameSyncManager;
+	readonly gameSyncManager: GameSyncManager;
 
 	constructor(config: Phaser.Types.Core.GameConfig | undefined, gameSyncManager: GameSyncManager) {
 		super(config);

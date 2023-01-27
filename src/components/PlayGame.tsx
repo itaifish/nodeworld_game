@@ -31,7 +31,7 @@ const Play = () => {
 
 	return (
 		<main className={styles.main} style={{ backgroundImage: `url(${background.src})` }}>
-			<div className={styles.container} style={{ gap: '0rem', padding: '0rem 0rem' }}>
+			<div className={styles.container} style={{ gap: '0rem', padding: '0rem 0rem', height: '100%' }}>
 				{gameJSX}
 			</div>
 		</main>

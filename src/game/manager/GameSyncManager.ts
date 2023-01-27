@@ -4,6 +4,7 @@ import superjson from 'superjson';
 import type { BaseDetails } from '../interfaces/base';
 import EventEmitter from 'events';
 import { clientEnv } from '../../env/schema.mjs';
+import { log } from '../../utility/logger';
 
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
@@ -24,7 +25,9 @@ export default class GameSyncManager extends EventEmitter {
 			],
 			transformer: superjson,
 		});
-		this.updateBaseGameState();
+		// this.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => {
+		// 	log.trace('Base Game State Updated');
+		// });
 	}
 
 	async updateBaseGameState() {

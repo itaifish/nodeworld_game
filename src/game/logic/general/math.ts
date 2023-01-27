@@ -18,3 +18,7 @@ export function isRectCollision(rect1: Rect, rect2: Rect) {
 export function clamp(num: number, max: number, min: number): number {
 	return Math.min(Math.max(num, min), max);
 }
+
+export function getRandomElementInList<T>(list: Array<T>): T {
+	return list[Math.floor(Math.random() * list.length)] as T;
+}

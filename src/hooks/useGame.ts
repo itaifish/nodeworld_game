@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import type { Types } from 'phaser';
-import type { Game } from 'phaser';
 import NodeworldGame from '../game/nodeworldGame';
 import GameSyncManager from '../game/manager/GameSyncManager';
 
 export function useGame(
 	config: Types.Core.GameConfig,
 	containerRef: React.RefObject<HTMLDivElement>,
-): Game | undefined {
-	const [game, setGame] = useState<Game>();
+): NodeworldGame | undefined {
+	const [game, setGame] = useState<NodeworldGame>();
+	const [gameSyncManager, _] = useState<GameSyncManager>(new GameSyncManager());
 	useEffect(() => {
 		if (!game && containerRef.current) {
 			setGame((oldGame) => {
 				if (!oldGame && containerRef.current) {
-					return new NodeworldGame({ ...config, parent: containerRef.current }, new GameSyncManager());
+					return new NodeworldGame({ ...config, parent: containerRef.current }, gameSyncManager);
 				} else {
 					return oldGame;
 				}
@@ -22,7 +22,7 @@ export function useGame(
 		return () => {
 			game?.destroy(true);
 		};
-	}, [config, containerRef, game]);
+	}, [config, containerRef, game, gameSyncManager]);
 
 	return game;
 }

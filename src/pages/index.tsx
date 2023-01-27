@@ -4,8 +4,6 @@ import Head from 'next/head';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import background from '../../public/endless-constellation.svg';
 
-import { api } from '../utils/api';
-
 const LoginButton: React.FC = () => {
 	const { data: sessionData } = useSession();
 
