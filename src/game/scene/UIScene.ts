@@ -1,4 +1,5 @@
 import GameSyncManager from '../manager/GameSyncManager';
+import GoldSpaceBackground from '../resources/images/backgrounds/GoldSpaceBackground.png';
 
 export default class UIScene extends Phaser.Scene {
 	gameSyncManager: GameSyncManager;

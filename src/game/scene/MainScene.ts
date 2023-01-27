@@ -21,6 +21,7 @@ export default class MainScene extends Phaser.Scene {
 	board: BaseGridBoard;
 	cameraController: Phaser.Cameras.Controls.SmoothedKeyControl;
 	background: Phaser.GameObjects.Image;
+	bounds: Size;
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
@@ -35,7 +36,9 @@ export default class MainScene extends Phaser.Scene {
 	create() {
 		// TODO: Investigate if this will cause a memory leak
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.createBoard());
+
 		const cursors = this.input.keyboard.createCursorKeys();
+
 		this.cameraController = new Phaser.Cameras.Controls.SmoothedKeyControl({
 			camera: this.cameras.main,
 
@@ -43,12 +46,30 @@ export default class MainScene extends Phaser.Scene {
 			right: cursors.right,
 			up: cursors.up,
 			down: cursors.down,
-			zoomIn: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.MINUS),
-			zoomOut: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PLUS),
-
+			zoomIn: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q),
+			zoomOut: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
+			zoomSpeed: 0.02,
 			acceleration: 0.09,
 			drag: 0.003,
 			maxSpeed: 0.5,
+		});
+
+		this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+			if (!pointer.middleButtonDown()) {
+				return;
+			}
+
+			this.cameraController.camera.scrollX -= (pointer.x - pointer.prevPosition.x) / this.cameraController.camera.zoom;
+			this.cameraController.camera.scrollY -= (pointer.y - pointer.prevPosition.y) / this.cameraController.camera.zoom;
+		});
+
+		this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _gameObjects: any[], deltaX: number) => {
+			log.debug(_pointer);
+			if (deltaX > 0) {
+				this.cameraController.camera.zoom += this.cameraController.zoomSpeed;
+			} else {
+				this.cameraController.zoomOut.emit('keydown');
+			}
 		});
 
 		// tileset map
@@ -56,15 +77,18 @@ export default class MainScene extends Phaser.Scene {
 
 		// Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
 		// Phaser's cache (i.e. the name you used in preload)
+		// TODO: Credit  www.zingot.com
 		const tileset = map.addTilesetImage('space-blks-64', 'tiles');
 		// Parameters: layer name (or index) from Tiled, tileset, x, y
 		const layers = [];
-		layers.push(map.createLayer('BackgroundLayer', tileset, 0, 0));
-		layers.push(map.createLayer('ForegroundLayer', tileset, 0, 0));
-		layers.push(map.createLayer('TopLayer', tileset, 0, 0));
+		layers.push(map.createLayer('BackgroundLayer', tileset, -25, -25));
+		layers.push(map.createLayer('ForegroundLayer', tileset, -25, -25));
+		layers.push(map.createLayer('TopLayer', tileset, -25, -25));
 		layers.forEach((layer) => {
 			layer.setScale(cellSize.width / map.tileWidth);
 		});
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		this.bounds = { width: layers[0]!.displayWidth, height: layers[0]!.displayHeight };
 	}
 
 	update(time: number, delta: number) {
@@ -99,7 +123,7 @@ export default class MainScene extends Phaser.Scene {
 			},
 			baseSize,
 		);
-		this.rexBoard.createTileTexture(board, 'tile', 0xffffff55, 0xff000088, 3);
+		this.rexBoard.createTileTexture(board, 'tile', 0xffffff00, 0xffffff, 1);
 		board.forEachTileXY((tileXY) => {
 			const tileImage = this.add.image(0, 0, 'tile').setAlpha(0.5);
 			tileImage.setDisplaySize(cellSize.width, cellSize.height);
@@ -110,6 +134,12 @@ export default class MainScene extends Phaser.Scene {
 		// Camera
 		const maxSize = this.board.getWorldSize();
 		const minXY = this.board.getWorldCameraOrigin();
-		this.cameraController.camera.setBounds(minXY.x, minXY.y, maxSize.x, maxSize.y + 300);
+		const extraRoom = 550;
+		this.cameraController.camera.setBounds(
+			minXY.x - extraRoom,
+			minXY.y - extraRoom,
+			Math.max(maxSize.x, this.bounds.width) + extraRoom * 2,
+			Math.max(maxSize.y, this.bounds.height) + extraRoom + 300,
+		);
 	}
 }

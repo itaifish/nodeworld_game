@@ -1,3 +1,4 @@
+import { log } from '../../utility/logger';
 import GoldSpaceBackground from '../resources/images/backgrounds/GoldSpaceBackground.png';
 
 export default class BackgroundScene extends Phaser.Scene {
@@ -12,5 +13,8 @@ export default class BackgroundScene extends Phaser.Scene {
 		const bestScale = Math.max(width / background.width, height / background.height);
 		background.setScale(bestScale);
 		background.setPosition((background.width / 2) * bestScale, (bestScale * background.height) / 2, -100);
+		// this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+		// 	log.info(pointer.worldX, pointer.worldY);
+		// });
 	}
 }
