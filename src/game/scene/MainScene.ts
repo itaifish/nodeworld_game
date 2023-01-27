@@ -51,7 +51,7 @@ export default class MainScene extends Phaser.Scene {
 			zoomSpeed: 0.02,
 			acceleration: 0.09,
 			drag: 0.003,
-			maxSpeed: 0.5,
+			maxSpeed: 0.8,
 		});
 
 		this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
@@ -95,6 +95,7 @@ export default class MainScene extends Phaser.Scene {
 		super.update(time, delta);
 		this.cameraController.update(delta);
 		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 3, 0.5));
+		this.constrainCamera();
 	}
 
 	private createBoard() {
@@ -135,15 +136,22 @@ export default class MainScene extends Phaser.Scene {
 		});
 		this.board = board;
 
+		this.constrainCamera();
+	}
+
+	private constrainCamera() {
+		if (this.board == null) {
+			return;
+		}
 		// Camera
 		const maxSize = this.board.getWorldSize();
 		const minXY = this.board.getWorldCameraOrigin();
-		const extraRoom = 550;
+		const extraRoom = 550 / this.cameraController.camera.zoom;
 		this.cameraController.camera.setBounds(
 			minXY.x - extraRoom,
 			minXY.y - extraRoom,
 			Math.max(maxSize.x, this.bounds.width) + extraRoom * 2,
-			Math.max(maxSize.y, this.bounds.height) + extraRoom + 300,
+			Math.max(maxSize.y, this.bounds.height) + extraRoom + 300 / this.cameraController.camera.zoom,
 		);
 	}
 }

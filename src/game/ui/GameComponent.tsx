@@ -12,6 +12,7 @@ import StarryPeaks from '../resources/images/backgrounds/loading-screens/Starry 
 import Image from 'next/image';
 import { getRandomElementInList } from '../logic/general/math';
 import styles from '../../pages/index.module.css';
+import { log } from '../../utility/logger';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
 	width: '100%',
@@ -52,14 +53,40 @@ export function GameComponent({}: GameComponentProps) {
 		}
 		game.gameSyncManager.updateBaseGameState().then(() => {
 			setLoading(false);
+			if (game.gameSyncManager.getBaseData() == null) {
+				log.info('Looks like the player does not yet have a base, creating on for them');
+				game.gameSyncManager.createBaseIfNotExists();
+			}
 		});
 	}, [game, loading]);
 
 	const loadingJSX = (
-		<>
-			<h2 className={styles.title}>Loading</h2>
-			<Image src={getRandomElementInList(loadingBackgrounds)} alt="loading image" />
-		</>
+		<div
+			className="TEST"
+			style={{
+				backgroundImage: `url("${getRandomElementInList(loadingBackgrounds).src}")`,
+				backgroundPosition: 'center' /* Center the image */,
+				backgroundRepeat: 'no-repeat' /* Do not repeat the image */,
+				backgroundSize: 'cover' /* Resize the background image to cover the entire container */,
+				width: '1600px',
+				height: '900px',
+			}}
+		>
+			<h2
+				className={styles.title}
+				style={{
+					margin: 0,
+					position: 'absolute',
+					top: '50%',
+					left: '40%',
+					MozTransformOrigin: 'translateY(-50%)',
+					transform: 'translateY(-50%)',
+					textAlign: 'center',
+				}}
+			>
+				Loading
+			</h2>
+		</div>
 	);
 
 	return (
