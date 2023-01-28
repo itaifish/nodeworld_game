@@ -94,7 +94,7 @@ export default class MainScene extends Phaser.Scene {
 	update(time: number, delta: number) {
 		super.update(time, delta);
 		this.cameraController.update(delta);
-		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 3, 0.5));
+		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 3, 0.4));
 		this.constrainCamera();
 	}
 

@@ -39,7 +39,7 @@ export default class BuildingManager {
 				GOLD: 30,
 				ALUMNINUM: 10,
 			},
-			size: { width: 1, height: 1 },
+			size: { width: 2, height: 2 },
 		},
 		HARVESTOR: {
 			maxHP: 100,
@@ -78,7 +78,7 @@ export default class BuildingManager {
 				IRON: 30,
 				ALUMNINUM: 50,
 			},
-			size: { width: 1, height: 1 },
+			size: { width: 1, height: 2 },
 		},
 		EXTRACTOR: {
 			maxHP: 100,

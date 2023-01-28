@@ -1,20 +1,27 @@
+import type { Resource, Resource_Type } from '@prisma/client';
 import GameSyncManager from '../manager/GameSyncManager';
 
 export default class UIScene extends Phaser.Scene {
-	gameSyncManager: GameSyncManager;
+	static readonly BAR_THICKNESS = 150;
+	static readonly TEXT_MARGIN_TOP = 25;
 
-	statsText: Phaser.GameObjects.Text | null = null;
+	gameSyncManager: GameSyncManager;
+	statsText: Map<Resource_Type, Phaser.GameObjects.Text>;
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
+		this.statsText = new Map();
 	}
 
 	create() {
 		const mainWidth = this.cameras.main.width;
 		const mainHeight = this.cameras.main.height;
-		const rect = this.add.rectangle(0, mainHeight, mainWidth * 2, mainHeight / 3, 0x6666ff);
-		this.statsText = this.add.text(300, rect.getTopLeft().y + 50, 'No Base Data');
+		//GUI BAr
+		const graphics = this.add.graphics();
+		graphics.fillGradientStyle(0x4444dd, 0x25247a, 0x6622aa, 0x3131ff, 1);
+		graphics.fillRect(0, mainHeight - UIScene.BAR_THICKNESS, mainWidth, UIScene.BAR_THICKNESS);
+		graphics.stroke();
 		// TODO: Do we need to delete this event if the scene *dies* or something? Research https://gist.github.com/samme/01a33324a427f626254c1a4da7f9b6a3?permalink_comment_id=3321966#gistcomment-3321966
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.displayStats());
 	}
@@ -29,8 +36,33 @@ export default class UIScene extends Phaser.Scene {
 		if (stats == null || this.statsText == null) {
 			return;
 		}
-		let displayText = '';
-		displayText += stats.resources.map((resource) => `[${resource.type}] ${resource.amount}`).join('\t');
-		this.statsText.setText(displayText);
+
+		for (let i = 0; i < stats.resources.length; i++) {
+			const { type, amount } = stats.resources[i] as Resource;
+			let statsText = this.statsText.get(type);
+			if (statsText == undefined) {
+				statsText = this.add.text(
+					UIScene.TEXT_MARGIN_TOP,
+					this.cameras.main.height - UIScene.BAR_THICKNESS + UIScene.TEXT_MARGIN_TOP * (i + 1),
+					'',
+				);
+				this.statsText.set(type, statsText);
+			}
+			statsText.setFont('"Press Start 2P');
+			statsText.setFontSize(40);
+			statsText.setTint(0xc0c0c0);
+			statsText.setText(`${this.getResourceSymbol(type)} | ${amount}`);
+		}
+	}
+
+	private getResourceSymbol(resourceType: Resource_Type) {
+		const map: Record<Resource_Type, string> = {
+			FOOD: 'Food 🍔',
+			GOLD: 'Gold 🪙',
+			ALUMNINUM: 'Aluminum 🧱',
+			IRON: 'Iron 🧱',
+			PLUTONIUM: 'Plutonium ☢️',
+		};
+		return map[resourceType] ?? resourceType;
 	}
 }
