@@ -38,9 +38,14 @@ export default class UIScene extends Phaser.Scene {
 		graphics.stroke();
 		// TODO: Do we need to delete this event if the scene *dies* or something? Research https://gist.github.com/samme/01a33324a427f626254c1a4da7f9b6a3?permalink_comment_id=3321966#gistcomment-3321966
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.displayStats());
-		new Button(this, { x: 300, y: mainHeight - UIScene.BAR_THICKNESS / 2 }, () => {
-			log.info('click');
-		});
+		new Button(
+			this,
+			{ x: 300, y: mainHeight - UIScene.BAR_THICKNESS / 2 },
+			() => {
+				log.info('click');
+			},
+			'Create Building',
+		);
 
 		// Dispatch a window resize event every half second for 10 seconds to allow for mouse input
 		// Bizzare workaround to input bug
