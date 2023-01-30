@@ -18,6 +18,16 @@ module.exports = {
 				'@typescript-eslint/interface-name-prefix': 'off',
 				'@typescript-eslint/no-use-before-define': ['error'],
 				'@typescript-eslint/explicit-module-boundary-types': 'off',
+				'@typescript-eslint/no-explicit-any': 'off',
+				'no-unused-vars': 'off',
+				'@typescript-eslint/no-unused-vars': [
+					'warn', // or "error"
+					{
+						argsIgnorePattern: '^_',
+						varsIgnorePattern: '^_',
+						caughtErrorsIgnorePattern: '^_',
+					},
+				],
 			},
 			files: ['*.ts', '*.tsx'],
 			parserOptions: {

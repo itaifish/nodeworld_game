@@ -63,13 +63,10 @@ export default class MainScene extends Phaser.Scene {
 			this.cameraController.camera.scrollY -= (pointer.y - pointer.prevPosition.y) / this.cameraController.camera.zoom;
 		});
 
-		this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _gameObjects: any[], deltaX: number) => {
-			log.debug(_pointer);
-			if (deltaX > 0) {
-				this.cameraController.camera.zoom += this.cameraController.zoomSpeed;
-			} else {
-				this.cameraController.zoomOut.emit('keydown');
-			}
+		this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _gameObjects: any[]) => {
+			// log.debug(_pointer);
+			this.cameraController.camera.zoom -= (this.cameraController.zoomSpeed * _pointer.deltaY) / 30;
+			this.constrainCamera();
 		});
 
 		// tileset map
@@ -94,7 +91,6 @@ export default class MainScene extends Phaser.Scene {
 	update(time: number, delta: number) {
 		super.update(time, delta);
 		this.cameraController.update(delta);
-		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 3, 0.4));
 		this.constrainCamera();
 	}
 
@@ -146,12 +142,13 @@ export default class MainScene extends Phaser.Scene {
 		// Camera
 		const maxSize = this.board.getWorldSize();
 		const minXY = this.board.getWorldCameraOrigin();
-		const extraRoom = 550 / this.cameraController.camera.zoom;
+		const extraRoom = 250 / this.cameraController.camera.zoom;
 		this.cameraController.camera.setBounds(
 			minXY.x - extraRoom,
 			minXY.y - extraRoom,
 			Math.max(maxSize.x, this.bounds.width) + extraRoom * 2,
 			Math.max(maxSize.y, this.bounds.height) + extraRoom + 300 / this.cameraController.camera.zoom,
 		);
+		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 3, 0.4));
 	}
 }
