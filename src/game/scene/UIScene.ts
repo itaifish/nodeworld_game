@@ -12,6 +12,7 @@ import XCloseIcon from '../resources/images/gui/icons/x_icon.png';
 import Button from '../ui/button/Button';
 import ConstructBuildingUIScene from './ConstructBuildingUIScene';
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
+import { UIConstants } from '../ui/constants';
 
 export default class UIScene extends Phaser.Scene {
 	static readonly BAR_THICKNESS = 150;
@@ -51,7 +52,7 @@ export default class UIScene extends Phaser.Scene {
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.displayStats());
 		new Button(
 			this,
-			{ x: 300, y: mainHeight - UIScene.BAR_THICKNESS / 2 },
+			{ x: 330, y: mainHeight - UIScene.BAR_THICKNESS / 2 },
 			() => {
 				this.constructBuildingUIScene.sys.setVisible(true);
 			},
@@ -97,21 +98,10 @@ export default class UIScene extends Phaser.Scene {
 				);
 				this.statsText.set(type, statsText);
 			}
-			statsText.setFont('"Press Start 2P');
-			statsText.setFontSize(40);
+			statsText.setFont(UIConstants.font);
+			statsText.setFontSize(18);
 			statsText.setTint(0xc0c0c0);
-			statsText.setText(`${UIScene.getResourceSymbol(type)} | ${amount}`);
+			statsText.setText(`${UIConstants.getResourceSymbol(type)} | ${amount}`);
 		}
-	}
-
-	static getResourceSymbol(resourceType: Resource_Type) {
-		const map: Record<Resource_Type, string> = {
-			FOOD: 'Food 🍔',
-			GOLD: 'Gold 🪙',
-			ALUMNINUM: 'Aluminum 🧱',
-			IRON: 'Iron 🧱',
-			PLUTONIUM: 'Plutonium ☢️',
-		};
-		return map[resourceType] ?? resourceType;
 	}
 }

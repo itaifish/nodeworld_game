@@ -15,6 +15,7 @@ import type { Building_Type, Resource_Type } from '@prisma/client';
 import { cellSize } from './MainScene';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import type { Rect } from '../interfaces/general';
+import { UIConstants } from '../ui/constants';
 
 type BuildingInfo = {
 	textureKey: string;
@@ -65,7 +66,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 	create() {
 		const cameraHeight = this.cameras.main.displayHeight - UIScene.BAR_THICKNESS;
 		const height = cameraHeight * 0.75;
-		const width = this.cameras.main.displayWidth * 0.75;
+		const width = this.cameras.main.displayWidth * 0.85;
 		const x = (this.cameras.main.displayWidth - width) / 2;
 		const y = (cameraHeight - height) / 2;
 		this.constructRectangle = { x, y, width, height };
@@ -87,8 +88,8 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 			const buildingType = key as Building_Type;
 			const resourcesAfter = resources && BuildingManager.getResourcesAfterPurchase(resources, buildingType);
 			if (resourcesAfter == null) {
-				value.text.setColor('darkred');
-				value.text.setShadow(1, 1, 'grey', 1);
+				value.text.setColor('red');
+				value.text.setShadow(1, 1, 'black', 1);
 			} else {
 				value.text.setColor('white');
 				value.text.setShadow(1, 1, 'blue', 3);
@@ -100,7 +101,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		const { x, y, width } = this.constructRectangle;
 		let yOffset = 50;
 		const title = this.add.text(x + width / 2, y + yOffset, 'Construct a Building');
-		title.setFont('Consolas');
+		title.setFont(UIConstants.font);
 		title.setFontSize(30);
 		title.setOrigin(0.5, 0.5);
 
@@ -108,7 +109,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		const xOffset = width / numCols;
 		const buildings = Object.keys(ConstructBuildingUIScene.Buildings) as Building_Type[];
 		let buildingIndex = 0;
-		yOffset += 100;
+		yOffset += 80;
 		while (buildingIndex < buildings.length) {
 			for (let i = 0; i < numCols; i++) {
 				if (buildingIndex >= buildings.length) {
@@ -125,7 +126,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				const costsStr = Object.entries(costs)
 					.map(
 						([costKey, costValue]) => `
-						> ${UIScene.getResourceSymbol(costKey as Resource_Type)}: ${costValue}`,
+						> ${UIConstants.getResourceSymbol(costKey as Resource_Type)}: ${costValue}`,
 					)
 					.join('\n');
 				const imageInfoText = `${buildingType}\n
@@ -139,8 +140,8 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 					y + yOffset - cellSize.height / 2,
 					imageInfoText,
 				);
-				infoTextObj.setFont('Consolas');
-				infoTextObj.setFontSize(15);
+				infoTextObj.setFont(UIConstants.font);
+				infoTextObj.setFontSize(18);
 				infoTextObj.setOrigin(0, 0);
 				infoTextObj.setShadow(1, 1, 'blue', 3);
 
@@ -150,7 +151,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				};
 				buildingIndex++;
 			}
-			yOffset += 100 + cellSize.height;
+			yOffset += 130 + cellSize.height;
 		}
 	}
 }
