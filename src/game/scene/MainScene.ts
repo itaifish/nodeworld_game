@@ -10,7 +10,7 @@ import tileMap from '../resources/tileProjects/gameMap.json';
 import tilesImage from '../resources/images/tilemaps/space-blks-1.034.png';
 import type { Size } from '../interfaces/general';
 
-const cellSize: Size = {
+export const cellSize: Size = {
 	width: 100,
 	height: 100,
 };

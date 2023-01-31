@@ -1,18 +1,25 @@
+import Phaser from 'phaser';
 import type { Resource, Resource_Type } from '@prisma/client';
 import { log } from 'src/utility/logger';
 import GameSyncManager from '../manager/GameSyncManager';
 import NormalButton from '../resources/images/gui/buttons/Button.png';
 import HoverButton from '../resources/images/gui/buttons/ButtonHover.png';
 import PressedButton from '../resources/images/gui/buttons/ButtonPressed.png';
+import SquareNormalButton from '../resources/images/gui/buttons/SquareButton.png';
+import SquareHoverButton from '../resources/images/gui/buttons/SquareButtonHover.png';
+import SquarePressedButton from '../resources/images/gui/buttons/SquareButtonPressed.png';
+import XCloseIcon from '../resources/images/gui/icons/x_icon.png';
 import Button from '../ui/button/Button';
+import ConstructBuildingUIScene from './ConstructBuildingUIScene';
+import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 
 export default class UIScene extends Phaser.Scene {
 	static readonly BAR_THICKNESS = 150;
 	static readonly TEXT_MARGIN_TOP = 25;
 
 	gameSyncManager: GameSyncManager;
-
 	statsText: Map<Resource_Type, Phaser.GameObjects.Text>;
+	constructBuildingUIScene: Phaser.Scene;
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
@@ -21,9 +28,13 @@ export default class UIScene extends Phaser.Scene {
 	}
 
 	preload() {
-		this.load.image('NormalButton', NormalButton.src);
-		this.load.image('HoverButton', HoverButton.src);
-		this.load.image('PressedButton', PressedButton.src);
+		this.load.image(TEXTURE_KEYS.NormalButton, NormalButton.src);
+		this.load.image(TEXTURE_KEYS.HoverButton, HoverButton.src);
+		this.load.image(TEXTURE_KEYS.PressedButton, PressedButton.src);
+		this.load.image(TEXTURE_KEYS.SquareNormalButton, SquareNormalButton.src);
+		this.load.image(TEXTURE_KEYS.SquareHoverButton, SquareHoverButton.src);
+		this.load.image(TEXTURE_KEYS.SquarePressedButton, SquarePressedButton.src);
+		this.load.image(TEXTURE_KEYS.XCloseIcon, XCloseIcon.src);
 	}
 
 	create() {
@@ -42,7 +53,7 @@ export default class UIScene extends Phaser.Scene {
 			this,
 			{ x: 300, y: mainHeight - UIScene.BAR_THICKNESS / 2 },
 			() => {
-				log.info('click');
+				this.constructBuildingUIScene.sys.setVisible(true);
 			},
 			'Create Building',
 		);
@@ -54,6 +65,14 @@ export default class UIScene extends Phaser.Scene {
 		setTimeout(() => {
 			clearInterval(keepResizing);
 		}, 10_000);
+
+		this.constructBuildingUIScene = this.scene.add(
+			'ConstructBuildingUIScene',
+			new ConstructBuildingUIScene({}, this.gameSyncManager),
+			true,
+		);
+		this.scene.bringToTop('ConstructBuildingUIScene');
+		this.constructBuildingUIScene.sys.setVisible(false);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -81,11 +100,11 @@ export default class UIScene extends Phaser.Scene {
 			statsText.setFont('"Press Start 2P');
 			statsText.setFontSize(40);
 			statsText.setTint(0xc0c0c0);
-			statsText.setText(`${this.getResourceSymbol(type)} | ${amount}`);
+			statsText.setText(`${UIScene.getResourceSymbol(type)} | ${amount}`);
 		}
 	}
 
-	private getResourceSymbol(resourceType: Resource_Type) {
+	static getResourceSymbol(resourceType: Resource_Type) {
 		const map: Record<Resource_Type, string> = {
 			FOOD: 'Food 🍔',
 			GOLD: 'Gold 🪙',

@@ -1,14 +1,39 @@
 import Phaser from 'phaser';
 import type { Position } from 'src/game/interfaces/general';
+import { TEXTURE_KEYS } from 'src/game/manager/TextureKeyManager';
 import { log } from 'src/utility/logger';
+
+type ButtonType = 'rectangle' | 'square';
+type ButtonAction = 'pressed' | 'normal' | 'hover';
 
 export default class Button {
 	scene: Phaser.Scene;
 	buttonImage: Phaser.GameObjects.Image;
+	buttonType: ButtonType;
 
-	constructor(scene: Phaser.Scene, position: Position, onClick: () => void, buttonName: string) {
+	static readonly buttonTextures: Record<ButtonType, Record<ButtonAction, string>> = {
+		square: {
+			normal: TEXTURE_KEYS.SquareNormalButton,
+			pressed: TEXTURE_KEYS.SquarePressedButton,
+			hover: TEXTURE_KEYS.SquareHoverButton,
+		},
+		rectangle: {
+			normal: TEXTURE_KEYS.NormalButton,
+			pressed: TEXTURE_KEYS.PressedButton,
+			hover: TEXTURE_KEYS.HoverButton,
+		},
+	};
+
+	constructor(
+		scene: Phaser.Scene,
+		position: Position,
+		onClick: () => void,
+		buttonName: string,
+		type: ButtonType = 'rectangle',
+	) {
+		this.buttonType = type;
 		this.scene = scene;
-		this.buttonImage = scene.add.image(position.x, position.y, 'NormalButton');
+		this.buttonImage = scene.add.image(position.x, position.y, Button.buttonTextures[this.buttonType].normal);
 		const text = scene.add.text(position.x, position.y, buttonName);
 		text.setFont('Consolas');
 		text.setFontSize(17);
@@ -21,23 +46,25 @@ export default class Button {
 		this.buttonImage.setInteractive();
 
 		this.buttonImage.on(Phaser.Input.Events.POINTER_OVER, () => {
-			this.buttonImage.setTexture('HoverButton');
+			this.buttonImage.setTexture(Button.buttonTextures[this.buttonType].hover);
 		});
 		this.buttonImage.on(Phaser.Input.Events.POINTER_OUT, () => {
-			this.buttonImage.setTexture('NormalButton');
+			this.buttonImage.setTexture(Button.buttonTextures[this.buttonType].normal);
 			text.setShadow(1, 1);
 		});
 		this.buttonImage.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, () => {
-			this.buttonImage.setTexture('NormalButton');
+			this.buttonImage.setTexture(Button.buttonTextures[this.buttonType].normal);
 		});
 		this.buttonImage.on(Phaser.Input.Events.POINTER_UP, (_pointer: Phaser.Input.Pointer) => {
-			this.buttonImage.setTexture('NormalButton');
+			this.buttonImage.setTexture(Button.buttonTextures[this.buttonType].normal);
 			text.setShadow(1, 1);
 		});
-		this.buttonImage.on(Phaser.Input.Events.POINTER_DOWN, () => {
-			this.buttonImage.setTexture('PressedButton');
-			text.setShadow(1, 0);
-			onClick();
+		this.buttonImage.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+			if (pointer.leftButtonDown()) {
+				this.buttonImage.setTexture(Button.buttonTextures[this.buttonType].pressed);
+				text.setShadow(1, 0);
+				onClick();
+			}
 		});
 	}
 }
