@@ -11,8 +11,9 @@ export default class NodeworldGame extends Phaser.Game {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.scene.add('BackgroundScene', new BackgroundScene({}), true);
-		this.scene.add('MainScene', new MainScene({}, gameSyncManager), true);
-		this.scene.add('UIScene', new UIScene({}, gameSyncManager), true);
+		const mainScene = new MainScene({}, gameSyncManager);
+		this.scene.add('MainScene', mainScene, true);
+		this.scene.add('UIScene', new UIScene({}, gameSyncManager, mainScene), true);
 		// Disable right click menu
 		this.canvas.oncontextmenu = (e: MouseEvent) => {
 			e.preventDefault();

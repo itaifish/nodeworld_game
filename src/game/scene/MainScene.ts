@@ -9,6 +9,7 @@ import { clamp } from '../logic/general/math';
 import tileMap from '../resources/tileProjects/gameMap.json';
 import tilesImage from '../resources/images/tilemaps/space-blks-1.034.png';
 import type { Size } from '../interfaces/general';
+import type DragNDropBuilding from '../board/DragNDropBuilding';
 
 export const cellSize: Size = {
 	width: 100,
@@ -22,10 +23,12 @@ export default class MainScene extends Phaser.Scene {
 	cameraController: Phaser.Cameras.Controls.SmoothedKeyControl;
 	background: Phaser.GameObjects.Image;
 	bounds: Size;
+	dragNDropBuilding: DragNDropBuilding | null;
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
+		this.dragNDropBuilding = null;
 	}
 
 	preload() {
@@ -54,7 +57,7 @@ export default class MainScene extends Phaser.Scene {
 			maxSpeed: 0.8,
 		});
 
-		this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+		this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
 			if (!pointer.middleButtonDown()) {
 				return;
 			}
@@ -63,7 +66,7 @@ export default class MainScene extends Phaser.Scene {
 			this.cameraController.camera.scrollY -= (pointer.y - pointer.prevPosition.y) / this.cameraController.camera.zoom;
 		});
 
-		this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _gameObjects: any[]) => {
+		this.input.on(Phaser.Input.Events.POINTER_WHEEL, (_pointer: Phaser.Input.Pointer, _gameObjects: any[]) => {
 			// log.debug(_pointer);
 			this.cameraController.camera.zoom -= (this.cameraController.zoomSpeed * _pointer.deltaY) / 30;
 			this.constrainCamera();
@@ -90,8 +93,26 @@ export default class MainScene extends Phaser.Scene {
 
 	update(time: number, delta: number) {
 		super.update(time, delta);
+
 		this.cameraController.update(delta);
 		this.constrainCamera();
+		if (this.dragNDropBuilding != null) {
+			this.input.activePointer.updateWorldPoint(this.cameraController.camera);
+			const mousePos = {
+				x: this.input.activePointer.worldX,
+				y: this.input.activePointer.worldY,
+			};
+			const boardSize = this.board.getWorldSize();
+			const newPosition = {
+				x: clamp(mousePos.x, boardSize.x, 0),
+				y: clamp(mousePos.y, boardSize.y, 0),
+			};
+			this.dragNDropBuilding.setPosition(newPosition);
+		}
+	}
+
+	setDragNDropBuilding(dragNDropBuilding: DragNDropBuilding) {
+		this.dragNDropBuilding = dragNDropBuilding;
 	}
 
 	private createBoard() {

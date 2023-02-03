@@ -12,10 +12,12 @@ import PowerStation from '../resources/images/buildings/power_station.png';
 import Barracks from '../resources/images/buildings/barracks.png';
 import UIScene from './UIScene';
 import type { Building_Type, Resource_Type } from '@prisma/client';
+import type MainScene from './MainScene';
 import { cellSize } from './MainScene';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import type { Rect } from '../interfaces/general';
 import { UIConstants } from '../ui/constants';
+import DragNDropBuilding from '../board/DragNDropBuilding';
 
 type BuildingInfo = {
 	textureKey: string;
@@ -23,7 +25,7 @@ type BuildingInfo = {
 };
 
 export default class ConstructBuildingUIScene extends Phaser.Scene {
-	gameSyncManager: GameSyncManager;
+	readonly gameSyncManager: GameSyncManager;
 	constructRectangle: Rect;
 	textAndImages: Record<
 		Building_Type,
@@ -33,6 +35,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		  }
 		| undefined
 	>;
+	readonly mainScene: MainScene;
 
 	static Buildings: Record<Building_Type, BuildingInfo> = {
 		CAPITAL_BUILDING: { textureKey: TEXTURE_KEYS.CapitalBuilding, src: CapitalBuilding.src },
@@ -43,7 +46,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
 	};
 
-	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
+	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager, mainScene: MainScene) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.textAndImages = {
@@ -54,6 +57,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 			HARVESTOR: undefined,
 			BARRACKS: undefined,
 		};
+		this.mainScene = mainScene;
 	}
 
 	preload() {
@@ -111,6 +115,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		let buildingIndex = 0;
 		yOffset += 80;
 		while (buildingIndex < buildings.length) {
+			let yIndexHeightIncrease = 0;
 			for (let i = 0; i < numCols; i++) {
 				if (buildingIndex >= buildings.length) {
 					break;
@@ -118,10 +123,28 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				const buildingType = buildings[buildingIndex]!;
 				const imageX = x + 100 + xOffset * i;
 				const image = this.add.image(imageX, y + yOffset, ConstructBuildingUIScene.Buildings[buildingType].textureKey);
-				image.setScale(cellSize.height / image.displayHeight);
+				const scale = cellSize.height / image.displayHeight;
+				yIndexHeightIncrease = Math.max(yIndexHeightIncrease, image.displayHeight);
+				image.setScale(scale);
 				image.setDepth(10);
 				image.setOrigin(0.5, 0.5);
 				image.setInteractive();
+				image.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+					if (!pointer.leftButtonDown() || !this.sys.isVisible()) {
+						return;
+					}
+					const resources = this.gameSyncManager.getBaseData()?.resources;
+					const resourcesAfter = resources && BuildingManager.getResourcesAfterPurchase(resources, buildingType);
+					if (resourcesAfter == null) {
+						return;
+					}
+					const building = new DragNDropBuilding(
+						this.mainScene,
+						buildingType,
+						ConstructBuildingUIScene.Buildings[buildingType].textureKey,
+					);
+					this.sys.setVisible(false);
+				});
 				const { size, buildTimeSeconds, energyDraw, costs } = BuildingManager.BUILDING_DATA[buildingType];
 				const costsStr = Object.entries(costs)
 					.map(
@@ -151,7 +174,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				};
 				buildingIndex++;
 			}
-			yOffset += 130 + cellSize.height;
+			yOffset += 100 + yIndexHeightIncrease;
 		}
 	}
 }

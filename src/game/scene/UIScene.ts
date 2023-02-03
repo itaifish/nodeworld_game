@@ -13,19 +13,22 @@ import Button from '../ui/button/Button';
 import ConstructBuildingUIScene from './ConstructBuildingUIScene';
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import { UIConstants } from '../ui/constants';
+import type MainScene from './MainScene';
 
 export default class UIScene extends Phaser.Scene {
 	static readonly BAR_THICKNESS = 150;
 	static readonly TEXT_MARGIN_TOP = 25;
 
-	gameSyncManager: GameSyncManager;
+	readonly gameSyncManager: GameSyncManager;
 	statsText: Map<Resource_Type, Phaser.GameObjects.Text>;
 	constructBuildingUIScene: Phaser.Scene;
+	readonly mainScene;
 
-	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
+	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager, mainScene: MainScene) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.statsText = new Map();
+		this.mainScene = mainScene;
 	}
 
 	preload() {
@@ -69,7 +72,7 @@ export default class UIScene extends Phaser.Scene {
 
 		this.constructBuildingUIScene = this.scene.add(
 			'ConstructBuildingUIScene',
-			new ConstructBuildingUIScene({}, this.gameSyncManager),
+			new ConstructBuildingUIScene({}, this.gameSyncManager, this.mainScene),
 			true,
 		);
 		this.scene.bringToTop('ConstructBuildingUIScene');
