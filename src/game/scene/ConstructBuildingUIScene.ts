@@ -16,6 +16,7 @@ import { cellSize } from './MainScene';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import type { Rect } from '../interfaces/general';
 import { UIConstants } from '../ui/constants';
+import { log } from 'src/utility/logger';
 
 type BuildingInfo = {
 	textureKey: string;
@@ -83,6 +84,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		const resources = this.gameSyncManager.getBaseData()?.resources;
 		Object.entries(this.textAndImages).forEach(([key, value]) => {
 			if (value == undefined) {
+				log.warn(`Unable to find data for ${key}`);
 				return;
 			}
 			const buildingType = key as Building_Type;
