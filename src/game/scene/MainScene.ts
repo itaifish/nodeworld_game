@@ -5,11 +5,13 @@ import { QuadGrid } from 'phaser3-rex-plugins/plugins/board-components';
 import { log } from '../../utility/logger';
 import BaseManager from '../logic/base/BaseManager';
 import BaseGridBoard from '../board/BaseGridBoard';
-import { clamp } from '../logic/general/math';
+import { clamp, setDifference } from '../logic/general/math';
 import tileMap from '../resources/tileProjects/gameMap.json';
 import tilesImage from '../resources/images/tilemaps/space-blks-1.034.png';
-import type { Size } from '../interfaces/general';
+import type { Position, Size } from '../interfaces/general';
 import type DragNDropBuilding from '../board/DragNDropBuilding';
+import Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangle';
+import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 
 export const cellSize: Size = {
 	width: 100,
@@ -23,12 +25,15 @@ export default class MainScene extends Phaser.Scene {
 	cameraController: Phaser.Cameras.Controls.SmoothedKeyControl;
 	background: Phaser.GameObjects.Image;
 	bounds: Size;
-	dragNDropBuilding: DragNDropBuilding | null;
+	dndData: {
+		building: DragNDropBuilding;
+		tilesOver: Set<Phaser.GameObjects.Image>;
+	} | null;
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
-		this.dragNDropBuilding = null;
+		this.dndData = null;
 	}
 
 	preload() {
@@ -96,7 +101,7 @@ export default class MainScene extends Phaser.Scene {
 
 		this.cameraController.update(delta);
 		this.constrainCamera();
-		if (this.dragNDropBuilding != null) {
+		if (this.dndData != null) {
 			this.input.activePointer.updateWorldPoint(this.cameraController.camera);
 			const mousePos = {
 				x: this.input.activePointer.worldX,
@@ -107,12 +112,33 @@ export default class MainScene extends Phaser.Scene {
 				x: clamp(mousePos.x, boardSize.x, 0),
 				y: clamp(mousePos.y, boardSize.y, 0),
 			};
-			this.dragNDropBuilding.setPosition(newPosition);
+			this.dndData.building.setPosition(newPosition);
+			// DragNDrop box highlighting
+			const tileXY: Position = this.board.worldXYToTileXY(newPosition.x, newPosition.y);
+			const buildingCellSize = this.dndData.building.getCellSize();
+			const tilesWorldXY: Position = this.board.tileXYToWorldXY(
+				tileXY.x - Math.floor(buildingCellSize.width / 2),
+				tileXY.y - Math.floor(buildingCellSize.height / 2),
+			);
+			const { width, height } = this.dndData.building.getDisplaySize();
+			const buildingPosRectangle = new Rectangle(tilesWorldXY.x, tilesWorldXY.y, width - 1, height - 1);
+			const tilesOverCords = this.board.rectangleToTileXYArray(buildingPosRectangle);
+			const tilesOver = new Set(this.board.tileXYArrayToChessArray(tilesOverCords) as Phaser.GameObjects.Image[]);
+			let isValidPlacement = true;
+			// check placement validity
+			if (tilesOver.size != buildingCellSize.width * buildingCellSize.height) {
+				isValidPlacement = false;
+			}
+			//
+			const noLongerOver = setDifference(this.dndData.tilesOver, tilesOver);
+			tilesOver.forEach((tile) => tile.setTexture(isValidPlacement ? TEXTURE_KEYS.GreenTile : TEXTURE_KEYS.RedTile));
+			noLongerOver.forEach((tile) => tile.setTexture(TEXTURE_KEYS.Tile));
+			this.dndData.tilesOver = tilesOver;
 		}
 	}
 
 	setDragNDropBuilding(dragNDropBuilding: DragNDropBuilding) {
-		this.dragNDropBuilding = dragNDropBuilding;
+		this.dndData = { building: dragNDropBuilding, tilesOver: new Set() };
 	}
 
 	private createBoard() {
@@ -142,12 +168,14 @@ export default class MainScene extends Phaser.Scene {
 			baseSize,
 		);
 		if (this.board == null) {
-			this.rexBoard.createTileTexture(board, 'tile', 0xffffff00, 0xffffff, 1);
+			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.Tile, 0xffffff00, 0xffffff, 1);
+			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.GreenTile, 0x005511, 0xffffff, 1);
+			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.RedTile, 0x551100, 0xffffff, 1);
 		} else {
 			this.board.destroy();
 		}
 		board.forEachTileXY((tileXY) => {
-			const tileImage = this.add.image(0, 0, 'tile').setAlpha(0.5);
+			const tileImage = this.add.image(0, 0, TEXTURE_KEYS.Tile).setAlpha(0.5);
 			tileImage.setDisplaySize(cellSize.width, cellSize.height);
 			board.addChess(tileImage, tileXY.x, tileXY.y, 0);
 		});

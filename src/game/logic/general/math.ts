@@ -22,3 +22,7 @@ export function clamp(num: number, max: number, min: number): number {
 export function getRandomElementInList<T>(list: Array<T>): T {
 	return list[Math.floor(Math.random() * list.length)] as T;
 }
+
+export function setDifference<T>(a: Set<T>, b: Set<T>): T[] {
+	return [...a].filter((x) => !b.has(x));
+}
