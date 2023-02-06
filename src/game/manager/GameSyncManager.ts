@@ -5,6 +5,8 @@ import type { BaseDetails } from '../interfaces/base';
 import EventEmitter from 'events';
 import { clientEnv } from '../../env/schema.mjs';
 import { log } from '../../utility/logger';
+import type { Building_Type } from '@prisma/client';
+import type { Position } from '../interfaces/general';
 
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
@@ -38,6 +40,17 @@ export default class GameSyncManager extends EventEmitter {
 
 	async createBaseIfNotExists(): Promise<BaseDetails> {
 		const newBase = await this.client.base.createBaseIfNotExists.mutate();
+		this.baseGameState = newBase;
+		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+		return newBase;
+	}
+
+	async constructBuilding(building: Building_Type, position: Position) {
+		const newBase = await this.client.base.constructBuilding.mutate({ building, position });
+		if (newBase == null) {
+			log.info(`Failed to construct ${building} at {${position.x}, ${position.y}}`);
+			return null;
+		}
 		this.baseGameState = newBase;
 		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
 		return newBase;

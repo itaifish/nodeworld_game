@@ -37,4 +37,8 @@ export default class DragNDropBuilding {
 	setPosition(position: Position) {
 		this.image.setPosition(position.x, position.y);
 	}
+
+	delete() {
+		this.image.destroy();
+	}
 }

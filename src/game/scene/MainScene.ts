@@ -28,6 +28,7 @@ export default class MainScene extends Phaser.Scene {
 	dndData: {
 		building: DragNDropBuilding;
 		tilesOver: Set<Phaser.GameObjects.Image>;
+		placementCoord: Position | null;
 	} | null;
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
@@ -72,9 +73,21 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		this.input.on(Phaser.Input.Events.POINTER_WHEEL, (_pointer: Phaser.Input.Pointer, _gameObjects: any[]) => {
-			// log.debug(_pointer);
 			this.cameraController.camera.zoom -= (this.cameraController.zoomSpeed * _pointer.deltaY) / 30;
 			this.constrainCamera();
+		});
+
+		this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+			log.info('pointerdown');
+			if (pointer.leftButtonDown()) {
+				if (this.dndData == null || this.dndData.placementCoord == null) {
+					return;
+				}
+				this.gameSyncManager.constructBuilding(this.dndData.building.buildingType, this.dndData.placementCoord);
+				this.setDragNDropBuilding(null);
+			} else if (pointer.rightButtonDown()) {
+				this.setDragNDropBuilding(null);
+			}
 		});
 
 		// tileset map
@@ -115,6 +128,7 @@ export default class MainScene extends Phaser.Scene {
 			this.dndData.building.setPosition(newPosition);
 			// DragNDrop box highlighting
 			const tileXY: Position = this.board.worldXYToTileXY(newPosition.x, newPosition.y);
+			this.dndData.placementCoord = tileXY;
 			const buildingCellSize = this.dndData.building.getCellSize();
 			const tilesWorldXY: Position = this.board.tileXYToWorldXY(
 				tileXY.x - Math.floor(buildingCellSize.width / 2),
@@ -128,6 +142,7 @@ export default class MainScene extends Phaser.Scene {
 			// check placement validity
 			if (tilesOver.size != buildingCellSize.width * buildingCellSize.height) {
 				isValidPlacement = false;
+				this.dndData.placementCoord = null;
 			}
 			//
 			const noLongerOver = setDifference(this.dndData.tilesOver, tilesOver);
@@ -137,8 +152,14 @@ export default class MainScene extends Phaser.Scene {
 		}
 	}
 
-	setDragNDropBuilding(dragNDropBuilding: DragNDropBuilding) {
-		this.dndData = { building: dragNDropBuilding, tilesOver: new Set() };
+	setDragNDropBuilding(dragNDropBuilding: DragNDropBuilding | null) {
+		if (dragNDropBuilding == null) {
+			this.dndData?.tilesOver.forEach((tile) => tile.setTexture(TEXTURE_KEYS.Tile));
+			this.dndData?.building.delete();
+			this.dndData = null;
+		} else {
+			this.dndData = { building: dragNDropBuilding, tilesOver: new Set(), placementCoord: null };
+		}
 	}
 
 	private createBoard() {
@@ -167,6 +188,7 @@ export default class MainScene extends Phaser.Scene {
 			},
 			baseSize,
 		);
+		// board.setInteractive();
 		if (this.board == null) {
 			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.Tile, 0xffffff00, 0xffffff, 1);
 			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.GreenTile, 0x005511, 0xffffff, 1);
@@ -174,11 +196,17 @@ export default class MainScene extends Phaser.Scene {
 		} else {
 			this.board.destroy();
 		}
+		const buildingPosMap = new Map(base.buildings.map((building) => [`${building.x},${building.y}`, building]));
 		board.forEachTileXY((tileXY) => {
 			const tileImage = this.add.image(0, 0, TEXTURE_KEYS.Tile).setAlpha(0.5);
 			tileImage.setDisplaySize(cellSize.width, cellSize.height);
 			board.addChess(tileImage, tileXY.x, tileXY.y, 0);
+			const currentBuilding = buildingPosMap.get(`${tileXY.x},${tileXY.y}`);
+			if (currentBuilding != undefined) {
+				// draw building here
+			}
 		});
+
 		this.board = board;
 
 		this.constrainCamera();

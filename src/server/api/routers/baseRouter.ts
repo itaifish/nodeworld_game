@@ -128,7 +128,7 @@ export const baseRouter = createTRPCRouter({
 		}
 		const { harvest, lastHarvested } = res;
 		BaseManager.modifyResources(baseUser.resources, harvest);
-		const update = await ctx.prisma.building.update({
+		const updated = await ctx.prisma.building.update({
 			where: { id: input.buildingId },
 			data: {
 				lastHarvest: lastHarvested,
@@ -142,7 +142,7 @@ export const baseRouter = createTRPCRouter({
 			},
 			include: { Base: true },
 		});
-		return update;
+		return updated;
 	}),
 
 	constructBuilding: protectedProcedure
@@ -175,11 +175,15 @@ export const baseRouter = createTRPCRouter({
 
 			const now = new Date();
 			const finishedAt = new Date(now.getTime() + BuildingManager.BUILDING_DATA[newBuilding].buildTimeSeconds * 1_000);
-			// TODO: Verify this works as intended, could create a memory leak in DB
+
+			const _resourceUpdate = await ctx.prisma.$transaction(
+				resourcesAfter.map((resource) =>
+					ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
+				),
+			);
 			const baseAfter = await ctx.prisma.base.update({
 				where: { id: userBase.id },
 				data: {
-					resources: { set: resourcesAfter },
 					buildings: {
 						create: {
 							type: newBuilding,
