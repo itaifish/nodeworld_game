@@ -12,6 +12,8 @@ import type { Position, Size } from '../interfaces/general';
 import type DragNDropBuilding from '../board/DragNDropBuilding';
 import Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangle';
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
+import BaseBuilding from '../board/building/BaseBuilding';
+import BuildingManager from '../logic/buildings/BuildingManager';
 
 export const cellSize: Size = {
 	width: 100,
@@ -30,11 +32,13 @@ export default class MainScene extends Phaser.Scene {
 		tilesOver: Set<Phaser.GameObjects.Image>;
 		placementCoord: Position | null;
 	} | null;
+	buildingImages: Map<string, BaseBuilding>;
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.dndData = null;
+		this.buildingImages = new Map();
 	}
 
 	preload() {
@@ -111,7 +115,7 @@ export default class MainScene extends Phaser.Scene {
 
 	update(time: number, delta: number) {
 		super.update(time, delta);
-
+		const base = this.gameSyncManager.getBaseData();
 		this.cameraController.update(delta);
 		this.constrainCamera();
 		if (this.dndData != null) {
@@ -128,7 +132,7 @@ export default class MainScene extends Phaser.Scene {
 			this.dndData.building.setPosition(newPosition);
 			// DragNDrop box highlighting
 			const tileXY: Position = this.board.worldXYToTileXY(newPosition.x, newPosition.y);
-			this.dndData.placementCoord = tileXY;
+			this.dndData.placementCoord = { x: tileXY.x - 1, y: tileXY.y - 1 };
 			const buildingCellSize = this.dndData.building.getCellSize();
 			const tilesWorldXY: Position = this.board.tileXYToWorldXY(
 				tileXY.x - Math.floor(buildingCellSize.width / 2),
@@ -140,11 +144,19 @@ export default class MainScene extends Phaser.Scene {
 			const tilesOver = new Set(this.board.tileXYArrayToChessArray(tilesOverCords) as Phaser.GameObjects.Image[]);
 			let isValidPlacement = true;
 			// check placement validity
-			if (tilesOver.size != buildingCellSize.width * buildingCellSize.height) {
+			const overEnoughTiles = tilesOver.size == buildingCellSize.width * buildingCellSize.height;
+			const overEmptyTiles =
+				!!base &&
+				BaseManager.canBuildAtPosition(
+					this.dndData.placementCoord,
+					this.dndData.building.buildingType,
+					base.buildings,
+					BaseManager.getBaseSize(base.level),
+				);
+			if (!overEnoughTiles || !overEmptyTiles) {
 				isValidPlacement = false;
 				this.dndData.placementCoord = null;
 			}
-			//
 			const noLongerOver = setDifference(this.dndData.tilesOver, tilesOver);
 			tilesOver.forEach((tile) => tile.setTexture(isValidPlacement ? TEXTURE_KEYS.GreenTile : TEXTURE_KEYS.RedTile));
 			noLongerOver.forEach((tile) => tile.setTexture(TEXTURE_KEYS.Tile));
@@ -196,15 +208,27 @@ export default class MainScene extends Phaser.Scene {
 		} else {
 			this.board.destroy();
 		}
-		const buildingPosMap = new Map(base.buildings.map((building) => [`${building.x},${building.y}`, building]));
 		board.forEachTileXY((tileXY) => {
 			const tileImage = this.add.image(0, 0, TEXTURE_KEYS.Tile).setAlpha(0.5);
 			tileImage.setDisplaySize(cellSize.width, cellSize.height);
 			board.addChess(tileImage, tileXY.x, tileXY.y, 0);
-			const currentBuilding = buildingPosMap.get(`${tileXY.x},${tileXY.y}`);
-			if (currentBuilding != undefined) {
-				// draw building here
+		});
+
+		//draw buildings
+		if (this.buildingImages.size != 0) {
+			for (const buildingImage of this.buildingImages.values()) {
+				buildingImage.delete();
 			}
+		}
+		this.buildingImages.clear();
+		base?.buildings.forEach((building) => {
+			const size = BuildingManager.BUILDING_DATA[building.type].size;
+			const position = board.tileXYToWorldXY(building.x, building.y);
+			const centeredPosition = {
+				x: position.x + ((cellSize.width * (size.width - 1)) >> 1),
+				y: position.y + ((cellSize.height * (size.height - 1)) >> 1),
+			};
+			this.buildingImages.set(building.id, new BaseBuilding(building, this, centeredPosition));
 		});
 
 		this.board = board;

@@ -16,6 +16,7 @@ export default class DragNDropBuilding {
 		const scale = Math.min(size.height / this.image.displayHeight, size.width / this.image.displayWidth);
 		this.image.setScale(scale);
 		this.image.setInteractive();
+		this.image.setDepth(1);
 		scene.setDragNDropBuilding(this);
 	}
 

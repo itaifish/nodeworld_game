@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Building, Building_Type, Resource, Resource_Type } from '@prisma/client';
+import { log } from 'src/utility/logger';
 import type { Position, Rect, Size } from '../../interfaces/general';
 import BuildingManager from '../buildings/BuildingManager';
 import { isBetween, isRectCollision, ORIGIN_POSITION } from '../general/math';
@@ -56,13 +57,13 @@ export default class BaseManager {
 				y: baseSize.height - buildingSize.height,
 			})
 		) {
+			log.debug(`Can't build because of invalid position ${position.x},${position.y}`);
 			return false;
 		}
-		const newBuildingRect: Rect = { ...position, ...baseSize };
+		const newBuildingRect: Rect = { ...position, ...BuildingManager.BUILDING_DATA[building].size };
 		for (const existingBuilding of existingBuildings) {
 			const size = BuildingManager.BUILDING_DATA[existingBuilding.type].size;
-			const position = { x: existingBuilding.x, y: existingBuilding.y };
-			if (isRectCollision(newBuildingRect, { ...size, ...position })) {
+			if (isRectCollision(newBuildingRect, { ...existingBuilding, ...size })) {
 				return false;
 			}
 		}
