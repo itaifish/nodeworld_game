@@ -15,7 +15,7 @@ export default class BuildingManager {
 	static readonly BUILDING_DATA: Record<Building_Type, BuildingStats> = {
 		CAPITAL_BUILDING: {
 			maxHP: 100,
-			buildTimeSeconds: 10,
+			buildTimeSeconds: 55,
 			energyDraw: 10,
 			generatedResourcesPerInterval: {
 				FOOD: 10,
@@ -30,7 +30,7 @@ export default class BuildingManager {
 		},
 		DWELLING: {
 			maxHP: 100,
-			buildTimeSeconds: 3,
+			buildTimeSeconds: 10,
 			energyDraw: 3,
 			generatedResourcesPerInterval: {},
 			costs: {
@@ -43,7 +43,7 @@ export default class BuildingManager {
 		},
 		HARVESTOR: {
 			maxHP: 100,
-			buildTimeSeconds: 7,
+			buildTimeSeconds: 21,
 			energyDraw: 7,
 			generatedResourcesPerInterval: {
 				FOOD: 15,
@@ -57,7 +57,7 @@ export default class BuildingManager {
 		},
 		BARRACKS: {
 			maxHP: 100,
-			buildTimeSeconds: 9,
+			buildTimeSeconds: 19,
 			energyDraw: 9,
 			generatedResourcesPerInterval: {},
 			costs: {
@@ -70,7 +70,7 @@ export default class BuildingManager {
 		},
 		POWER_STATION: {
 			maxHP: 100,
-			buildTimeSeconds: 20,
+			buildTimeSeconds: 22,
 			energyDraw: -20,
 			generatedResourcesPerInterval: {},
 			costs: {
@@ -82,7 +82,7 @@ export default class BuildingManager {
 		},
 		EXTRACTOR: {
 			maxHP: 100,
-			buildTimeSeconds: 15,
+			buildTimeSeconds: 25,
 			energyDraw: 15,
 			generatedResourcesPerInterval: {
 				IRON: 50,

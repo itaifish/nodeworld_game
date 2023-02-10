@@ -14,6 +14,7 @@ import Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangl
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
+import build from 'next/dist/build';
 
 export const cellSize: Size = {
 	width: 100,
@@ -32,13 +33,13 @@ export default class MainScene extends Phaser.Scene {
 		tilesOver: Set<Phaser.GameObjects.Image>;
 		placementCoord: Position | null;
 	} | null;
-	buildingImages: Map<string, BaseBuilding>;
+	buildings: BaseBuilding[];
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.dndData = null;
-		this.buildingImages = new Map();
+		this.buildings = [];
 	}
 
 	preload() {
@@ -162,6 +163,9 @@ export default class MainScene extends Phaser.Scene {
 			noLongerOver.forEach((tile) => tile.setTexture(TEXTURE_KEYS.Tile));
 			this.dndData.tilesOver = tilesOver;
 		}
+
+		// Update buildings
+		this.buildings.forEach((building) => building.update(time, delta));
 	}
 
 	setDragNDropBuilding(dragNDropBuilding: DragNDropBuilding | null) {
@@ -215,12 +219,12 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		//draw buildings
-		if (this.buildingImages.size != 0) {
-			for (const buildingImage of this.buildingImages.values()) {
+		if (this.buildings.length != 0) {
+			for (const buildingImage of this.buildings.values()) {
 				buildingImage.delete();
 			}
 		}
-		this.buildingImages.clear();
+		this.buildings = [];
 		base?.buildings.forEach((building) => {
 			const size = BuildingManager.BUILDING_DATA[building.type].size;
 			const position = board.tileXYToWorldXY(building.x, building.y);
@@ -228,7 +232,7 @@ export default class MainScene extends Phaser.Scene {
 				x: position.x + ((cellSize.width * (size.width - 1)) >> 1),
 				y: position.y + ((cellSize.height * (size.height - 1)) >> 1),
 			};
-			this.buildingImages.set(building.id, new BaseBuilding(building, this, centeredPosition));
+			this.buildings.push(new BaseBuilding(building, this, centeredPosition));
 		});
 
 		this.board = board;

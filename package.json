@@ -8,6 +8,7 @@
 		"postinstall": "prisma generate",
 		"generate": "prisma generate",
 		"migrate": "prisma migrate dev",
+		"prisma:studio": "prisma studio",
 		"lint": "next lint --fix",
 		"cypress:open": "cypress open",
 		"start": "next start"
