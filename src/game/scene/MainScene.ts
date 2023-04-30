@@ -88,8 +88,10 @@ export default class MainScene extends Phaser.Scene {
 				if (this.dndData == null || this.dndData.placementCoord == null) {
 					return;
 				}
-				this.gameSyncManager.constructBuilding(this.dndData.building.buildingType, this.dndData.placementCoord);
+				const placementCoord = { ...this.dndData.placementCoord };
+				const buildingType = this.dndData.building.buildingType;
 				this.setDragNDropBuilding(null);
+				this.gameSyncManager.constructBuilding(buildingType, placementCoord);
 			} else if (pointer.rightButtonDown()) {
 				this.setDragNDropBuilding(null);
 			}

@@ -173,8 +173,7 @@ export const baseRouter = createTRPCRouter({
 				return null;
 			}
 
-			const now = new Date();
-			const finishedAt = new Date(now.getTime() + BuildingManager.BUILDING_DATA[newBuilding].buildTimeSeconds * 1_000);
+			const finishedAt = BuildingManager.getBuildingFinishedTime(newBuilding);
 
 			const _resourceUpdate = await ctx.prisma.$transaction(
 				resourcesAfter.map((resource) =>

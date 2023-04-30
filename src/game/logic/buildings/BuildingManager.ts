@@ -137,4 +137,10 @@ export default class BuildingManager {
 			lastHarvested: newLastHarvestDate,
 		};
 	}
+
+	static getBuildingFinishedTime(building: Building_Type, startTime?: Date) {
+		const now = startTime ?? new Date();
+		const finishedAt = new Date(now.getTime() + BuildingManager.BUILDING_DATA[building].buildTimeSeconds * 1_000);
+		return finishedAt;
+	}
 }
