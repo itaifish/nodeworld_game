@@ -14,7 +14,6 @@ import Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangl
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
-import build from 'next/dist/build';
 
 export const cellSize: Size = {
 	width: 100,
