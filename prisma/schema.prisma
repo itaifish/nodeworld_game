@@ -105,8 +105,8 @@ model Guild {
 }
 
 model GuildMembership {
-    User     User    @relation(fields: [userId], references: [id])
-    Guild    Guild?  @relation(fields: [guildId], references: [id])
+    user     User    @relation(fields: [userId], references: [id])
+    guild    Guild?  @relation(fields: [guildId], references: [id])
     guildId  String?
     userId   String
     isAdmin  Boolean @default(false)
@@ -157,7 +157,7 @@ model User {
     isAdmin         Boolean                  @default(false)
     messageChannels UserMessageChannelLink[]
     messages        Message[]
-    guildMembership GuildMembership?         @relation(fields: [], references: [])
+    guildMembership GuildMembership?
 }
 
 model VerificationToken {
