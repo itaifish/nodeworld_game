@@ -45,7 +45,7 @@ enum Item_Type {
 }
 
 model Unit {
-    id     String    @id @default(cuid())
+    id     String    @id @unique @default(cuid())
     type   Unit_Type
     amount Int
     Base   Base?     @relation(fields: [baseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -53,7 +53,7 @@ model Unit {
 }
 
 model Resource {
-    id     String        @id @default(cuid())
+    id     String        @id @unique @default(cuid())
     type   Resource_Type
     amount Int
     Base   Base?         @relation(fields: [baseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -61,11 +61,12 @@ model Resource {
 }
 
 model Building {
-    id          String        @id @default(cuid())
+    id          String        @id @unique @default(cuid())
     Base        Base?         @relation(fields: [baseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     baseId      String?
+    createdAt   DateTime      @default(now())
     finishedAt  DateTime
-    lastHarvest DateTime      @default(now())
+    lastHarvest DateTime
     type        Building_Type
     hp          Int
     level       Int           @default(1)
@@ -74,7 +75,7 @@ model Building {
 }
 
 model InventoryItem {
-    id     String    @id @default(cuid())
+    id     String    @id @unique @default(cuid())
     type   Item_Type
     amount Int
     Base   Base?     @relation(fields: [baseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -82,7 +83,7 @@ model InventoryItem {
 }
 
 model Base {
-    id        String          @id @default(cuid())
+    id        String          @id @unique @default(cuid())
     userId    String          @unique
     createdAt DateTime        @default(now())
     level     Int             @default(1)
@@ -93,12 +94,23 @@ model Base {
     inventory InventoryItem[]
 }
 
-// ENG GAME SECTION
+model Guild {
+    id               String         @id @unique @default(cuid())
+    name             String
+    members          User[]         @relation(name: "members")
+    imageURL         String?
+    chat             MessageChannel @relation(fields: [messageChannelId], references: [id])
+    messageChannelId String
+    leader           User           @relation("leader", fields: [leaderId], references: [id])
+    leaderId         String         @unique
+}
+
+// END GAME SECTION
 // LOGIN SECTION BELOW
 
 // Necessary for Next auth
 model Account {
-    id                String  @id @default(cuid())
+    id                String  @id @unique @default(cuid())
     userId            String
     type              String
     provider          String
@@ -116,7 +128,7 @@ model Account {
 }
 
 model Session {
-    id           String   @id @default(cuid())
+    id           String   @id @unique @default(cuid())
     sessionToken String   @unique
     userId       String
     expires      DateTime
@@ -124,15 +136,20 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    Base          Base[]
-    isAdmin       Boolean   @default(false)
+    id              String                   @id @unique @default(cuid())
+    name            String?
+    email           String?                  @unique
+    emailVerified   DateTime?
+    image           String?
+    accounts        Account[]
+    sessions        Session[]
+    Base            Base[]
+    isAdmin         Boolean                  @default(false)
+    messageChannels UserMessageChannelLink[]
+    messages        Message[]
+    Guild           Guild?                   @relation("members", fields: [guildId], references: [id])
+    LeaderOf        Guild?                   @relation("leader")
+    guildId         String?
 }
 
 model VerificationToken {
@@ -141,4 +158,35 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+// END LOGIN SECTION
+// MESSAGE SECTION BELOW
+
+model MessageChannel {
+    id       String                   @id @unique @default(cuid())
+    name     String
+    users    UserMessageChannelLink[]
+    messages Message[]
+    Guild    Guild[]
+}
+
+model UserMessageChannelLink {
+    User             User           @relation(fields: [userId], references: [id])
+    userId           String
+    MessageChannel   MessageChannel @relation(fields: [messageChannelId], references: [id])
+    messageChannelId String
+
+    @@id([userId, messageChannelId])
+}
+
+model Message {
+    id               String          @id @unique @default(cuid())
+    createdAt        DateTime        @default(now())
+    updatedAt        DateTime?
+    text             String          @db.VarChar(500)
+    author           User            @relation(fields: [userId], references: [id])
+    MessageChannel   MessageChannel? @relation(fields: [messageChannelId], references: [id])
+    messageChannelId String?
+    userId           String
 }

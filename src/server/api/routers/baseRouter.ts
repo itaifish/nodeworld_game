@@ -6,6 +6,7 @@ import { Building_Type } from '@prisma/client';
 import BuildingManager from '../../../game/logic/buildings/BuildingManager';
 import type { BaseDetails } from '../../../game/interfaces/base';
 import BaseManager from '../../../game/logic/base/BaseManager';
+import type { AtLeastOne } from 'src/utility/type-utils.ts/type-utils';
 
 type tRPCContext = Parameters<Parameters<typeof protectedProcedure.query>[0]>[0]['ctx'];
 
@@ -13,10 +14,7 @@ const baseInclude = { buildings: true, owner: false, resources: true, military: 
 
 const BUILDING_ID_INPUT = z.object({ buildingId: z.string() });
 
-const RESOURCES_INPUT = z.record(
-	z.enum(Object.keys(Resource_Type) as [Resource_Type, ...Resource_Type[]]),
-	z.number().int(),
-);
+const RESOURCES_INPUT = z.record(z.enum(Object.keys(Resource_Type) as AtLeastOne<Resource_Type>), z.number().int());
 
 async function getBaseDataFromUser(ctx: tRPCContext) {
 	const id = ctx.session.user.id;

@@ -1,3 +1,11 @@
+import type * as trpc from '@trpc/server';
+import type * as trpcNext from '@trpc/server/adapters/next';
+import type { NodeHTTPCreateContextFnOptions } from '@trpc/server/adapters/node-http';
+import type { IncomingMessage } from 'http';
+import { getSession } from 'next-auth/react';
+import type ws from 'ws';
+import { log } from 'src/utility/logger';
+
 /**
  * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS:
  * 1. You want to modify request context (see Part 1)
@@ -57,6 +65,24 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
 		session,
 	});
 };
+
+/**
+ * Creates context for an incoming request
+ * @link https://trpc.io/docs/context
+ */
+export const createWssContext = async (
+	opts: trpcNext.CreateNextContextOptions | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>,
+) => {
+	const session = await getSession(opts);
+
+	log.debug('createContext for', session?.user?.name ?? 'unknown user');
+
+	return createInnerTRPCContext({
+		session,
+	});
+};
+
+export type Context = trpc.inferAsyncReturnType<typeof createWssContext>;
 
 /**
  * 2. INITIALIZATION
