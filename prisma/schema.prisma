@@ -95,14 +95,24 @@ model Base {
 }
 
 model Guild {
-    id               String         @id @unique @default(cuid())
+    id               String            @id @unique @default(cuid())
+    createdAt        DateTime          @default(now())
     name             String
-    members          User[]         @relation(name: "members")
+    members          GuildMembership[]
     imageURL         String?
-    chat             MessageChannel @relation(fields: [messageChannelId], references: [id])
+    chat             MessageChannel    @relation(fields: [messageChannelId], references: [id])
     messageChannelId String
-    leader           User           @relation("leader", fields: [leaderId], references: [id])
-    leaderId         String         @unique
+}
+
+model GuildMembership {
+    User     User    @relation(fields: [userId], references: [id])
+    Guild    Guild?  @relation(fields: [guildId], references: [id])
+    guildId  String?
+    userId   String
+    isAdmin  Boolean @default(false)
+    isLeader Boolean @default(false)
+
+    @@id([userId])
 }
 
 // END GAME SECTION
@@ -147,9 +157,7 @@ model User {
     isAdmin         Boolean                  @default(false)
     messageChannels UserMessageChannelLink[]
     messages        Message[]
-    Guild           Guild?                   @relation("members", fields: [guildId], references: [id])
-    LeaderOf        Guild?                   @relation("leader")
-    guildId         String?
+    guildMembership GuildMembership?         @relation(fields: [], references: [])
 }
 
 model VerificationToken {
