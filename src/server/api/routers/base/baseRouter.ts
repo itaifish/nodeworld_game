@@ -8,6 +8,7 @@ import type { BaseDetails } from '../../../../game/interfaces/base';
 import BaseManager from '../../../../game/logic/base/BaseManager';
 import type { AtLeastOne } from 'src/utility/type-utils.ts/type-utils';
 import { WS_EVENT_EMITTER, WS_EVENTS } from '../../events/websocketServerEvents';
+import { log } from 'src/utility/logger';
 
 type tRPCContext = Parameters<Parameters<typeof protectedProcedure.query>[0]>[0]['ctx'];
 
@@ -233,6 +234,7 @@ export const baseRouter = createTRPCRouter({
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
 		const data = await getBaseDataFromUser(ctx);
+		log.info(`User ${userId} getting base data ${JSON.stringify(data)}`);
 		if (data != null) {
 			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...data });
 		}

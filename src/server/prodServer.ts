@@ -36,6 +36,5 @@ void app.prepare().then(() => {
 	});
 	server.listen(port);
 
-	// tslint:disable-next-line:no-console
 	log.info(`> Server listening at http://localhost:${port} as ${dev ? 'development' : process.env.NODE_ENV}`);
 });

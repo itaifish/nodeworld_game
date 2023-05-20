@@ -24,10 +24,8 @@ import { log } from 'src/utility/logger';
  * processing a request
  *
  */
-import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { type Session } from 'next-auth';
 
-import { getServerAuthSession } from '../auth';
 import { prisma } from '../db';
 
 type CreateContextOptions = {
@@ -51,22 +49,6 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
 };
 
 /**
- * This is the actual context you'll use in your router. It will be used to
- * process every request that goes through your tRPC endpoint
- * @link https://trpc.io/docs/context
- */
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-	const { req, res } = opts;
-
-	// Get the session from the server using the unstable_getServerSession wrapper function
-	const session = await getServerAuthSession({ req, res });
-
-	return createInnerTRPCContext({
-		session,
-	});
-};
-
-/**
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
@@ -75,7 +57,7 @@ export const createWssContext = async (
 ) => {
 	const session = await getSession(opts);
 
-	log.debug('createContext for', session?.user?.name ?? 'unknown user');
+	log.info(`createContext for ${session?.user?.id ?? 'nullID'} ${session?.user?.name ?? 'unknown user'}`);
 
 	return createInnerTRPCContext({
 		session,
@@ -93,7 +75,7 @@ export type Context = trpc.inferAsyncReturnType<typeof createWssContext>;
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.context<typeof createWssContext>().create({
 	transformer: superjson,
 	errorFormatter({ shape }) {
 		return shape;

@@ -1,16 +1,16 @@
 import { createNextApiHandler } from '@trpc/server/adapters/next';
 import { env } from '../../../env/server.mjs';
-import { createTRPCContext } from '../../../server/api/trpc';
+import { createWssContext } from '../../../server/api/trpc';
 import type { WebsocketsRouter } from '../../../server/api/root';
 import { websocketsRouter } from '../../../server/api/root';
 import { log } from 'src/utility/logger';
 
-const websocketsHandler = createNextApiHandler<WebsocketsRouter>({
+const websocketHandler = createNextApiHandler<WebsocketsRouter>({
 	router: websocketsRouter,
 	/**
 	 * @link https://trpc.io/docs/context
 	 */
-	createContext: createTRPCContext,
+	createContext: createWssContext,
 	/**
 	 * @link https://trpc.io/docs/error-handling
 	 */
@@ -28,4 +28,4 @@ const websocketsHandler = createNextApiHandler<WebsocketsRouter>({
 	},
 });
 
-export default websocketsHandler;
+export default websocketHandler;

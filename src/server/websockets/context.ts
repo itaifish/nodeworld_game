@@ -16,7 +16,7 @@ export const createContext = async (
 ) => {
 	const session = await getSession(opts);
 
-	log.info(`createContext for ${session?.user?.name ?? 'unknown user'}`);
+	log.info(`createContext for ${session?.user?.id ?? 'nullID'} ${session?.user?.name ?? 'unknown user'}`);
 
 	return {
 		session,
