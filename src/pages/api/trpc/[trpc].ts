@@ -43,12 +43,12 @@ const websocketsHandler = createNextApiHandler<WebsocketsRouter>({
 	/**
 	 * @link https://trpc.io/docs/error-handling
 	 */
-	onError({ error }) {
-		if (error.code === 'INTERNAL_SERVER_ERROR') {
-			// send to bug reporting
-			log.error('Something went wrong', error);
-		}
-	},
+	onError:
+		env.NODE_ENV === 'development'
+			? ({ path, error }) => {
+					log.error(`❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`);
+			  }
+			: undefined,
 	/**
 	 * Enable query batching
 	 */

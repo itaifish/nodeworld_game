@@ -1,6 +1,6 @@
 import { createTRPCRouter } from './trpc';
 import { baseRouter } from './routers/baseRouter';
-import { baseWebsocketsRouter } from './routers/websocketsRouter';
+import { mainWebsocketsRouter } from './routers/websocketsRouter';
 
 /**
  * This is the primary router for your server.
@@ -12,7 +12,7 @@ export const appRouter = createTRPCRouter({
 });
 
 export const websocketsRouter = createTRPCRouter({
-	base: baseWebsocketsRouter,
+	api: mainWebsocketsRouter,
 });
 
 // export type definition of API

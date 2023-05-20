@@ -2,23 +2,19 @@ import { initTRPC } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
 import { EventEmitter } from 'events';
 import { z } from 'zod';
+import { createTRPCRouter, protectedProcedure, adminProcedure } from '../trpc';
+import { WS_EVENTS } from '../events/websocketServerEvents';
 
 // create a global event emitter (could be replaced by redis, etc)
 const ee = new EventEmitter();
-
-const t = initTRPC.create();
 
 export type ChatMessage = {
 	id?: string | undefined;
 	text: string;
 };
 
-const WS_EVENTS = {
-	Message: 'message',
-} as const;
-
-export const baseWebsocketsRouter = t.router({
-	onMessage: t.procedure.subscription(() => {
+export const mainWebsocketsRouter = createTRPCRouter({
+	onMessage: protectedProcedure.subscription(() => {
 		// return an `observable` with a callback which is triggered immediately
 		return observable<ChatMessage>((emit) => {
 			const onMessage = (data: ChatMessage) => {
@@ -35,7 +31,7 @@ export const baseWebsocketsRouter = t.router({
 			};
 		});
 	}),
-	message: t.procedure
+	message: protectedProcedure
 		.input(
 			z.object({
 				id: z.string().uuid().optional(),
@@ -43,9 +39,9 @@ export const baseWebsocketsRouter = t.router({
 			}),
 		)
 		.mutation(async (opts) => {
-			const post = { ...opts.input }; /* [..] add to db */
+			const chatMessage = { ...opts.input }; /* [..] add to db */
 
-			ee.emit(WS_EVENTS.Message, post);
-			return post;
+			ee.emit(WS_EVENTS.Message, chatMessage);
+			return chatMessage;
 		}),
 });

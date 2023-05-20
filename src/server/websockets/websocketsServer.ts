@@ -1,6 +1,6 @@
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import ws from 'ws';
-import { baseWebsocketsRouter } from '../api/routers/websocketsRouter';
+import { mainWebsocketsRouter } from '../api/routers/websocketsRouter';
 import { createWssContext } from '../api/trpc';
 import { log } from 'src/utility/logger';
 
@@ -9,7 +9,7 @@ const PORT = 3111;
 const wss = new ws.Server({
 	port: PORT,
 });
-const handler = applyWSSHandler({ wss, router: baseWebsocketsRouter, createContext: createWssContext });
+const handler = applyWSSHandler({ wss, router: mainWebsocketsRouter, createContext: createWssContext });
 
 wss.on('connection', (ws) => {
 	log.info(`➕➕ Connection (${wss.clients.size})`);

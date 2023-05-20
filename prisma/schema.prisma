@@ -66,7 +66,7 @@ model Building {
     baseId      String?
     createdAt   DateTime      @default(now())
     finishedAt  DateTime
-    lastHarvest DateTime
+    lastHarvest DateTime?
     type        Building_Type
     hp          Int
     level       Int           @default(1)
