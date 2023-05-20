@@ -119,13 +119,14 @@ export default class BuildingManager {
 
 	static getHarvestAmountAndTimeForBuilding(building: Building) {
 		const now = new Date().getTime();
-		const timeDifferenceMs = now - building.lastHarvest.getTime();
+		const lastHarvest = building.lastHarvest ?? building.finishedAt;
+		const timeDifferenceMs = now - lastHarvest.getTime();
 		const harvestMs = Constants.MS_IN_A_MINUTE * BuildingManager.HARVEST_INTERVAL_MINS;
 		const amountOfHarvests = Math.floor(timeDifferenceMs / harvestMs);
 		if (amountOfHarvests <= 0) {
 			return null;
 		}
-		const newLastHarvestDate = new Date(building.lastHarvest.getTime() + amountOfHarvests * harvestMs);
+		const newLastHarvestDate = new Date(lastHarvest.getTime() + amountOfHarvests * harvestMs);
 		const harvestYieldPerInterval = this.BUILDING_DATA[building.type].generatedResourcesPerInterval;
 		const totalHarvest: Partial<Record<Resource_Type, number>> = {};
 		for (const harvestKey in harvestYieldPerInterval) {

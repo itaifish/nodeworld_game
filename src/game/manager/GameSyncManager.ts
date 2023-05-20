@@ -1,5 +1,5 @@
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import type { AppRouter } from '../../server/api/root';
+import { createTRPCProxyClient, createWSClient, httpBatchLink, httpLink, splitLink, wsLink } from '@trpc/client';
+import type { WebsocketsRouter } from '../../server/api/root';
 import superjson from 'superjson';
 import type { BaseDetails } from '../interfaces/base';
 import EventEmitter from 'events';
@@ -20,17 +20,35 @@ export default class GameSyncManager extends EventEmitter {
 	constructor() {
 		super();
 		this.baseGameState = null;
-		this.client = createTRPCProxyClient<AppRouter>({
+		const url = clientEnv.NEXT_PUBLIC_TRPC_URL ?? 'http://localhost:3001';
+		const wsClient = createWSClient({
+			url: `ws://${url}`,
+		});
+		this.client = createTRPCProxyClient<WebsocketsRouter>({
 			links: [
-				httpBatchLink({
-					url: `${clientEnv.NEXT_PUBLIC_TRPC_URL}`,
+				splitLink({
+					condition(op) {
+						return op.type === 'subscription';
+					},
+					true: wsLink({
+						client: wsClient,
+					}),
+					false: httpLink({
+						url,
+					}),
 				}),
 			],
 			transformer: superjson,
 		});
+
 		// this.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => {
 		// 	log.trace('Base Game State Updated');
 		// });
+
+		this.client.base.onBaseUpdated.subscribe(undefined, {
+			onData(data) {},
+			onError(err) {},
+		});
 	}
 
 	async updateBaseGameState() {
@@ -56,6 +74,7 @@ export default class GameSyncManager extends EventEmitter {
 			baseId: this.baseGameState?.id ?? null,
 			finishedAt: BuildingManager.getBuildingFinishedTime(building, networkDelayOffsetSecondsNow),
 			lastHarvest: now,
+			createdAt: now,
 			type: building,
 			hp: BuildingManager.BUILDING_DATA[building].maxHP,
 			level: 1,
