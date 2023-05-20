@@ -21,9 +21,9 @@ export default class GameSyncManager extends EventEmitter {
 	constructor() {
 		super();
 		this.baseGameState = null;
-		const url = clientEnv.NEXT_PUBLIC_TRPC_URL ?? 'http://localhost:3001';
+		const url = clientEnv.NEXT_PUBLIC_TRPC_BASEURL ?? 'http://localhost:3000';
 		const wsClient = createWSClient({
-			url: `ws://${url}`,
+			url: `ws://${url}/api/trpc`,
 		});
 		this.client = createTRPCProxyClient<WebsocketsRouter>({
 			links: [
@@ -81,6 +81,7 @@ export default class GameSyncManager extends EventEmitter {
 		return this.baseGameState;
 	}
 
+	// TODO: Since we already have incremental data updates, lets improve our emitter to have something besides BASE_GAME_STATE_UPDATED
 	private initWebsocketEventListeners() {
 		this.client.base.onBaseUpdated.subscribe(undefined, {
 			onData: (data) => {

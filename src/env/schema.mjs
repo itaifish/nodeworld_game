@@ -41,7 +41,7 @@ export const serverEnv = {
  */
 export const clientSchema = z.object({
 	// NEXT_PUBLIC_CLIENTVAR: z.string(),
-	NEXT_PUBLIC_TRPC_URL: z.string().url(),
+	NEXT_PUBLIC_TRPC_BASEURL: z.string().url(),
 });
 
 /**
@@ -51,5 +51,5 @@ export const clientSchema = z.object({
  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
  */
 export const clientEnv = {
-	NEXT_PUBLIC_TRPC_URL: process.env.NEXT_PUBLIC_TRPC_URL,
+	NEXT_PUBLIC_TRPC_BASEURL: process.env.NEXT_PUBLIC_TRPC_BASEURL,
 };
