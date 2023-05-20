@@ -73,24 +73,33 @@ export const baseRouter = createTRPCRouter({
 			update: {},
 			include: baseInclude,
 		});
-		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${id}`, upsert);
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${id}`, { ...upsert, action: 'created' });
 	}),
 
 	deleteBase: protectedProcedure.mutation(async ({ ctx }) => {
+		const userId = ctx.session.user.id;
 		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
 		if (baseUser == null) {
 			return null;
 		}
-		return ctx.prisma.base.delete({ where: { id: baseUser.id } });
+		// TODO add cascading deletes
+		const deletedBase = await ctx.prisma.base.delete({ where: { id: baseUser.id } });
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { ...deletedBase, action: 'destroyed' });
 	}),
 	// End Base
+	// Buildings
+	onBuildingUpdated: protectedProcedure.subscription(({ ctx }) => {
+		const id = ctx.session.user.id;
+		return WS_EVENT_EMITTER.getObservable(`${WS_EVENTS.BuildingUpdate}${id}`);
+	}),
 	scrapBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
 		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
+		const userId = ctx.session.user.id;
 		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
 		if (baseUser == null || building == null) {
 			return null;
 		}
-		await ctx.prisma.building.delete({ where: { id: input.buildingId } });
+		const deletedBuilding = await ctx.prisma.building.delete({ where: { id: input.buildingId } });
 		const now = new Date().getTime();
 		const returnedResources = { ...BuildingManager.BUILDING_DATA[building.type].costs };
 		if (building.finishedAt.getTime() >= now) {
@@ -98,16 +107,22 @@ export const baseRouter = createTRPCRouter({
 				returnedResources[key as Resource_Type] = Math.floor(returnedResources[key as Resource_Type]! / 2);
 			}
 		}
-		BaseManager.modifyResources(baseUser.resources, returnedResources);
+		const newResources = BaseManager.modifyResources(baseUser.resources, returnedResources);
 		const update = await ctx.prisma.base.update({
 			where: { id: baseUser.id },
 			data: { resources: { set: baseUser.resources } },
 			include: baseInclude,
 		});
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BuildingUpdate}${userId}`, {
+			action: 'destroyed',
+			id: deletedBuilding?.id,
+		});
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, [...newResources]);
 		return update;
 	}),
 
 	harvestAllBuildings: protectedProcedure.mutation(async ({ ctx }) => {
+		const userId = ctx.session.user.id;
 		const baseUser = await getBaseDataFromUser(ctx);
 		if (baseUser == null) {
 			return;
@@ -129,10 +144,12 @@ export const baseRouter = createTRPCRouter({
 			},
 			include: baseInclude,
 		});
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...update });
 		return update;
 	}),
 
 	harvestBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
+		const userId = ctx.session.user.id;
 		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
 		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
 		if (baseUser == null || building == null) {
@@ -158,6 +175,7 @@ export const baseRouter = createTRPCRouter({
 			},
 			include: { Base: true },
 		});
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { ...updated, action: 'updated' });
 		return updated;
 	}),
 
@@ -169,6 +187,7 @@ export const baseRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
 			const userBase: BaseDetails | null = await getBaseDataFromUser(ctx);
 			const newBuilding = input.building as Building_Type;
 			if (userBase == null) {
@@ -211,6 +230,7 @@ export const baseRouter = createTRPCRouter({
 				},
 				include: baseInclude,
 			});
+			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...baseAfter });
 			return baseAfter;
 		}),
 

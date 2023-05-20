@@ -1,10 +1,10 @@
-import type { Resource } from '@prisma/client';
+import type { Base, Building, Resource } from '@prisma/client';
 import { observable } from '@trpc/server/observable';
 import { EventEmitter } from 'events';
 import type { BaseDetails } from 'src/game/interfaces/base';
 import type { AppendString, ValuesOf } from 'src/utility/type-utils.ts/type-utils';
 
-type Listener<TData = any> = (data: TData) => void;
+type Listener<TData> = (data: TData) => void;
 
 class WebsocketEventEmitter extends EventEmitter {
 	on<TEvent extends WSEvent>(event: TEvent, listener: Listener<EventDataMap[TEvent]>): this {
@@ -58,13 +58,24 @@ export const WS_EVENTS = {
 	// Base Events
 	UserResourceUpdate: 'userResourceUpdate',
 	BaseUpdate: 'baseUpdate',
+	BuildingUpdate: 'buildingUpdate',
 	// Chat Events
 	Message: 'message',
 } as const;
 
+export type DataChangedEventObject<
+	TDataCreated extends { id: any },
+	TDataUpdated = Partial<TDataCreated>,
+	TDataDestroyed = Partial<TDataCreated> | TDataCreated['id'],
+> =
+	| ({ action: 'created' } & TDataCreated)
+	| ({ action: 'destroyed' } & TDataDestroyed)
+	| ({ action: 'updated' } & TDataUpdated);
+
 export type EventDataMap = {
 	[key: AppendString<typeof WS_EVENTS.UserResourceUpdate>]: Resource[];
-	[key: AppendString<typeof WS_EVENTS.BaseUpdate>]: BaseDetails;
+	[key: AppendString<typeof WS_EVENTS.BaseUpdate>]: DataChangedEventObject<BaseDetails>;
+	[key: AppendString<typeof WS_EVENTS.BuildingUpdate>]: DataChangedEventObject<Building>;
 	[key: AppendString<typeof WS_EVENTS.Message>]: any;
 };
 
