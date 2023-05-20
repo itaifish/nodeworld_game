@@ -65,8 +65,8 @@ export const WS_EVENTS = {
 
 export type DataChangedEventObject<
 	TDataCreated extends { id: any },
-	TDataUpdated = Partial<TDataCreated>,
-	TDataDestroyed = Partial<TDataCreated> | TDataCreated['id'],
+	TDataUpdated = Partial<TDataCreated> & { id: TDataCreated['id'] },
+	TDataDestroyed = TDataUpdated,
 > =
 	| ({ action: 'created' } & TDataCreated)
 	| ({ action: 'destroyed' } & TDataDestroyed)

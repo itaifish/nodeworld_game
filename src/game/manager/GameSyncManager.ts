@@ -9,6 +9,7 @@ import type { Building, Building_Type } from '@prisma/client';
 import type { Position } from '../interfaces/general';
 import { v4 as uuidv4 } from 'uuid';
 import BuildingManager from '../logic/buildings/BuildingManager';
+import { mergeInto } from 'src/utility/function-utils/function-utils';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
 	private client;
@@ -26,16 +27,8 @@ export default class GameSyncManager extends EventEmitter {
 		});
 		this.client = createTRPCProxyClient<WebsocketsRouter>({
 			links: [
-				splitLink({
-					condition(op) {
-						return op.type === 'subscription';
-					},
-					true: wsLink({
-						client: wsClient,
-					}),
-					false: httpLink({
-						url,
-					}),
+				wsLink({
+					client: wsClient,
 				}),
 			],
 			transformer: superjson,
@@ -44,24 +37,11 @@ export default class GameSyncManager extends EventEmitter {
 		// this.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => {
 		// 	log.trace('Base Game State Updated');
 		// });
-
-		this.client.base.onBaseUpdated.subscribe(undefined, {
-			onData(data) {},
-			onError(err) {},
-		});
+		this.initWebsocketEventListeners();
 	}
 
-	async updateBaseGameState() {
-		const baseData = await this.client.base.getBaseData.query();
-		this.baseGameState = baseData;
-		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-	}
-
-	async createBaseIfNotExists(): Promise<BaseDetails> {
-		const newBase = await this.client.base.createBaseIfNotExists.mutate();
-		this.baseGameState = newBase;
-		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-		return newBase;
+	async createBaseIfNotExists() {
+		this.client.base.createBaseIfNotExists.mutate();
 	}
 
 	async constructBuilding(building: Building_Type, position: Position) {
@@ -99,5 +79,59 @@ export default class GameSyncManager extends EventEmitter {
 
 	getBaseData() {
 		return this.baseGameState;
+	}
+
+	private initWebsocketEventListeners() {
+		this.client.base.onBaseUpdated.subscribe(undefined, {
+			onData: (data) => {
+				if (data.action === 'updated') {
+					mergeInto(this.baseGameState, data);
+				} else if (data.action === 'created') {
+					this.baseGameState = data;
+				} else {
+					this.baseGameState = null;
+				}
+				this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+			},
+			onError: (err) => {
+				log.error(err, `Error occured with onBaseUpdated event`);
+			},
+		});
+
+		this.client.base.onBuildingUpdated.subscribe(undefined, {
+			onData: (data) => {
+				if (data.action === 'updated') {
+					const building = this.baseGameState?.buildings?.find((x) => x.id === data.id);
+					if (building) {
+						mergeInto(building, data);
+						this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+					}
+				} else if (data.action === 'created') {
+					this.baseGameState?.buildings?.push(data);
+					this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+				} else {
+					if (this.baseGameState != null) {
+						this.baseGameState.buildings = this.baseGameState?.buildings?.filter((x) => x.id !== data.id);
+						this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+					}
+				}
+			},
+			onError: (err) => {
+				log.error(err, `Error occured with onBuildingUpdated event`);
+			},
+		});
+
+		this.client.base.onUserResourcesChanged.subscribe(undefined, {
+			onData: (data) => {
+				if (this.baseGameState == null) {
+					return;
+				}
+				this.baseGameState.resources = data;
+				this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+			},
+			onError: (err) => {
+				log.error(err, `Error occured with onBuildingUpdated event`);
+			},
+		});
 	}
 }

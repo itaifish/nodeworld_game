@@ -1,5 +1,5 @@
 import type { Building, Building_Type, Resource, Resource_Type } from '@prisma/client';
-import { Constants } from '../../../utils/constants';
+import { Constants } from '../../../utility/constants';
 import type { Size } from '../../interfaces/general';
 
 type BuildingStats = {

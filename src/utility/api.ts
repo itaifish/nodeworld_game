@@ -5,12 +5,12 @@
  *
  * We also create a few inference helpers for input and output types
  */
-import { httpBatchLink, loggerLink } from '@trpc/client';
+import { createWSClient, httpBatchLink, loggerLink, wsLink } from '@trpc/client';
 import { createTRPCNext } from '@trpc/next';
 import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server';
 import superjson from 'superjson';
 
-import { type AppRouter } from '../server/api/root';
+import { type WebsocketsRouter } from '../server/api/root';
 
 const getBaseUrl = () => {
 	if (typeof window !== 'undefined') return ''; // browser should use relative url
@@ -21,7 +21,7 @@ const getBaseUrl = () => {
 /**
  * A set of typesafe react-query hooks for your tRPC API
  */
-export const api = createTRPCNext<AppRouter>({
+export const api = createTRPCNext<WebsocketsRouter>({
 	config() {
 		return {
 			/**
@@ -35,12 +35,10 @@ export const api = createTRPCNext<AppRouter>({
 			 * @see https://trpc.io/docs/links
 			 * */
 			links: [
-				loggerLink({
-					enabled: (opts) =>
-						process.env.NODE_ENV === 'development' || (opts.direction === 'down' && opts.result instanceof Error),
-				}),
-				httpBatchLink({
-					url: `${getBaseUrl()}/api/trpc`,
+				wsLink({
+					client: createWSClient({
+						url: `ws://${getBaseUrl()}`,
+					}),
 				}),
 			],
 		};
@@ -56,9 +54,9 @@ export const api = createTRPCNext<AppRouter>({
  * Inference helper for inputs
  * @example type HelloInput = RouterInputs['example']['hello']
  **/
-export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterInputs = inferRouterInputs<WebsocketsRouter>;
 /**
  * Inference helper for outputs
  * @example type HelloOutput = RouterOutputs['example']['hello']
  **/
-export type RouterOutputs = inferRouterOutputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<WebsocketsRouter>;
