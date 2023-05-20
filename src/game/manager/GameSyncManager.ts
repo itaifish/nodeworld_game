@@ -9,7 +9,7 @@ import type { Position } from '../interfaces/general';
 import { v4 as uuidv4 } from 'uuid';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import { mergeInto } from 'src/utility/function-utils/function-utils';
-import { env } from 'src/env/server.mjs';
+import { clientEnv } from 'src/env/schema.mjs';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
 	private client;
@@ -21,7 +21,7 @@ export default class GameSyncManager extends EventEmitter {
 	constructor() {
 		super();
 		this.baseGameState = null;
-		const url = env.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000';
+		const url = clientEnv.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000';
 		const wsClient = createWSClient({
 			url: `${url}`,
 		});

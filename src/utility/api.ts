@@ -11,12 +11,12 @@ import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server';
 import superjson from 'superjson';
 import { type WebsocketsRouter } from '../server/api/root';
 import type { NextPageContext } from 'next';
-import { env } from 'src/env/server.mjs';
+import { clientEnv } from 'src/env/schema.mjs';
 
 function getEndingLink(ctx: NextPageContext | undefined) {
 	if (typeof window === 'undefined') {
 		return httpBatchLink({
-			url: `http://${env.NEXT_PUBLIC_TRPC_BASEURL}/api/trpc`,
+			url: `http://${clientEnv.NEXT_PUBLIC_TRPC_BASEURL}/api/trpc`,
 			headers() {
 				if (!ctx?.req?.headers) {
 					return {};
@@ -30,7 +30,7 @@ function getEndingLink(ctx: NextPageContext | undefined) {
 		});
 	}
 	const client = createWSClient({
-		url: `${env.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000'}`,
+		url: `${clientEnv.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000'}`,
 	});
 	return wsLink<WebsocketsRouter>({
 		client,

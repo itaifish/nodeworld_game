@@ -7,7 +7,7 @@
 		"build:1-next": "cross-env NODE_ENV=production next build",
 		"build:2-server": "tsc --project tsconfig.server.json",
 		"dev:next": "next dev",
-		"dev:wss": "cross-env PORT=3001 tsx watch src/server/websockets/websocketsServer.ts --tsconfig tsconfig.server.json",
+		"dev:wss": "cross-env PORT=3001 SKIP_ENV_VALIDATION=true tsx watch src/server/websockets/websocketsServer.ts --tsconfig tsconfig.server.json",
 		"dev": "run-p dev:*",
 		"postinstall": "prisma generate",
 		"generate": "prisma generate",
