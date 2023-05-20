@@ -3,6 +3,9 @@ import ws from 'ws';
 import { createWssContext } from '../api/trpc';
 import { log } from 'src/utility/logger';
 import { websocketsRouter } from '../api/root';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const PORT = 3111;
 

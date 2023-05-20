@@ -5,19 +5,43 @@
  *
  * We also create a few inference helpers for input and output types
  */
-import { createWSClient, wsLink } from '@trpc/client';
+import { createWSClient, httpBatchLink, wsLink } from '@trpc/client';
 import { createTRPCNext } from '@trpc/next';
 import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server';
 import superjson from 'superjson';
-
 import { type WebsocketsRouter } from '../server/api/root';
-import { clientEnv } from 'src/env/schema.mjs';
+import type { NextPageContext } from 'next';
+import { env } from 'src/env/server.mjs';
+
+function getEndingLink(ctx: NextPageContext | undefined) {
+	if (typeof window === 'undefined') {
+		return httpBatchLink({
+			url: `http://${env.NEXT_PUBLIC_TRPC_BASEURL}/api/trpc`,
+			headers() {
+				if (!ctx?.req?.headers) {
+					return {};
+				}
+				// on ssr, forward client's headers to the server
+				return {
+					...ctx.req.headers,
+					'x-ssr': '1',
+				};
+			},
+		});
+	}
+	const client = createWSClient({
+		url: `${env.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000'}`,
+	});
+	return wsLink<WebsocketsRouter>({
+		client,
+	});
+}
 
 /**
  * A set of typesafe react-query hooks for your tRPC API
  */
 export const api = createTRPCNext<WebsocketsRouter>({
-	config() {
+	config({ ctx }) {
 		return {
 			/**
 			 * Transformer used for data de-serialization from the server
@@ -29,13 +53,7 @@ export const api = createTRPCNext<WebsocketsRouter>({
 			 * Links used to determine request flow from client to server
 			 * @see https://trpc.io/docs/links
 			 * */
-			links: [
-				wsLink({
-					client: createWSClient({
-						url: `ws://${clientEnv.NEXT_PUBLIC_TRPC_BASEURL}/api/trpc`,
-					}),
-				}),
-			],
+			links: [getEndingLink(ctx)],
 		};
 	},
 	/**

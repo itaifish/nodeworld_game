@@ -3,13 +3,13 @@ import type { WebsocketsRouter } from '../../server/api/root';
 import superjson from 'superjson';
 import type { BaseDetails } from '../interfaces/base';
 import EventEmitter from 'events';
-import { clientEnv } from '../../env/schema.mjs';
 import { log } from '../../utility/logger';
 import type { Building, Building_Type } from '@prisma/client';
 import type { Position } from '../interfaces/general';
 import { v4 as uuidv4 } from 'uuid';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import { mergeInto } from 'src/utility/function-utils/function-utils';
+import { env } from 'src/env/server.mjs';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
 	private client;
@@ -21,9 +21,9 @@ export default class GameSyncManager extends EventEmitter {
 	constructor() {
 		super();
 		this.baseGameState = null;
-		const url = clientEnv.NEXT_PUBLIC_TRPC_BASEURL ?? 'http://localhost:3000';
+		const url = env.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000';
 		const wsClient = createWSClient({
-			url: `ws://${url}/api/trpc`,
+			url: `${url}`,
 		});
 		this.client = createTRPCProxyClient<WebsocketsRouter>({
 			links: [
@@ -42,6 +42,7 @@ export default class GameSyncManager extends EventEmitter {
 
 	async createBaseIfNotExists() {
 		this.client.base.createBaseIfNotExists.mutate();
+		this.client.base.getBaseData.query();
 	}
 
 	async constructBuilding(building: Building_Type, position: Position) {

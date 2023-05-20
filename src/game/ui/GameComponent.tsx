@@ -13,6 +13,7 @@ import Image from 'next/image';
 import { getRandomElementInList } from '../logic/general/math';
 import styles from '../../pages/index.module.css';
 import { log } from '../../utility/logger';
+import GameSyncManager from '../manager/GameSyncManager';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
 	width: '100%',
@@ -51,7 +52,7 @@ export function GameComponent({}: GameComponentProps) {
 		if (game == null || !loading) {
 			return;
 		}
-		game.gameSyncManager.updateBaseGameState().then(() => {
+		game.gameSyncManager.once(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => {
 			setLoading(false);
 			if (game.gameSyncManager.getBaseData() == null) {
 				log.info('Looks like the player does not yet have a base, creating on for them');

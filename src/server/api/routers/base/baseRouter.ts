@@ -231,6 +231,11 @@ export const baseRouter = createTRPCRouter({
 		}),
 
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {
-		return getBaseDataFromUser(ctx);
+		const userId = ctx.session.user.id;
+		const data = await getBaseDataFromUser(ctx);
+		if (data != null) {
+			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...data });
+		}
+		return data;
 	}),
 });

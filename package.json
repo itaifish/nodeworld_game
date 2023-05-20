@@ -5,7 +5,7 @@
 	"scripts": {
 		"build": "next build",
 		"dev:next": "next dev",
-		"dev:wss": "cross-env PORT=3001 tsx watch src/server/websockets/websocketsServer.ts",
+		"dev:wss": "cross-env PORT=3001 tsx watch src/server/websockets/websocketsServer.ts --tsconfig tsconfig.server.json",
 		"dev": "run-p dev:*",
 		"postinstall": "prisma generate",
 		"generate": "prisma generate",
@@ -24,6 +24,7 @@
 		"@trpc/next": "^10.27.1",
 		"@trpc/react-query": "^10.27.1",
 		"@trpc/server": "^10.27.1",
+		"dotenv": "^16.0.3",
 		"next": "13.1.2",
 		"next-auth": "^4.18.7",
 		"phaser": "^3.55.2",
