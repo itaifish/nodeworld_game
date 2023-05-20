@@ -16,7 +16,7 @@
 		"prisma:studio": "prisma studio",
 		"lint": "next lint --fix",
 		"cypress:open": "cypress open",
-		"start": "cross-env NODE_ENV=production node dist/server/prodServer.js"
+		"start": "cross-env NODE_ENV=production node dist/src/server/prodServer.js"
 	},
 	"dependencies": {
 		"@next-auth/prisma-adapter": "^1.0.5",

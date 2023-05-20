@@ -18,6 +18,7 @@
 		"incremental": true,
 		"noUncheckedIndexedAccess": true,
 		"baseUrl": ".",
+		"outDir": "dist/",
 		"paths": {
 			"@/resources/*": ["src/game/resoures/*"]
 		}
