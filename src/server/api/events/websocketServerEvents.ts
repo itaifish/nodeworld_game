@@ -7,6 +7,10 @@ import type { AppendString, ValuesOf } from 'src/utility/type-utils.ts/type-util
 type Listener<TData> = (data: TData) => void;
 
 class WebsocketEventEmitter extends EventEmitter {
+	static readonly instance = new WebsocketEventEmitter();
+	private constructor() {
+		super();
+	}
 	on<TEvent extends WSEvent>(event: TEvent, listener: Listener<EventDataMap[TEvent]>): this {
 		return super.on(event, listener);
 	}
@@ -52,7 +56,7 @@ class WebsocketEventEmitter extends EventEmitter {
 	}
 }
 
-export const WS_EVENT_EMITTER = new WebsocketEventEmitter();
+export const WS_EVENT_EMITTER = WebsocketEventEmitter.instance;
 
 export const WS_EVENTS = {
 	// Base Events

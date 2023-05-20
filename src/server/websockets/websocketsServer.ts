@@ -28,6 +28,9 @@ const run = async () => {
 		handler.broadcastReconnectNotification();
 		wss.close();
 	});
+	wss.on('message', (data) => {
+		log.info(`WS recieved data: ${JSON.stringify(data)}`);
+	});
 };
 
 run();
