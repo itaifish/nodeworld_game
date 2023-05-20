@@ -1,4 +1,4 @@
-import { createTRPCProxyClient, createWSClient, httpBatchLink, httpLink, splitLink, wsLink } from '@trpc/client';
+import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
 import type { WebsocketsRouter } from '../../server/api/root';
 import superjson from 'superjson';
 import type { BaseDetails } from '../interfaces/base';

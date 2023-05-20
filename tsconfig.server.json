@@ -8,7 +8,7 @@
 		"strictNullChecks": true,
 		"forceConsistentCasingInFileNames": true,
 		"strictPropertyInitialization": false,
-		"noEmit": true,
+		"noEmit": false,
 		"esModuleInterop": true,
 		"module": "esnext",
 		"moduleResolution": "node",

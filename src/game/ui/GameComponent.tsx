@@ -9,7 +9,6 @@ import GlowingSea from '../resources/images/backgrounds/loading-screens/Glowing 
 import HiddenDesert from '../resources/images/backgrounds/loading-screens/Hidden Desert.png';
 import MistyRocks from '../resources/images/backgrounds/loading-screens/Misty Rocks.png';
 import StarryPeaks from '../resources/images/backgrounds/loading-screens/Starry Peaks.png';
-import Image from 'next/image';
 import { getRandomElementInList } from '../logic/general/math';
 import styles from '../../pages/index.module.css';
 import { log } from '../../utility/logger';

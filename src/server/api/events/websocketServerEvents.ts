@@ -1,4 +1,4 @@
-import type { Base, Building, Resource } from '@prisma/client';
+import type { Building, Resource } from '@prisma/client';
 import { observable } from '@trpc/server/observable';
 import { EventEmitter } from 'events';
 import type { BaseDetails } from 'src/game/interfaces/base';

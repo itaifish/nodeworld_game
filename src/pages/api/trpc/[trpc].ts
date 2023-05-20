@@ -3,7 +3,7 @@ import { env } from '../../../env/server.mjs';
 import { createTRPCContext } from '../../../server/api/trpc';
 import type { WebsocketsRouter } from '../../../server/api/root';
 import { websocketsRouter } from '../../../server/api/root';
-import { log } from 'src/utility/logger.js';
+import { log } from 'src/utility/logger';
 
 const websocketsHandler = createNextApiHandler<WebsocketsRouter>({
 	router: websocketsRouter,

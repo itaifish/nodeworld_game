@@ -140,7 +140,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 					if (resourcesAfter == null) {
 						return;
 					}
-					const building = new DragNDropBuilding(
+					const _building = new DragNDropBuilding(
 						this.mainScene,
 						buildingType,
 						ConstructBuildingUIScene.Buildings[buildingType].textureKey,
