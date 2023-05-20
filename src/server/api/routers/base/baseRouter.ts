@@ -11,6 +11,7 @@ import type { AtLeastOne } from 'src/utility/type-utils.ts/type-utils';
 import { observable } from '@trpc/server/observable';
 import type { WSEvent } from '../../events/websocketServerEvents';
 import { WS_EVENT_EMITTER, WS_EVENTS } from '../../events/websocketServerEvents';
+import { userInfo } from 'os';
 
 type tRPCContext = Parameters<Parameters<typeof protectedProcedure.query>[0]>[0]['ctx'];
 
@@ -19,22 +20,6 @@ const baseInclude = { buildings: true, owner: false, resources: true, military: 
 const BUILDING_ID_INPUT = z.object({ buildingId: z.string() });
 
 const RESOURCES_INPUT = z.record(z.enum(Object.keys(Resource_Type) as AtLeastOne<Resource_Type>), z.number().int());
-
-function getObservable<TData>(event: WSEvent) {
-	return observable<TData>((emit) => {
-		const onObservableEvent = (data: TData) => {
-			// emit data to client
-			emit.next(data);
-		};
-
-		WS_EVENT_EMITTER.on(event, onObservableEvent);
-
-		// unsubscribe function when client disconnects or stops subscribing
-		return () => {
-			WS_EVENT_EMITTER.off(event, onObservableEvent);
-		};
-	});
-}
 
 async function getBaseDataFromUser(ctx: tRPCContext) {
 	const id = ctx.session.user.id;
@@ -48,7 +33,7 @@ export const baseRouter = createTRPCRouter({
 	// User Resources
 	onUserResourcesChanged: protectedProcedure.subscription(({ ctx }) => {
 		const id = ctx.session.user.id;
-		return getObservable<Resource[]>(`${WS_EVENTS.UserResourceUpdate}${id}`);
+		return WS_EVENT_EMITTER.getObservable(`${WS_EVENTS.UserResourceUpdate}${id}`);
 	}),
 	giveUserResources: adminProcedure
 		.input(
@@ -78,7 +63,7 @@ export const baseRouter = createTRPCRouter({
 	// Base
 	onBaseUpdated: protectedProcedure.subscription(({ ctx }) => {
 		const id = ctx.session.user.id;
-		return getObservable<BaseDetails>(`${WS_EVENTS.BaseUpdate}${id}`);
+		return WS_EVENT_EMITTER.getObservable(`${WS_EVENTS.BaseUpdate}${id}`);
 	}),
 	createBaseIfNotExists: protectedProcedure.mutation(async ({ ctx }) => {
 		const id = ctx.session.user.id;
@@ -88,7 +73,7 @@ export const baseRouter = createTRPCRouter({
 			update: {},
 			include: baseInclude,
 		});
-		WS_EVENT_EMITTER
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${id}`, upsert);
 	}),
 
 	deleteBase: protectedProcedure.mutation(async ({ ctx }) => {

@@ -1,37 +1,54 @@
 import type { Resource } from '@prisma/client';
+import { observable } from '@trpc/server/observable';
 import { EventEmitter } from 'events';
 import type { BaseDetails } from 'src/game/interfaces/base';
 import type { AppendString, ValuesOf } from 'src/utility/type-utils.ts/type-utils';
 
-type Listener = (...args: any[]) => void;
+type Listener<TData = any> = (data: TData) => void;
 
 class WebsocketEventEmitter extends EventEmitter {
-	on(event: WSEvent, listener: Listener): this {
+	on<TEvent extends WSEvent>(event: TEvent, listener: Listener<EventDataMap[TEvent]>): this {
 		return super.on(event, listener);
 	}
 
-	once(event: WSEvent, listener: Listener): this {
+	once<TEvent extends WSEvent>(event: TEvent, listener: Listener<EventDataMap[TEvent]>): this {
 		return super.once(event, listener);
 	}
 
-	off(event: WSEvent, listener: Listener): this {
+	off<TEvent extends WSEvent>(event: TEvent, listener: Listener<EventDataMap[TEvent]>): this {
 		return super.off(event, listener);
 	}
 
-	removeListener(event: WSEvent, listener: Listener): this {
+	removeListener<TEvent extends WSEvent>(event: TEvent, listener: Listener<EventDataMap[TEvent]>): this {
 		return super.removeListener(event, listener);
 	}
 
-	prependListener(eventName: WSEvent, listener: Listener): this {
-		return super.prependListener(eventName, listener);
+	prependListener<TEvent extends WSEvent>(event: TEvent, listener: Listener<EventDataMap[TEvent]>): this {
+		return super.prependListener(event, listener);
 	}
 
-	prependOnceListener(eventName: WSEvent, listener: Listener): this {
-		return super.prependOnceListener(eventName, listener);
+	prependOnceListener<TEvent extends WSEvent>(event: TEvent, listener: Listener<EventDataMap[TEvent]>): this {
+		return super.prependOnceListener(event, listener);
 	}
 
-	emit<TEvent extends WSEvent>(eventName: TEvent, data: EventDataMap[TEvent]): boolean {
-		return super.emit(eventName, data);
+	emit<TEvent extends WSEvent>(event: TEvent, data: EventDataMap[TEvent]): boolean {
+		return super.emit(event, data);
+	}
+
+	getObservable<TEvent extends WSEvent, TData extends EventDataMap[TEvent]>(event: TEvent) {
+		return observable<TData>((emit) => {
+			const onObservableEvent = (data: TData) => {
+				// emit data to client
+				emit.next(data);
+			};
+
+			this.on(event, onObservableEvent);
+
+			// unsubscribe function when client disconnects or stops subscribing
+			return () => {
+				this.off(event, onObservableEvent);
+			};
+		});
 	}
 }
 
