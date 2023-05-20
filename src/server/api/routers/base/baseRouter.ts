@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, adminProcedure } from '../../trpc';
+import type { Resource } from '@prisma/client';
 import { Resource_Type } from '@prisma/client';
 import { Building_Type } from '@prisma/client';
 import BuildingManager from '../../../../game/logic/buildings/BuildingManager';
@@ -8,6 +9,7 @@ import type { BaseDetails } from '../../../../game/interfaces/base';
 import BaseManager from '../../../../game/logic/base/BaseManager';
 import type { AtLeastOne } from 'src/utility/type-utils.ts/type-utils';
 import { observable } from '@trpc/server/observable';
+import type { WSEvent } from '../../events/websocketServerEvents';
 import { WS_EVENT_EMITTER, WS_EVENTS } from '../../events/websocketServerEvents';
 
 type tRPCContext = Parameters<Parameters<typeof protectedProcedure.query>[0]>[0]['ctx'];
@@ -18,7 +20,21 @@ const BUILDING_ID_INPUT = z.object({ buildingId: z.string() });
 
 const RESOURCES_INPUT = z.record(z.enum(Object.keys(Resource_Type) as AtLeastOne<Resource_Type>), z.number().int());
 
-type ResourceInputType = z.infer<typeof RESOURCES_INPUT>;
+function getObservable<TData>(event: WSEvent) {
+	return observable<TData>((emit) => {
+		const onObservableEvent = (data: TData) => {
+			// emit data to client
+			emit.next(data);
+		};
+
+		WS_EVENT_EMITTER.on(event, onObservableEvent);
+
+		// unsubscribe function when client disconnects or stops subscribing
+		return () => {
+			WS_EVENT_EMITTER.off(event, onObservableEvent);
+		};
+	});
+}
 
 async function getBaseDataFromUser(ctx: tRPCContext) {
 	const id = ctx.session.user.id;
@@ -29,22 +45,10 @@ async function getBaseDataFromUser(ctx: tRPCContext) {
 }
 
 export const baseRouter = createTRPCRouter({
+	// User Resources
 	onUserResourcesChanged: protectedProcedure.subscription(({ ctx }) => {
 		const id = ctx.session.user.id;
-		return observable<ResourceInputType>((emit) => {
-			const onUserResourcesChanged = (data: ResourceInputType) => {
-				// emit data to client
-				emit.next(data);
-			};
-
-			// trigger `onAdd()` when `add` is triggered in our event emitter
-			WS_EVENT_EMITTER.on(`${WS_EVENTS.UserResourceUpdate}${id}`, onUserResourcesChanged);
-
-			// unsubscribe function when client disconnects or stops subscribing
-			return () => {
-				WS_EVENT_EMITTER.off(`${WS_EVENTS.UserResourceUpdate}${id}`, onUserResourcesChanged);
-			};
-		});
+		return getObservable<Resource[]>(`${WS_EVENTS.UserResourceUpdate}${id}`);
 	}),
 	giveUserResources: adminProcedure
 		.input(
@@ -67,18 +71,24 @@ export const baseRouter = createTRPCRouter({
 				where: { id: currentResources.id },
 				data: { resources: { set: currentResources.resources } },
 			});
-			WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`);
+			WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, currentResources.resources);
 			return update;
 		}),
-
+	// End User Resources
+	// Base
+	onBaseUpdated: protectedProcedure.subscription(({ ctx }) => {
+		const id = ctx.session.user.id;
+		return getObservable<BaseDetails>(`${WS_EVENTS.BaseUpdate}${id}`);
+	}),
 	createBaseIfNotExists: protectedProcedure.mutation(async ({ ctx }) => {
 		const id = ctx.session.user.id;
-		return ctx.prisma.base.upsert({
+		const upsert = await ctx.prisma.base.upsert({
 			where: { userId: id },
 			create: { userId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
 			update: {},
 			include: baseInclude,
 		});
+		WS_EVENT_EMITTER
 	}),
 
 	deleteBase: protectedProcedure.mutation(async ({ ctx }) => {
@@ -88,7 +98,7 @@ export const baseRouter = createTRPCRouter({
 		}
 		return ctx.prisma.base.delete({ where: { id: baseUser.id } });
 	}),
-
+	// End Base
 	scrapBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
 		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
 		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
