@@ -10,17 +10,21 @@ import { v4 as uuidv4 } from 'uuid';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import { mergeInto } from 'src/utility/function-utils/function-utils';
 import { clientEnv } from 'src/env/schema.mjs';
+import type { Unsubscribable } from '@trpc/server/observable';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
 	private client;
-
+	private readonly unsubscribableEvents: Unsubscribable[];
 	static EVENTS = {
 		BASE_GAME_STATE_UPDATED: 'BASE_GAME_STATE_UPDATED',
 	};
 
-	constructor() {
+	static instance = new GameSyncManager();
+
+	private constructor() {
 		super();
 		this.baseGameState = null;
+		log.info('Game Sync Manager created');
 		const url = clientEnv.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000';
 		const wsClient = createWSClient({
 			url: `${url}`,
@@ -37,7 +41,7 @@ export default class GameSyncManager extends EventEmitter {
 		// this.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => {
 		// 	log.trace('Base Game State Updated');
 		// });
-		this.initWebsocketEventListeners();
+		this.unsubscribableEvents = this.initWebsocketEventListeners();
 	}
 
 	async createBaseIfNotExists() {
@@ -83,57 +87,57 @@ export default class GameSyncManager extends EventEmitter {
 	}
 
 	// TODO: Since we already have incremental data updates, lets improve our emitter to have something besides BASE_GAME_STATE_UPDATED
-	private initWebsocketEventListeners() {
-		this.client.base.onBaseUpdated.subscribe(undefined, {
-			onData: (data) => {
-				if (data.action === 'updated') {
-					mergeInto(this.baseGameState, data);
-				} else if (data.action === 'created') {
-					this.baseGameState = data;
-				} else {
-					this.baseGameState = null;
-				}
-				this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-			},
-			onError: (err) => {
-				log.error(err, `Error occured with onBaseUpdated event`);
-			},
-		});
-
-		this.client.base.onBuildingUpdated.subscribe(undefined, {
-			onData: (data) => {
-				if (data.action === 'updated') {
-					const building = this.baseGameState?.buildings?.find((x) => x.id === data.id);
-					if (building) {
-						mergeInto(building, data);
-						this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+	private initWebsocketEventListeners(): Unsubscribable[] {
+		return [
+			this.client.base.onBaseUpdated.subscribe(undefined, {
+				onData: (data) => {
+					if (data.action === 'updated') {
+						mergeInto(this.baseGameState, data);
+					} else if (data.action === 'created') {
+						this.baseGameState = data;
+					} else {
+						this.baseGameState = null;
 					}
-				} else if (data.action === 'created') {
-					this.baseGameState?.buildings?.push(data);
 					this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-				} else {
-					if (this.baseGameState != null) {
-						this.baseGameState.buildings = this.baseGameState?.buildings?.filter((x) => x.id !== data.id);
+				},
+				onError: (err) => {
+					log.error(err, `Error occured with onBaseUpdated event`);
+				},
+			}),
+			this.client.base.onBuildingUpdated.subscribe(undefined, {
+				onData: (data) => {
+					if (data.action === 'updated') {
+						const building = this.baseGameState?.buildings?.find((x) => x.id === data.id);
+						if (building) {
+							mergeInto(building, data);
+							this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+						}
+					} else if (data.action === 'created') {
+						this.baseGameState?.buildings?.push(data);
 						this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+					} else {
+						if (this.baseGameState != null) {
+							this.baseGameState.buildings = this.baseGameState?.buildings?.filter((x) => x.id !== data.id);
+							this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+						}
 					}
-				}
-			},
-			onError: (err) => {
-				log.error(err, `Error occured with onBuildingUpdated event`);
-			},
-		});
-
-		this.client.base.onUserResourcesChanged.subscribe(undefined, {
-			onData: (data) => {
-				if (this.baseGameState == null) {
-					return;
-				}
-				this.baseGameState.resources = data;
-				this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-			},
-			onError: (err) => {
-				log.error(err, `Error occured with onBuildingUpdated event`);
-			},
-		});
+				},
+				onError: (err) => {
+					log.error(err, `Error occured with onBuildingUpdated event`);
+				},
+			}),
+			this.client.base.onUserResourcesChanged.subscribe(undefined, {
+				onData: (data) => {
+					if (this.baseGameState == null) {
+						return;
+					}
+					this.baseGameState.resources = data;
+					this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+				},
+				onError: (err) => {
+					log.error(err, `Error occured with onBuildingUpdated event`);
+				},
+			}),
+		];
 	}
 }

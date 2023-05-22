@@ -8,6 +8,7 @@ type Listener<TData> = (data: TData) => void;
 
 class WebsocketEventEmitter extends EventEmitter {
 	static readonly instance = new WebsocketEventEmitter();
+
 	private constructor() {
 		super();
 	}

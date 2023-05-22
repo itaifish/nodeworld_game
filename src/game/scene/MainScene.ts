@@ -47,6 +47,7 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	create() {
+		log.info('MainScene created');
 		// TODO: Investigate if this will cause a memory leak
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.createBoard());
 
