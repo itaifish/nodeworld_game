@@ -42,7 +42,7 @@ export default class BaseBuilding {
 		}
 	}
 
-	update(time: number, delta: number) {
+	update(_time: number, _delta: number) {
 		const now = new Date().getTime();
 		if (this.progressBar) {
 			const rawProgress =
