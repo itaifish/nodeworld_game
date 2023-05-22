@@ -42,6 +42,7 @@ export default class GameSyncManager extends EventEmitter {
 		// 	log.trace('Base Game State Updated');
 		// });
 		this.unsubscribableEvents = this.initWebsocketEventListeners();
+		this.client.base.getBaseData.query();
 	}
 
 	async createBaseIfNotExists() {

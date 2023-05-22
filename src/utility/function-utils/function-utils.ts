@@ -5,12 +5,16 @@
  * @returns reference to `data`
  */
 export function mergeInto<TData>(data: TData, dataToUpdate: Partial<TData>) {
+	if (data == null || dataToUpdate == null) {
+		return data;
+	}
+
 	for (const key of Object.keys(dataToUpdate)) {
 		const typedKey = key as keyof TData;
 		if (typeof data[typedKey] === 'object') {
 			mergeInto(data[typedKey], dataToUpdate[typedKey] as Partial<TData[keyof TData]>);
 		} else {
-			data[typedKey] = dataToUpdate[typedKey] as TData[keyof TData];
+			data[typedKey] = dataToUpdate[typedKey] as NonNullable<TData>[keyof TData];
 		}
 	}
 	return data;

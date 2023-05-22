@@ -49,7 +49,7 @@ export default class BaseBuilding {
 				(this.building.finishedAt.getTime() - now) /
 				(BuildingManager.BUILDING_DATA[this.building.type].buildTimeSeconds * 1_000);
 			const finishedProgress = 1 - clamp(rawProgress, 1, 0);
-			log.debug(`Building Progress: ${finishedProgress} [Raw progress: ${rawProgress}]`);
+			log.trace(`Building Progress: ${finishedProgress} [Raw progress: ${rawProgress}]`);
 			if (finishedProgress != 1) {
 				this.image.setAlpha(0.25 + finishedProgress * 0.65);
 				this.image.setTint(0xffffff);
