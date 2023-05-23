@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Building, Building_Type, Resource, Resource_Type } from '@prisma/client';
-import { log } from 'src/utility/logger';
+import { log } from '../../../utility/logger';
 import type { Position, Rect, Size } from '../../interfaces/general';
 import BuildingManager from '../buildings/BuildingManager';
 import { isBetween, isRectCollision, ORIGIN_POSITION } from '../general/math';

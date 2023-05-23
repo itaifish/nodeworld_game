@@ -11,7 +11,7 @@ import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server';
 import superjson from 'superjson';
 import { type WebsocketsRouter } from '../server/api/root';
 import type { NextPageContext } from 'next';
-import { clientEnv } from 'src/env/schema.mjs';
+import { clientEnv } from '../env/schema.mjs';
 
 function getEndingLink(ctx: NextPageContext | undefined) {
 	if (typeof window === 'undefined') {

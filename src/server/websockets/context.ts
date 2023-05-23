@@ -3,7 +3,7 @@ import type * as trpcNext from '@trpc/server/adapters/next';
 import type { NodeHTTPCreateContextFnOptions } from '@trpc/server/adapters/node-http';
 import type { IncomingMessage } from 'http';
 import { getSession } from 'next-auth/react';
-import { log } from 'src/utility/logger';
+import { log } from '../../utility/logger';
 import type ws from 'ws';
 import { prisma } from '../db';
 

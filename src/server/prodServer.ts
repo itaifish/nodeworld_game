@@ -1,7 +1,7 @@
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import http from 'http';
 import next from 'next';
-import { log } from 'src/utility/logger';
+import { log } from '../utility/logger';
 import { parse } from 'url';
 import ws from 'ws';
 import { websocketsRouter } from './api/root';

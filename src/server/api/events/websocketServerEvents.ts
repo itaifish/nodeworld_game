@@ -1,8 +1,8 @@
 import type { Building, Resource } from '@prisma/client';
 import { observable } from '@trpc/server/observable';
 import { EventEmitter } from 'events';
-import type { BaseDetails } from 'src/game/interfaces/base';
-import type { AppendString, ValuesOf } from 'src/utility/type-utils.ts/type-utils';
+import type { BaseDetails } from '../../../game/interfaces/base';
+import type { AppendString, ValuesOf } from '../../../utility/type-utils.ts/type-utils';
 
 type Listener<TData> = (data: TData) => void;
 

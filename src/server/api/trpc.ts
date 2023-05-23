@@ -1,10 +1,3 @@
-import type * as trpc from '@trpc/server';
-import type * as trpcNext from '@trpc/server/adapters/next';
-import type { NodeHTTPCreateContextFnOptions } from '@trpc/server/adapters/node-http';
-import type { IncomingMessage } from 'http';
-import { getSession } from 'next-auth/react';
-import type ws from 'ws';
-import { log } from 'src/utility/logger';
 import fetch, { Headers, Request, Response } from 'node-fetch';
 import type { createContext } from '../websockets/context';
 
