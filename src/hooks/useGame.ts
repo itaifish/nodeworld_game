@@ -8,12 +8,12 @@ export function useGame(
 	containerRef: React.RefObject<HTMLDivElement>,
 ): NodeworldGame | undefined {
 	const [game, setGame] = useState<NodeworldGame>();
-	const [gameSyncManager, _] = useState<GameSyncManager>(new GameSyncManager());
+
 	useEffect(() => {
 		if (!game && containerRef.current) {
 			setGame((oldGame) => {
 				if (!oldGame && containerRef.current) {
-					return new NodeworldGame({ ...config, parent: containerRef.current }, gameSyncManager);
+					return new NodeworldGame({ ...config, parent: containerRef.current }, GameSyncManager.instance);
 				} else {
 					return oldGame;
 				}
@@ -22,7 +22,7 @@ export function useGame(
 		return () => {
 			game?.destroy(true);
 		};
-	}, [config, containerRef, game, gameSyncManager]);
+	}, [config, containerRef, game]);
 
 	return game;
 }

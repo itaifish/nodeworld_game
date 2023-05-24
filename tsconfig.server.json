@@ -8,7 +8,7 @@
 		"strictNullChecks": true,
 		"forceConsistentCasingInFileNames": true,
 		"strictPropertyInitialization": false,
-		"noEmit": true,
+		"noEmit": false,
 		"esModuleInterop": true,
 		"module": "esnext",
 		"moduleResolution": "node",
@@ -18,11 +18,11 @@
 		"incremental": true,
 		"noUncheckedIndexedAccess": true,
 		"baseUrl": ".",
+		"outDir": "dist/",
 		"paths": {
-			"@/resources/*": ["src/game/resoures/*"],
-			"src/*": ["src/*"]
+			"@/resources/*": ["src/game/resoures/*"]
 		}
 	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.cjs", "**/*.mjs", "**/*.js"],
-	"exclude": ["node_modules", "src/game/resources/**/*"]
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+	"exclude": ["node_modules", "src/game/resources/**/*", "src/env/**/*"]
 }

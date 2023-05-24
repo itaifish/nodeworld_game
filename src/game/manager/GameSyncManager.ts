@@ -1,49 +1,53 @@
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import type { AppRouter } from '../../server/api/root';
+import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client';
+import type { WebsocketsRouter } from '../../server/api/root';
 import superjson from 'superjson';
 import type { BaseDetails } from '../interfaces/base';
 import EventEmitter from 'events';
-import { clientEnv } from '../../env/schema.mjs';
 import { log } from '../../utility/logger';
 import type { Building, Building_Type } from '@prisma/client';
 import type { Position } from '../interfaces/general';
 import { v4 as uuidv4 } from 'uuid';
 import BuildingManager from '../logic/buildings/BuildingManager';
+import { mergeInto } from 'src/utility/function-utils/function-utils';
+import { clientEnv } from 'src/env/schema.mjs';
+import type { Unsubscribable } from '@trpc/server/observable';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
 	private client;
-
+	private readonly unsubscribableEvents: Unsubscribable[];
 	static EVENTS = {
 		BASE_GAME_STATE_UPDATED: 'BASE_GAME_STATE_UPDATED',
 	};
 
-	constructor() {
+	static instance = new GameSyncManager();
+
+	private constructor() {
 		super();
 		this.baseGameState = null;
-		this.client = createTRPCProxyClient<AppRouter>({
+		log.info('Game Sync Manager created');
+		const url = clientEnv.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000';
+		const wsClient = createWSClient({
+			url: `${url}`,
+		});
+		this.client = createTRPCProxyClient<WebsocketsRouter>({
 			links: [
-				httpBatchLink({
-					url: `${clientEnv.NEXT_PUBLIC_TRPC_URL}`,
+				wsLink({
+					client: wsClient,
 				}),
 			],
 			transformer: superjson,
 		});
+
 		// this.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => {
 		// 	log.trace('Base Game State Updated');
 		// });
+		this.unsubscribableEvents = this.initWebsocketEventListeners();
+		this.client.base.getBaseData.query();
 	}
 
-	async updateBaseGameState() {
-		const baseData = await this.client.base.getBaseData.query();
-		this.baseGameState = baseData;
-		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-	}
-
-	async createBaseIfNotExists(): Promise<BaseDetails> {
-		const newBase = await this.client.base.createBaseIfNotExists.mutate();
-		this.baseGameState = newBase;
-		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-		return newBase;
+	async createBaseIfNotExists() {
+		this.client.base.createBaseIfNotExists.mutate();
+		this.client.base.getBaseData.query();
 	}
 
 	async constructBuilding(building: Building_Type, position: Position) {
@@ -56,6 +60,7 @@ export default class GameSyncManager extends EventEmitter {
 			baseId: this.baseGameState?.id ?? null,
 			finishedAt: BuildingManager.getBuildingFinishedTime(building, networkDelayOffsetSecondsNow),
 			lastHarvest: now,
+			createdAt: now,
 			type: building,
 			hp: BuildingManager.BUILDING_DATA[building].maxHP,
 			level: 1,
@@ -80,5 +85,60 @@ export default class GameSyncManager extends EventEmitter {
 
 	getBaseData() {
 		return this.baseGameState;
+	}
+
+	// TODO: Since we already have incremental data updates, lets improve our emitter to have something besides BASE_GAME_STATE_UPDATED
+	private initWebsocketEventListeners(): Unsubscribable[] {
+		return [
+			this.client.base.onBaseUpdated.subscribe(undefined, {
+				onData: (data) => {
+					if (data.action === 'updated') {
+						mergeInto(this.baseGameState, data);
+					} else if (data.action === 'created') {
+						this.baseGameState = data;
+					} else {
+						this.baseGameState = null;
+					}
+					this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+				},
+				onError: (err) => {
+					log.error(err, `Error occured with onBaseUpdated event`);
+				},
+			}),
+			this.client.base.onBuildingUpdated.subscribe(undefined, {
+				onData: (data) => {
+					if (data.action === 'updated') {
+						const building = this.baseGameState?.buildings?.find((x) => x.id === data.id);
+						if (building) {
+							mergeInto(building, data);
+							this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+						}
+					} else if (data.action === 'created') {
+						this.baseGameState?.buildings?.push(data);
+						this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+					} else {
+						if (this.baseGameState != null) {
+							this.baseGameState.buildings = this.baseGameState?.buildings?.filter((x) => x.id !== data.id);
+							this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+						}
+					}
+				},
+				onError: (err) => {
+					log.error(err, `Error occured with onBuildingUpdated event`);
+				},
+			}),
+			this.client.base.onUserResourcesChanged.subscribe(undefined, {
+				onData: (data) => {
+					if (this.baseGameState == null) {
+						return;
+					}
+					this.baseGameState.resources = data;
+					this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+				},
+				onError: (err) => {
+					log.error(err, `Error occured with onBuildingUpdated event`);
+				},
+			}),
+		];
 	}
 }
