@@ -3,7 +3,7 @@ import http from 'http';
 import next from 'next';
 import { log } from '../utility/logger';
 import { parse } from 'url';
-import ws from 'ws';
+import { WebSocketServer } from 'ws';
 import { websocketsRouter } from './api/root';
 import { createContext } from './websockets/context';
 
@@ -27,7 +27,7 @@ void app.prepare().then(() => {
 		const parsedUrl = parse(req.url!, true);
 		void handle(req, res, parsedUrl);
 	});
-	const wss = new ws.Server({ server });
+	const wss = new WebSocketServer({ server });
 	const handler = applyWSSHandler({ wss, router: websocketsRouter, createContext });
 
 	process.on('SIGTERM', () => {
