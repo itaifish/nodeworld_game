@@ -234,7 +234,8 @@ export default class MainScene extends Phaser.Scene {
 				x: position.x + ((cellSize.width * (size.width - 1)) >> 1),
 				y: position.y + ((cellSize.height * (size.height - 1)) >> 1),
 			};
-			this.buildings.push(new BaseBuilding(building, this, centeredPosition));
+			const newBuilding = new BaseBuilding(building, this, centeredPosition);
+			this.buildings.push(newBuilding);
 		});
 
 		this.board = board;

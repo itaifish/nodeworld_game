@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { Resource, Resource_Type } from '@prisma/client';
+import type { Building, Resource, Resource_Type } from '@prisma/client';
 import { log } from 'src/utility/logger';
 import GameSyncManager from '../manager/GameSyncManager';
 import NormalButton from '../resources/images/gui/buttons/Button.png';
@@ -14,21 +14,43 @@ import ConstructBuildingUIScene from './ConstructBuildingUIScene';
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import { UIConstants } from '../ui/constants';
 import type MainScene from './MainScene';
+import { Position } from '../interfaces/general';
+import type BaseBuilding from '../board/building/BaseBuilding';
 
 export default class UIScene extends Phaser.Scene {
 	static readonly BAR_THICKNESS = 150;
 	static readonly TEXT_MARGIN_TOP = 25;
+	static readonly SELECTED_BUILDING_START_WIDTH = 200;
 
 	readonly gameSyncManager: GameSyncManager;
-	statsText: Map<Resource_Type, Phaser.GameObjects.Text>;
+	private statsText: Map<Resource_Type, Phaser.GameObjects.Text>;
+	buildingText: Phaser.GameObjects.Text[];
 	constructBuildingUIScene: Phaser.Scene;
 	readonly mainScene;
+
+	private selectedBuilding: {
+		building: BaseBuilding | null;
+		text: Phaser.GameObjects.Text[];
+		image: Phaser.GameObjects.Image | null;
+	};
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager, mainScene: MainScene) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.statsText = new Map();
 		this.mainScene = mainScene;
+		this.selectedBuilding = {
+			building: null,
+			text: [],
+			image: null,
+		};
+	}
+
+	setSelectedBuilding(selectedBuilding: BaseBuilding | null) {
+		this.selectedBuilding.building?.setSelected(false);
+		this.selectedBuilding.building = selectedBuilding;
+		this.selectedBuilding.building?.setSelected(true);
+		this.displaySelectedBuilding();
 	}
 
 	preload() {
@@ -82,6 +104,32 @@ export default class UIScene extends Phaser.Scene {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	update(time: number, delta: number): void {
 		//
+	}
+
+	private displaySelectedBuilding() {
+		const building = this.selectedBuilding.building?.building;
+		this.selectedBuilding.image?.destroy(true);
+		this.selectedBuilding.text.forEach((textInstance) => textInstance.destroy(true));
+		this.selectedBuilding.text = [];
+		this.selectedBuilding.image = null;
+		if (building == null) {
+			return;
+		}
+		const defaultY = this.cameras.main.height - UIScene.BAR_THICKNESS;
+		this.selectedBuilding.image = this.add.image(
+			UIScene.SELECTED_BUILDING_START_WIDTH,
+			defaultY,
+			ConstructBuildingUIScene.Buildings[building.type].textureKey,
+		);
+		(['hp', 'level', 'type', 'lastHarvest'] as const).forEach((data, index) => {
+			this.selectedBuilding.text.push(
+				this.add.text(
+					UIScene.SELECTED_BUILDING_START_WIDTH,
+					defaultY + UIScene.TEXT_MARGIN_TOP * (index + 1),
+					`${data}: \t${building[data]}`,
+				),
+			);
+		});
 	}
 
 	private displayStats() {

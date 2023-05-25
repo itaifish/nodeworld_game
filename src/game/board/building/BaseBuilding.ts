@@ -12,9 +12,15 @@ export default class BaseBuilding {
 	readonly building: Building;
 	progressBar: FillableBar | undefined;
 
+	private isSelected: boolean;
+
 	constructor(building: Building, scene: Phaser.Scene, position: Position) {
+		this.isSelected = false;
 		this.building = building;
 		this.image = scene.add.image(position.x, position.y, ConstructBuildingUIScene.Buildings[building.type].textureKey);
+		this.image.on('pointerdown', () => {
+			log.info('Building clicked on');
+		});
 		const size = BuildingManager.BUILDING_DATA[building.type].size;
 		const scale = Math.min(
 			(cellSize.height * size.height) / this.image.displayHeight,
@@ -33,6 +39,19 @@ export default class BaseBuilding {
 			0,
 			0x1122ff,
 		);
+	}
+
+	onClick(callbackFunc: () => void) {
+		callbackFunc();
+	}
+
+	setSelected(isSelected: boolean) {
+		this.isSelected = isSelected;
+		if (this.isSelected) {
+			this.image.setTint(0x1122ff, 0x3322aa, 0x3322aa, 0x1122ff);
+		} else {
+			this.image.clearTint();
+		}
 	}
 
 	delete() {
