@@ -1,5 +1,5 @@
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
-import ws from 'ws';
+import ws, { WebSocketServer } from 'ws';
 import { log } from '../../utility/logger';
 import { websocketsRouter } from '../api/root';
 import { createContext } from './context';
@@ -8,9 +8,9 @@ const run = async () => {
 	const dotenv = await import('dotenv');
 	dotenv.config();
 	log.info(`nextauth URL: ${process.env.NEXTAUTH_URL}`);
-	const PORT = 3111;
+	const PORT = +(process.env?.PORT ?? 3000);
 
-	const wss = new ws.Server({
+	const wss = new WebSocketServer({
 		port: PORT,
 	});
 	const handler = applyWSSHandler({ wss, router: websocketsRouter, createContext: createContext });
