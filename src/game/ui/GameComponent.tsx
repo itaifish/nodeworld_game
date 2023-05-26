@@ -53,10 +53,6 @@ export function GameComponent({}: GameComponentProps) {
 		}
 		game.gameSyncManager.once(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => {
 			setLoading(false);
-			if (game.gameSyncManager.getBaseData() == null) {
-				log.info('Looks like the player does not yet have a base, creating on for them');
-				game.gameSyncManager.createBaseIfNotExists();
-			}
 		});
 	}, [game, loading]);
 
