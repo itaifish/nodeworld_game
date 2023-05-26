@@ -14,13 +14,18 @@ import ConstructBuildingUIScene from './ConstructBuildingUIScene';
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import { UIConstants } from '../ui/constants';
 import type MainScene from './MainScene';
+import { MainSceneEvents } from './MainScene';
 import { Position } from '../interfaces/general';
 import type BaseBuilding from '../board/building/BaseBuilding';
+import BuildingManager from '../logic/buildings/BuildingManager';
+
+const buildingStats = ['hp', 'level', 'type', 'lastHarvest'] as const;
+type BuildingStat = (typeof buildingStats)[number];
 
 export default class UIScene extends Phaser.Scene {
 	static readonly BAR_THICKNESS = 150;
 	static readonly TEXT_MARGIN_TOP = 25;
-	static readonly SELECTED_BUILDING_START_WIDTH = 200;
+	static readonly SELECTED_BUILDING_START_WIDTH = 450;
 
 	readonly gameSyncManager: GameSyncManager;
 	private statsText: Map<Resource_Type, Phaser.GameObjects.Text>;
@@ -44,6 +49,9 @@ export default class UIScene extends Phaser.Scene {
 			text: [],
 			image: null,
 		};
+		this.mainScene.on(MainSceneEvents.SELECT_BUILDING, (data) => {
+			this.setSelectedBuilding(data);
+		});
 	}
 
 	setSelectedBuilding(selectedBuilding: BaseBuilding | null) {
@@ -121,15 +129,27 @@ export default class UIScene extends Phaser.Scene {
 			defaultY,
 			ConstructBuildingUIScene.Buildings[building.type].textureKey,
 		);
-		(['hp', 'level', 'type', 'lastHarvest'] as const).forEach((data, index) => {
+		this.selectedBuilding.image.setY(this.selectedBuilding.image.y + this.selectedBuilding.image.height / 2);
+		this.selectedBuilding.image.setX(this.selectedBuilding.image.x + this.selectedBuilding.image.width / 2);
+		buildingStats.forEach((data, index) => {
 			this.selectedBuilding.text.push(
 				this.add.text(
-					UIScene.SELECTED_BUILDING_START_WIDTH,
+					UIScene.SELECTED_BUILDING_START_WIDTH + (this.selectedBuilding.image?.width ?? 0),
 					defaultY + UIScene.TEXT_MARGIN_TOP * (index + 1),
-					`${data}: \t${building[data]}`,
+					`${data}: \t${this.formatBuildingStatsText(building, data)}`,
 				),
 			);
 		});
+	}
+
+	private formatBuildingStatsText(building: Building, statsKey: BuildingStat): string {
+		const map: Record<BuildingStat, string> = {
+			hp: `${building.hp} / ${BuildingManager.BUILDING_DATA[building.type].maxHP}`,
+			level: `${building.level}`,
+			type: building.type,
+			lastHarvest: building.lastHarvest ? `${building.lastHarvest.toLocaleString()}` : 'Never',
+		};
+		return map[statsKey] ?? '';
 	}
 
 	private displayStats() {
