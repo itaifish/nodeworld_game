@@ -24,9 +24,11 @@ export default class BaseBuilding {
 		this.building = building;
 		this.image = scene.add.image(position.x, position.y, ConstructBuildingUIScene.Buildings[building.type].textureKey);
 		this.image.setInteractive();
-		this.image.on(Phaser.Input.Events.POINTER_DOWN, () => {
-			this.setSelected(true);
-			onSelectedCallback(this);
+		this.image.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+			if (pointer.leftButtonDown()) {
+				this.setSelected(true);
+				onSelectedCallback(this);
+			}
 		});
 		const size = BuildingManager.BUILDING_DATA[building.type].size;
 		const scale = Math.min(

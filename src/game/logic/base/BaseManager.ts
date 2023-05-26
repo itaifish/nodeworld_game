@@ -7,11 +7,11 @@ import { isBetween, isRectCollision, ORIGIN_POSITION } from '../general/math';
 
 export default class BaseManager {
 	static readonly STARTING_RESOURCES: Array<{ type: Resource_Type; amount: number }> = [
-		{ type: 'FOOD', amount: 200 },
-		{ type: 'ALUMNINUM', amount: 200 },
-		{ type: 'GOLD', amount: 200 },
-		{ type: 'IRON', amount: 200 },
-		{ type: 'PLUTONIUM', amount: 200 },
+		{ type: 'FOOD', amount: 500 },
+		{ type: 'ALUMNINUM', amount: 500 },
+		{ type: 'GOLD', amount: 500 },
+		{ type: 'IRON', amount: 500 },
+		{ type: 'PLUTONIUM', amount: 250 },
 	];
 
 	static getBaseSize(baseLevel: number): Size {

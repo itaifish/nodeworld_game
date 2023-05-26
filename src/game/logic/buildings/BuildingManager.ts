@@ -117,7 +117,10 @@ export default class BuildingManager {
 		return newResourcePool;
 	}
 
-	static getHarvestAmountAndTimeForBuilding(building: Building) {
+	static getHarvestAmountAndTimeForBuilding(building: Building | null) {
+		if (building == null) {
+			return null;
+		}
 		const now = new Date().getTime();
 		const lastHarvest = building.lastHarvest ?? building.finishedAt;
 		const timeDifferenceMs = now - lastHarvest.getTime();
@@ -137,6 +140,15 @@ export default class BuildingManager {
 			harvest: totalHarvest,
 			lastHarvested: newLastHarvestDate,
 		};
+	}
+
+	static getNextHarvest(building: Building): Date {
+		const now = new Date().getTime();
+		const lastHarvest = building.lastHarvest ?? building.finishedAt;
+		const timeDifferenceMs = now - lastHarvest.getTime();
+		const harvestMs = Constants.MS_IN_A_MINUTE * BuildingManager.HARVEST_INTERVAL_MINS;
+		const amountOfHarvests = Math.floor(timeDifferenceMs / harvestMs);
+		return new Date(lastHarvest.getTime() + (amountOfHarvests + 1) * harvestMs);
 	}
 
 	static getBuildingFinishedTime(building: Building_Type, startTime?: Date) {
