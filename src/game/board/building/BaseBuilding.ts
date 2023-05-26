@@ -14,12 +14,19 @@ export default class BaseBuilding {
 
 	private isSelected: boolean;
 
-	constructor(building: Building, scene: Phaser.Scene, position: Position) {
+	constructor(
+		building: Building,
+		scene: Phaser.Scene,
+		position: Position,
+		onSelectedCallback: (baseBuilding: BaseBuilding) => void,
+	) {
 		this.isSelected = false;
 		this.building = building;
 		this.image = scene.add.image(position.x, position.y, ConstructBuildingUIScene.Buildings[building.type].textureKey);
-		this.image.on('pointerdown', () => {
-			log.info('Building clicked on');
+		this.image.setInteractive();
+		this.image.on(Phaser.Input.Events.POINTER_DOWN, () => {
+			this.setSelected(true);
+			onSelectedCallback(this);
 		});
 		const size = BuildingManager.BUILDING_DATA[building.type].size;
 		const scale = Math.min(
@@ -39,10 +46,6 @@ export default class BaseBuilding {
 			0,
 			0x1122ff,
 		);
-	}
-
-	onClick(callbackFunc: () => void) {
-		callbackFunc();
 	}
 
 	setSelected(isSelected: boolean) {
