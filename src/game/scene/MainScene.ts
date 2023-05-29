@@ -246,7 +246,7 @@ export default class MainScene extends Phaser.Scene {
 		}
 		this.buildings = [];
 		base?.buildings.forEach((building) => {
-			const size = BuildingManager.BUILDING_DATA[building.type].size;
+			const size = BuildingManager.getBuildingData(building.type, building.level).size;
 			const position = board.tileXYToWorldXY(building.x, building.y);
 			const centeredPosition = {
 				x: position.x + ((cellSize.width * (size.width - 1)) >> 1),

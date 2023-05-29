@@ -30,7 +30,7 @@ export default class BaseBuilding {
 				onSelectedCallback(this);
 			}
 		});
-		const size = BuildingManager.BUILDING_DATA[building.type].size;
+		const size = BuildingManager.getBuildingData(building.type, building.level).size;
 		const scale = Math.min(
 			(cellSize.height * size.height) / this.image.displayHeight,
 			(cellSize.width * size.width) / this.image.displayWidth,
@@ -71,7 +71,7 @@ export default class BaseBuilding {
 		if (this.progressBar) {
 			const rawProgress =
 				(this.building.finishedAt.getTime() - now) /
-				(BuildingManager.BUILDING_DATA[this.building.type].buildTimeSeconds * 1_000);
+				(BuildingManager.getBuildingData(this.building.type, this.building.level).buildTimeSeconds * 1_000);
 			const finishedProgress = 1 - clamp(rawProgress, 1, 0);
 			log.trace(`Building Progress: ${finishedProgress} [Raw progress: ${rawProgress}]`);
 			if (finishedProgress != 1) {

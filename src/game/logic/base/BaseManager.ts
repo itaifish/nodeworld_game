@@ -50,7 +50,7 @@ export default class BaseManager {
 		existingBuildings: Building[],
 		baseSize: Size,
 	) {
-		const buildingSize = BuildingManager.BUILDING_DATA[building].size;
+		const buildingSize = BuildingManager.getBuildingData(building, 1).size;
 		if (
 			!isBetween(position, ORIGIN_POSITION, {
 				x: baseSize.width - buildingSize.width,
@@ -60,9 +60,9 @@ export default class BaseManager {
 			log.debug(`Can't build because of invalid position ${position.x},${position.y}`);
 			return false;
 		}
-		const newBuildingRect: Rect = { ...position, ...BuildingManager.BUILDING_DATA[building].size };
+		const newBuildingRect: Rect = { ...position, ...buildingSize };
 		for (const existingBuilding of existingBuildings) {
-			const size = BuildingManager.BUILDING_DATA[existingBuilding.type].size;
+			const size = BuildingManager.getBuildingData(existingBuilding.type, existingBuilding.level).size;
 			if (isRectCollision(newBuildingRect, { ...existingBuilding, ...size })) {
 				return false;
 			}

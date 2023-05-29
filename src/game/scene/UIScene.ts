@@ -187,7 +187,7 @@ export default class UIScene extends Phaser.Scene {
 
 	private formatBuildingStatsText(building: Building, statsKey: BuildingStat): string {
 		const map: Record<BuildingStat, string> = {
-			hp: `${building.hp} / ${BuildingManager.BUILDING_DATA[building.type].maxHP}`,
+			hp: `${building.hp} / ${BuildingManager.getBuildingData(building.type, building.level).maxHP}`,
 			level: `${building.level}`,
 			type: building.type,
 			lastHarvest: building.lastHarvest ? `${building.lastHarvest.toLocaleString()}` : 'Never',
