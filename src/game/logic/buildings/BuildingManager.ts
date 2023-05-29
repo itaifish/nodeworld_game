@@ -20,22 +20,32 @@ type LeveledBuildingStats = {
 	scaling: ScalingStats;
 };
 
+const M_X_SQUARED = (level: number, startingPoint: number) => startingPoint * level * level;
+
 const DEFAULT_SCALING: ScalingStats = {
 	maxHP: (level, startingPoint) => startingPoint * level,
 	buildTimeSeconds: (level, startingPoint) => startingPoint * Math.pow(level - 1, 4) + level * startingPoint,
 	energyDraw: (level, startingPoint) => startingPoint * level * level,
 	generatedResourcesPerInterval: {
-		FOOD: (level, startingPoint) => startingPoint * level * level,
-		GOLD: (level, startingPoint) => startingPoint * level * level,
+		FOOD: M_X_SQUARED,
+		GOLD: M_X_SQUARED,
+		IRON: M_X_SQUARED,
+		PLUTONIUM: M_X_SQUARED,
+		ALUMNINUM: M_X_SQUARED,
 	},
 	costs: {
-		FOOD: (level, startingPoint) => startingPoint * level * level,
-		IRON: (level, startingPoint) => startingPoint * level * level,
-		GOLD: (level, startingPoint) => startingPoint * level * level,
+		FOOD: M_X_SQUARED,
+		GOLD: M_X_SQUARED,
+		IRON: M_X_SQUARED,
+		PLUTONIUM: M_X_SQUARED,
+		ALUMNINUM: M_X_SQUARED,
 	},
 	maxStorageCapacity: {
-		FOOD: (level, startingPoint) => startingPoint * level * level,
-		GOLD: (level, startingPoint) => startingPoint * level * level,
+		FOOD: M_X_SQUARED,
+		GOLD: M_X_SQUARED,
+		IRON: M_X_SQUARED,
+		PLUTONIUM: M_X_SQUARED,
+		ALUMNINUM: M_X_SQUARED,
 	},
 };
 
