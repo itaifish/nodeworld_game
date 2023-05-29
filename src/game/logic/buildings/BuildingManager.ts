@@ -248,12 +248,15 @@ export default class BuildingManager {
 		if (amountOfHarvests <= 0) {
 			return null;
 		}
+		const buildingData = this.getBuildingData(building.type, building.level);
 		const newLastHarvestDate = new Date(lastHarvest.getTime() + amountOfHarvests * harvestMs);
-		const harvestYieldPerInterval = this.getBuildingData(building.type, building.level).generatedResourcesPerInterval;
+		const harvestYieldPerInterval = buildingData.generatedResourcesPerInterval;
 		const totalHarvest: Partial<Record<Resource_Type, number>> = {};
 		for (const harvestKey in harvestYieldPerInterval) {
-			totalHarvest[harvestKey as Resource_Type] =
-				(harvestYieldPerInterval[harvestKey as Resource_Type] ?? 0) * amountOfHarvests;
+			totalHarvest[harvestKey as Resource_Type] = Math.min(
+				(harvestYieldPerInterval[harvestKey as Resource_Type] ?? 0) * amountOfHarvests,
+				buildingData.maxStorageCapacity[harvestKey as Resource_Type] ?? 0,
+			);
 		}
 		return {
 			harvest: totalHarvest,
