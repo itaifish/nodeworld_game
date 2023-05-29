@@ -18,6 +18,7 @@ import { MainSceneEvents } from './MainScene';
 import { Position } from '../interfaces/general';
 import type BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
+import { titleize } from 'src/utility/function-utils/function-utils';
 
 const buildingStats = ['hp', 'level', 'type', 'lastHarvest'] as const;
 type BuildingStat = (typeof buildingStats)[number];
@@ -37,6 +38,11 @@ export default class UIScene extends Phaser.Scene {
 		building: BaseBuilding | null;
 		text: Phaser.GameObjects.Text[];
 		image: Phaser.GameObjects.Image | null;
+		harvestData: {
+			title: Phaser.GameObjects.Text | null;
+			text: Partial<Record<Resource_Type, Phaser.GameObjects.Text>>;
+			nextHarvest: Date;
+		};
 	};
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager, mainScene: MainScene) {
@@ -48,6 +54,11 @@ export default class UIScene extends Phaser.Scene {
 			building: null,
 			text: [],
 			image: null,
+			harvestData: {
+				title: null,
+				text: {},
+				nextHarvest: new Date(),
+			},
 		};
 		this.mainScene.on(MainSceneEvents.SELECT_BUILDING, (data) => {
 			this.setSelectedBuilding(data);
@@ -120,6 +131,8 @@ export default class UIScene extends Phaser.Scene {
 		this.selectedBuilding.text.forEach((textInstance) => textInstance.destroy(true));
 		this.selectedBuilding.text = [];
 		this.selectedBuilding.image = null;
+		this.selectedBuilding.harvestData.title?.destroy();
+		this.selectedBuilding.harvestData.title = null;
 		if (building == null) {
 			return;
 		}
@@ -131,20 +144,50 @@ export default class UIScene extends Phaser.Scene {
 		);
 		this.selectedBuilding.image.setY(this.selectedBuilding.image.y + this.selectedBuilding.image.height / 2);
 		this.selectedBuilding.image.setX(this.selectedBuilding.image.x + this.selectedBuilding.image.width / 2);
+		const textX = UIScene.SELECTED_BUILDING_START_WIDTH + (this.selectedBuilding.image?.width ?? 0);
+		let farRight = textX;
 		buildingStats.forEach((data, index) => {
-			this.selectedBuilding.text.push(
-				this.add.text(
-					UIScene.SELECTED_BUILDING_START_WIDTH + (this.selectedBuilding.image?.width ?? 0),
-					defaultY + UIScene.TEXT_MARGIN_TOP * (index + 1),
-					`${data}: \t${this.formatBuildingStatsText(building, data)}`,
-				),
+			const text = this.add.text(
+				textX,
+				defaultY + UIScene.TEXT_MARGIN_TOP * (index + 1),
+				`${titleize(data)}: \t${this.formatBuildingStatsText(building, data)}`,
 			);
+			this.formatText(text);
+			this.selectedBuilding.text.push(text);
+			farRight = Math.max(farRight, text.getRightCenter().x);
 		});
+
+		const nextHarvestDate = BuildingManager.getNextHarvest(building);
+		this.selectedBuilding.harvestData.nextHarvest = nextHarvestDate;
+		const harvest = BuildingManager.getHarvestAmountAndTimeForBuilding(building)?.harvest;
+		for (const text of Object.values(this.selectedBuilding.harvestData.text)) {
+			text.destroy();
+		}
+		this.selectedBuilding.harvestData.text = {};
+
+		if (harvest && Object.keys(harvest).length > 0) {
+			this.selectedBuilding.harvestData.title = this.formatText(
+				this.add.text(farRight + UIScene.TEXT_MARGIN_TOP, defaultY + 10, 'Harvest Data'),
+			).setStroke('#000000', 3);
+			Object.keys(harvest).forEach((key, index) => {
+				const resourceType = key as Resource_Type;
+				const amount = harvest[resourceType];
+				const statText = this.add.text(
+					farRight + UIScene.TEXT_MARGIN_TOP,
+					defaultY + 10 + UIScene.TEXT_MARGIN_TOP * (index + 1),
+					'',
+				);
+				this.formatText(statText);
+				const textVal = `${UIConstants.getResourceSymbol(resourceType)} | ${amount}`;
+				statText.setText(textVal);
+				this.selectedBuilding.harvestData.text[resourceType] = statText;
+			});
+		}
 	}
 
 	private formatBuildingStatsText(building: Building, statsKey: BuildingStat): string {
 		const map: Record<BuildingStat, string> = {
-			hp: `${building.hp} / ${BuildingManager.BUILDING_DATA[building.type].maxHP}`,
+			hp: `${building.hp} / ${BuildingManager.getBuildingData(building.type, building.level).maxHP}`,
 			level: `${building.level}`,
 			type: building.type,
 			lastHarvest: building.lastHarvest ? `${building.lastHarvest.toLocaleString()}` : 'Never',
@@ -169,10 +212,15 @@ export default class UIScene extends Phaser.Scene {
 				);
 				this.statsText.set(type, statsText);
 			}
-			statsText.setFont(UIConstants.font);
-			statsText.setFontSize(18);
-			statsText.setTint(0xc0c0c0);
+			this.formatText(statsText);
 			statsText.setText(`${UIConstants.getResourceSymbol(type)} | ${amount}`);
 		}
+	}
+
+	private formatText(text: Phaser.GameObjects.Text): Phaser.GameObjects.Text {
+		text.setFont(UIConstants.font);
+		text.setFontSize(18);
+		text.setTint(0xc0c0c0);
+		return text;
 	}
 }

@@ -29,9 +29,10 @@ export default class DragNDropBuilding {
 	}
 
 	getCellSize(): Size {
+		const size = BuildingManager.getBuildingData(this.buildingType, 1).size;
 		return {
-			width: BuildingManager.BUILDING_DATA[this.buildingType].size.width,
-			height: BuildingManager.BUILDING_DATA[this.buildingType].size.height,
+			width: size.width,
+			height: size.height,
 		};
 	}
 

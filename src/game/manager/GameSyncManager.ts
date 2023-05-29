@@ -59,11 +59,11 @@ export default class GameSyncManager extends EventEmitter {
 		const tempBuilding: Building = {
 			id: uuidv4(),
 			baseId: this.baseGameState?.id ?? null,
-			finishedAt: BuildingManager.getBuildingFinishedTime(building, networkDelayOffsetSecondsNow),
+			finishedAt: BuildingManager.getBuildingFinishedTime(building, 1, networkDelayOffsetSecondsNow),
 			lastHarvest: now,
 			createdAt: now,
 			type: building,
-			hp: BuildingManager.BUILDING_DATA[building].maxHP,
+			hp: BuildingManager.getBuildingData(building, 1).maxHP,
 			level: 1,
 			...position,
 		};

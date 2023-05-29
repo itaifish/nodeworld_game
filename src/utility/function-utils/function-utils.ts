@@ -19,3 +19,8 @@ export function mergeInto<TData>(data: TData, dataToUpdate: Partial<TData>) {
 	}
 	return data;
 }
+
+export function titleize(camelCaseStr: string) {
+	const spacedAtCapitals = camelCaseStr.replace(/([A-Z])/g, ' $1');
+	return spacedAtCapitals.charAt(0).toUpperCase() + spacedAtCapitals.slice(1);
+}

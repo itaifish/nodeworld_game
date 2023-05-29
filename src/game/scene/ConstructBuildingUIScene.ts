@@ -147,7 +147,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 					);
 					this.sys.setVisible(false);
 				});
-				const { size, buildTimeSeconds, energyDraw, costs } = BuildingManager.BUILDING_DATA[buildingType];
+				const { size, buildTimeSeconds, energyDraw, costs } = BuildingManager.getBuildingData(buildingType, 1);
 				const costsStr = Object.entries(costs)
 					.map(
 						([costKey, costValue]) => `
