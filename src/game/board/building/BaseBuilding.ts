@@ -59,6 +59,10 @@ export default class BaseBuilding {
 		}
 	}
 
+	getIsSelected() {
+		return this.isSelected;
+	}
+
 	delete() {
 		this.image.destroy();
 		if (this.progressBar) {

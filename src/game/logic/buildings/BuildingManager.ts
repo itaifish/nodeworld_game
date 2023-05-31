@@ -264,7 +264,10 @@ export default class BuildingManager {
 		};
 	}
 
-	static getNextHarvest(building: Building): Date {
+	static getNextHarvest(building: Building): Date | null {
+		if (Object.keys(this.getBuildingData(building.type, building.level).generatedResourcesPerInterval).length === 0) {
+			return null;
+		}
 		const now = new Date().getTime();
 		const lastHarvest = building.lastHarvest ?? building.finishedAt;
 		const timeDifferenceMs = now - lastHarvest.getTime();

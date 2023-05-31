@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, adminProcedure } from '../../trpc';
+import type { Base, Building, Resource } from '@prisma/client';
 import { Resource_Type } from '@prisma/client';
 import { Building_Type } from '@prisma/client';
 import BuildingManager from '../../../../game/logic/buildings/BuildingManager';
@@ -8,6 +9,7 @@ import type { BaseDetails } from '../../../../game/interfaces/base';
 import BaseManager from '../../../../game/logic/base/BaseManager';
 import type { AtLeastOne } from '../../../../utility/type-utils.ts/type-utils';
 import { WS_EVENT_EMITTER, WS_EVENTS } from '../../events/websocketServerEvents';
+import { log } from 'src/utility/logger';
 
 type tRPCContext = Parameters<Parameters<typeof protectedProcedure.query>[0]>[0]['ctx'];
 
@@ -156,23 +158,26 @@ export const baseRouter = createTRPCRouter({
 			return null;
 		}
 		const { harvest, lastHarvested } = res;
-		BaseManager.modifyResources(baseUser.resources, harvest);
-		const updated = await ctx.prisma.building.update({
-			where: { id: input.buildingId },
-			data: {
-				lastHarvest: lastHarvested,
-				Base: {
-					update: {
-						resources: {
-							set: baseUser.resources,
-						},
-					},
+		const resourcesAfter = BaseManager.modifyResources(baseUser.resources, harvest);
+
+		const transactions = await ctx.prisma.$transaction([
+			...resourcesAfter.map((resource) =>
+				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
+			),
+			ctx.prisma.building.update({
+				where: { id: input.buildingId },
+				data: {
+					lastHarvest: lastHarvested,
 				},
-			},
-			include: { Base: true },
-		});
-		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { ...updated, action: 'updated' });
-		return updated;
+			}),
+		]);
+
+		const newBuilding = transactions[transactions.length - 1] as Building;
+		const newResources = transactions.slice(0, -1) as Resource[];
+
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, newResources);
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BuildingUpdate}${userId}`, { ...newBuilding, action: 'updated' });
+		return transactions;
 	}),
 
 	constructBuilding: protectedProcedure

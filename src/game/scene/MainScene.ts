@@ -239,8 +239,12 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		//draw buildings
+		let selectedBuildingId: string | null = null;
 		if (this.buildings.length != 0) {
 			for (const buildingImage of this.buildings.values()) {
+				if (buildingImage.getIsSelected()) {
+					selectedBuildingId = buildingImage.building?.id;
+				}
 				buildingImage.delete();
 			}
 		}
@@ -255,6 +259,9 @@ export default class MainScene extends Phaser.Scene {
 			const newBuilding = new BaseBuilding(building, this, centeredPosition, (newSelected) => {
 				this.eventEmitter.emit(MainSceneEvents.SELECT_BUILDING, newSelected);
 			});
+			if (building.id === selectedBuildingId) {
+				newBuilding.setSelected(true);
+			}
 			this.buildings.push(newBuilding);
 		});
 
