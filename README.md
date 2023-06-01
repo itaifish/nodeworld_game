@@ -4,6 +4,8 @@ This game is a homage to the videogame [edgeworld](https://edgeworld.fandom.com/
 
 The backend and frontend is Typescript, bootstrapped with Create-T3-App. This includes Prisma, NextJS, NextAuth, and tRPC. The game client and animations are in phaser3.
 
+The development build of this game is currently hosted at <https://dev.nodeworld.protractors.dev/>
+
 ## Development / Contributing
 
 ### Getting started
@@ -33,3 +35,21 @@ The backend and frontend is Typescript, bootstrapped with Create-T3-App. This in
         6. Copy the Client ID and Client Secret values into your .env
 5. Run `yarn run migrate`. This will define all the tables in the DB
 6. Run `yarn run dev` to load up a local development server. You should be good to go!
+
+### Making Changes
+
+#### **Database**
+
+Nodeworld uses a database ORM called [Prisma](https://www.prisma.io/). In order to modify the structure of tables in the DB, open up the `prisma/schema.prisma`. After modifying this file to your liking ([Prisma Docs](https://www.prisma.io/docs) are very helpful here), run `yarn run generate` to transpile the corresponding typescript. In order to save your changes to the DB, run `yarn run migrate`.
+
+#### **Backend**
+
+Nearly all of the relevant backend logic is in the `src/server` folder. Nodeworld uses [tRPC](https://trpc.io/) for an end-to-end typesafe RPC solution. 
+
+#### **Frontend**
+
+While Nodeworld is running in a Next.js/React container, all of the relevant frontend logic is done in [Phaser 3](https://phaser.io/). The `src/game` folder is where this code sits.  
+
+#### **Merging Changes**
+
+When your changes are ready to be merged into the main repository, open up a pull request. Include screenshots of any visual changes, and a description of what was changed and why. 
