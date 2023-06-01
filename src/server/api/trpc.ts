@@ -23,6 +23,7 @@ if (!globalThis.fetch) {
  */
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
+import { log } from 'src/utility/logger';
 
 const t = initTRPC.context<typeof createContext>().create({
 	transformer: superjson,
