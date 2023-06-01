@@ -56,3 +56,10 @@ When your changes are ready to be merged into the main repository, open up a pul
 
 ## Game Mechanics
 
+### Summary
+
+Nodeworld is a base-building idle game, where most actions have real-world cooldown times ranging from a couple of seconds to multiple days. Each player starts out with their own base and a couple of starting resources. Players can use resources to construct buildings, some of which generate resources over time. Players can upgrade their buildings, as well as their base itself in order to harvest more resources, have a bigger area, and much more.
+
+The world map is made up of multiple nodes (hence, Nodeworld) shaped like hexagons and arranged in a grid. Guilds can capture and control these nodes via combat, by deploying soliders to overwhelm the defenses of the existing node. By default, nodes are unclaimed. Players must be part of a guild to capture territory on the world map. Nodes will give resources and other benefits to the guild that controls them, which is shared among guild members.
+
+Players can also complete PvE quests in order to level up and make use of their troops, if they do not wish to participate in guild PVP.  
