@@ -10,7 +10,7 @@ The development build of this game is currently hosted at <https://dev.nodeworld
 
 ### Getting started
 
-1. Fork this repository on github
+1. Fork this repository on github and clone to your local computer
 2. Run `yarn` to install all necessary dependencies
     1. If you don't have `yarn` or `nodejs/npm`, you can download and install node [here](https://nodejs.org/en), or use [nvm](https://github.com/nvm-sh/nvm) if you may need multiple versions of npm.
     2. To install yarn, run `npm i -g yarn`
@@ -52,4 +52,7 @@ While Nodeworld is running in a Next.js/React container, all of the relevant fro
 
 #### **Merging Changes**
 
-When your changes are ready to be merged into the main repository, open up a pull request. Include screenshots of any visual changes, and a description of what was changed and why. 
+When your changes are ready to be merged into the main repository, open up a pull request. Include screenshots of any visual changes, and a description of what was changed and why.
+
+## Game Mechanics
+
