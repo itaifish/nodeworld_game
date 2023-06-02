@@ -62,4 +62,19 @@ Nodeworld is a base-building idle game, where most actions have real-world coold
 
 The world map is made up of multiple nodes (hence, Nodeworld) shaped like hexagons and arranged in a grid. Guilds can capture and control these nodes via combat, by deploying soliders to overwhelm the defenses of the existing node. By default, nodes are unclaimed. Players must be part of a guild to capture territory on the world map. Nodes will give resources and other benefits to the guild that controls them, which is shared among guild members.
 
-Players can also complete PvE quests in order to level up and make use of their troops, if they do not wish to participate in guild PVP.  
+Players can also complete PvE quests in order to level up and make use of their troops, if they do not wish to participate in guild PVP.
+
+### Base
+
+Each player starts with a level 1 base, which gives them access to a 12x12 tile area for building. The [formula](https://github.com/itaifish/nodeworld_game/blob/06e3deec8b3bbd013c363b3811e14dfef13ece8c/src/game/logic/base/BaseManager.ts#L17) for the size of a player's base is given by:
+> baseSize = 8 + baseLevel * 4
+
+meaning that for each level gained beyond 1, the base grows in both width and height by 4 tiles. Players also start out with [500 food, 500 aluminum, 500 gold, 500 iron, and 250 plutonium](https://github.com/itaifish/nodeworld_game/blob/06e3deec8b3bbd013c363b3811e14dfef13ece8c/src/game/logic/base/BaseManager.ts#L9).
+
+A player's base is by default safe from attacks. However, there are some conditions in which a player's base can be attacked, which will be explained in the factions & world map section.
+
+### Buildings
+
+Buildings can be subdivided into three main categories: Resource Management, Technology/Research, and finally Military/Defense.
+
+Resource management

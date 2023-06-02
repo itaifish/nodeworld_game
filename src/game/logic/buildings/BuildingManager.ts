@@ -8,7 +8,6 @@ type BuildingStats<TData> = {
 	buildTimeSeconds: TData;
 	generatedResourcesPerInterval: Partial<Record<Resource_Type, TData>>;
 	maxStorageCapacity: Partial<Record<Resource_Type, TData>>;
-	energyDraw: TData;
 	costs: Partial<Record<Resource_Type, TData>>;
 };
 
@@ -25,7 +24,6 @@ const M_X_SQUARED = (level: number, startingPoint: number) => startingPoint * le
 const DEFAULT_SCALING: ScalingStats = {
 	maxHP: (level, startingPoint) => startingPoint * level,
 	buildTimeSeconds: (level, startingPoint) => startingPoint * Math.pow(level - 1, 4) + level * startingPoint,
-	energyDraw: (level, startingPoint) => startingPoint * level * level,
 	generatedResourcesPerInterval: {
 		FOOD: M_X_SQUARED,
 		GOLD: M_X_SQUARED,
@@ -55,7 +53,6 @@ export default class BuildingManager {
 			startingPoint: {
 				maxHP: 100,
 				buildTimeSeconds: 55,
-				energyDraw: 10,
 				generatedResourcesPerInterval: {
 					FOOD: 10,
 					GOLD: 10,
@@ -74,7 +71,6 @@ export default class BuildingManager {
 			scaling: {
 				maxHP: (level, startingPoint) => startingPoint * level,
 				buildTimeSeconds: (level, startingPoint) => startingPoint * Math.pow(level - 1, 4) + level * startingPoint,
-				energyDraw: (level, startingPoint) => startingPoint * level * level,
 				generatedResourcesPerInterval: {
 					FOOD: (level, startingPoint) => startingPoint * level * level,
 					GOLD: (level, startingPoint) => startingPoint * level * level,
@@ -94,7 +90,6 @@ export default class BuildingManager {
 			startingPoint: {
 				maxHP: 100,
 				buildTimeSeconds: 10,
-				energyDraw: 3,
 				generatedResourcesPerInterval: {},
 				maxStorageCapacity: {},
 				costs: {
@@ -111,7 +106,6 @@ export default class BuildingManager {
 			startingPoint: {
 				maxHP: 100,
 				buildTimeSeconds: 21,
-				energyDraw: 7,
 				generatedResourcesPerInterval: {
 					FOOD: 15,
 				},
@@ -131,7 +125,6 @@ export default class BuildingManager {
 			startingPoint: {
 				maxHP: 100,
 				buildTimeSeconds: 19,
-				energyDraw: 9,
 				generatedResourcesPerInterval: {},
 				maxStorageCapacity: {},
 				costs: {
@@ -148,7 +141,6 @@ export default class BuildingManager {
 			startingPoint: {
 				maxHP: 100,
 				buildTimeSeconds: 22,
-				energyDraw: -20,
 				generatedResourcesPerInterval: {},
 				maxStorageCapacity: {},
 				costs: {
@@ -164,7 +156,6 @@ export default class BuildingManager {
 			startingPoint: {
 				maxHP: 100,
 				buildTimeSeconds: 25,
-				energyDraw: 15,
 				generatedResourcesPerInterval: {
 					IRON: 50,
 					ALUMNINUM: 20,

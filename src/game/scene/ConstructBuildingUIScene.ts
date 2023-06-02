@@ -147,7 +147,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 					);
 					this.sys.setVisible(false);
 				});
-				const { size, buildTimeSeconds, energyDraw, costs } = BuildingManager.getBuildingData(buildingType, 1);
+				const { size, buildTimeSeconds, costs } = BuildingManager.getBuildingData(buildingType, 1);
 				const costsStr = Object.entries(costs)
 					.map(
 						([costKey, costValue]) => `
@@ -157,7 +157,6 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				const imageInfoText = `${buildingType}\n
 					- ${size.width} x ${size.height}
 					- ${buildTimeSeconds} seconds to build
-					- ⚡ ${-1 * energyDraw}
 					- Costs:
 						${costsStr}`;
 				const infoTextObj = this.add.text(
