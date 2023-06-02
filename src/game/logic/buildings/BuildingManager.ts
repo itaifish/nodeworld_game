@@ -137,21 +137,6 @@ export default class BuildingManager {
 			},
 			scaling: DEFAULT_SCALING,
 		},
-		POWER_STATION: {
-			startingPoint: {
-				maxHP: 100,
-				buildTimeSeconds: 22,
-				generatedResourcesPerInterval: {},
-				maxStorageCapacity: {},
-				costs: {
-					PLUTONIUM: 250,
-					IRON: 30,
-					ALUMNINUM: 50,
-				},
-				size: { width: 1, height: 2 },
-			},
-			scaling: DEFAULT_SCALING,
-		},
 		EXTRACTOR: {
 			startingPoint: {
 				maxHP: 100,

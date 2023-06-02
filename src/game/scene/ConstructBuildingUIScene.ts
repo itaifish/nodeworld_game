@@ -8,7 +8,6 @@ import CapitalBuilding from '../resources/images/buildings/capital_building.png'
 import Dwelling from '../resources/images/buildings/dwelling.png';
 import Extractor from '../resources/images/buildings/extractor.png';
 import Harvestor from '../resources/images/buildings/harvestor.png';
-import PowerStation from '../resources/images/buildings/power_station.png';
 import Barracks from '../resources/images/buildings/barracks.png';
 import UIScene from './UIScene';
 import type { Building_Type, Resource_Type } from '@prisma/client';
@@ -40,7 +39,6 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 
 	static Buildings: Record<Building_Type, BuildingInfo> = {
 		CAPITAL_BUILDING: { textureKey: TEXTURE_KEYS.CapitalBuilding, src: CapitalBuilding.src },
-		POWER_STATION: { textureKey: TEXTURE_KEYS.PowerStation, src: PowerStation.src },
 		DWELLING: { textureKey: TEXTURE_KEYS.Dwelling, src: Dwelling.src },
 		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: Extractor.src },
 		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: Harvestor.src },
@@ -52,7 +50,6 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		this.gameSyncManager = gameSyncManager;
 		this.textAndImages = {
 			CAPITAL_BUILDING: undefined,
-			POWER_STATION: undefined,
 			DWELLING: undefined,
 			EXTRACTOR: undefined,
 			HARVESTOR: undefined,

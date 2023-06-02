@@ -77,4 +77,6 @@ A player's base is by default safe from attacks. However, there are some conditi
 
 Buildings can be subdivided into three main categories: Resource Management, Technology/Research, and finally Military/Defense.
 
-Resource management
+#### Resource management
+
+These are buildings that help manage different resources. 
