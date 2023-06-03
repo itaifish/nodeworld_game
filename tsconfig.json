@@ -19,7 +19,7 @@
 		"noUncheckedIndexedAccess": true,
 		"baseUrl": ".",
 		"paths": {
-			"@/resources/*": ["src/game/resoures/*"],
+			"@resources/*": ["src/game/resoures/*"],
 			"src/*": ["src/*"]
 		}
 	},
