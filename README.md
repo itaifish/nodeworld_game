@@ -75,31 +75,31 @@ A player's base is by default safe from attacks. However, there are some conditi
 
 ### Buildings
 
-Buildings can be subdivided into three main categories: Resource Management, Technology/Research, and finally Military/Defense. You can view all the specific stats of each building in the [source code](https://github.com/itaifish/nodeworld_game/blob/e06bebc9d28ac8edc113d96891be7809bde84e98/src/game/logic/buildings/BuildingManager.ts#L51)
+Buildings can be subdivided into three main categories: Resource Management, Technology/Research, and finally Military/Defense. You can view all the specific stats of each building in the [source code](https://github.com/itaifish/nodeworld_game/blob/e06bebc9d28ac8edc113d96891be7809bde84e98/src/game/logic/buildings/BuildingManager.ts#L51). Resource buildings (Other than dwellings, which just allow for more units to be built) all generate resources, and can be harvested to gain the resources they've generated. They all have a maximum storage capacity, so make sure to check in regularly so you don't miss out on valuable resources. When buildings are upgraded they can store more resources, as well as generate more resources.
 
 #### Resource Management
 
 These are buildings that help manage different resources.There are 4 resource buildings:
 
-1. Capital Building
-2. Dwelling
-3. Harvestor
-4. Extractor
+1. Capital Building: This is your main building, and it can generate a bit of each resource. Maximum 1.
+2. Dwelling: This building increases your maximum unit cap for soliders
+3. Harvestor: This building generates food. This is necessary to train military units and is also required for a few buildings.
+4. Extractor: This building generates Iron, Aluminum, and Plutonium.
 
 #### Technology and Research
 
 There are buildings that enable the player to gain upgrades for their units, base and buildings
 
-1. Capital Building
-2. Research Lab
-3. University
+1. Capital Building: No building can be a higher level than the capital building. Upgrade the capital building in order to upgrade other buildings.
+2. Research Lab: The research lab unlocks the tech tree for military technology. Maximum 1.
+3. University: The university unlocks the tech tree for civilian technology. This can be used to upgrade item drops, increase harvest rates, and lower cooldown times.
 
 #### Military and Defense
 
 There are buildings that can train military units, as well as defensive buildings that can attack invading forces
 
-1. Barracks
-2. Aerospace Depot
-3. Scattergun Turret
-4. Anti-Aircraft Turret
-5. Energy Shield Wall
+1. Barracks: This building is used to train ground units.
+2. Aerospace Depot: This building is used to train flying units.
+3. Scattergun Turret: This building is a defensive building that can attack ground units.
+4. Anti-Aircraft Turret: This building is a defensive building that can attack flying units.
+5. Energy Shield Wall: This building is a very tough building with no damage capabilities. It can be used to soak damage while other turrets and units deal damage to the opponent.

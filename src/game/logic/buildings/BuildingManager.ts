@@ -56,10 +56,16 @@ export default class BuildingManager {
 				generatedResourcesPerInterval: {
 					FOOD: 10,
 					GOLD: 10,
+					IRON: 2,
+					PLUTONIUM: 2,
+					ALUMNINUM: 2,
 				},
 				maxStorageCapacity: {
 					FOOD: 200,
 					GOLD: 200,
+					IRON: 50,
+					PLUTONIUM: 20,
+					ALUMNINUM: 50,
 				},
 				costs: {
 					FOOD: 150,
@@ -68,23 +74,7 @@ export default class BuildingManager {
 				},
 				size: { width: 3, height: 3 },
 			},
-			scaling: {
-				maxHP: (level, startingPoint) => startingPoint * level,
-				buildTimeSeconds: (level, startingPoint) => startingPoint * Math.pow(level - 1, 4) + level * startingPoint,
-				generatedResourcesPerInterval: {
-					FOOD: (level, startingPoint) => startingPoint * level * level,
-					GOLD: (level, startingPoint) => startingPoint * level * level,
-				},
-				costs: {
-					FOOD: (level, startingPoint) => startingPoint * level * level,
-					IRON: (level, startingPoint) => startingPoint * level * level,
-					GOLD: (level, startingPoint) => startingPoint * level * level,
-				},
-				maxStorageCapacity: {
-					FOOD: (level, startingPoint) => startingPoint * level * level,
-					GOLD: (level, startingPoint) => startingPoint * level * level,
-				},
-			},
+			scaling: DEFAULT_SCALING,
 		},
 		DWELLING: {
 			startingPoint: {
