@@ -75,8 +75,31 @@ A player's base is by default safe from attacks. However, there are some conditi
 
 ### Buildings
 
-Buildings can be subdivided into three main categories: Resource Management, Technology/Research, and finally Military/Defense.
+Buildings can be subdivided into three main categories: Resource Management, Technology/Research, and finally Military/Defense. You can view all the specific stats of each building in the [source code](https://github.com/itaifish/nodeworld_game/blob/e06bebc9d28ac8edc113d96891be7809bde84e98/src/game/logic/buildings/BuildingManager.ts#L51)
 
-#### Resource management
+#### Resource Management
 
-These are buildings that help manage different resources. 
+These are buildings that help manage different resources.There are 4 resource buildings:
+
+1. Capital Building
+2. Dwelling
+3. Harvestor
+4. Extractor
+
+#### Technology and Research
+
+There are buildings that enable the player to gain upgrades for their units, base and buildings
+
+1. Capital Building
+2. Research Lab
+3. University
+
+#### Military and Defense
+
+There are buildings that can train military units, as well as defensive buildings that can attack invading forces
+
+1. Barracks
+2. Aerospace Depot
+3. Scattergun Turret
+4. Anti-Aircraft Turret
+5. Energy Shield Wall

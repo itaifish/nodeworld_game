@@ -15,8 +15,8 @@ import { log } from '../../utility/logger';
 import GameSyncManager from '../manager/GameSyncManager';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
-	width: '100%',
-	height: '100%',
+	width: window?.innerWidth ?? '100%',
+	height: window?.innerHeight ?? '100%',
 	type: Phaser.AUTO,
 	scale: {
 		mode: Phaser.Scale.FIT,
@@ -64,8 +64,8 @@ export function GameComponent({}: GameComponentProps) {
 				backgroundPosition: 'center' /* Center the image */,
 				backgroundRepeat: 'no-repeat' /* Do not repeat the image */,
 				backgroundSize: 'cover' /* Resize the background image to cover the entire container */,
-				width: '1600px',
-				height: '900px',
+				width: '100%',
+				height: '100%',
 			}}
 		>
 			<h2

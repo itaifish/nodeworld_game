@@ -1,4 +1,3 @@
-import { log } from 'src/utility/logger';
 import type GameSyncManager from './manager/GameSyncManager';
 import BackgroundScene from './scene/BackgroundScene';
 import MainScene from './scene/MainScene';

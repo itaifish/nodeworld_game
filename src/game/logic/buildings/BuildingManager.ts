@@ -123,7 +123,7 @@ export default class BuildingManager {
 		},
 		BARRACKS: {
 			startingPoint: {
-				maxHP: 100,
+				maxHP: 125,
 				buildTimeSeconds: 19,
 				generatedResourcesPerInterval: {},
 				maxStorageCapacity: {},
@@ -134,6 +134,70 @@ export default class BuildingManager {
 					PLUTONIUM: 5,
 				},
 				size: { width: 2, height: 1 },
+			},
+			scaling: DEFAULT_SCALING,
+		},
+		AEROSPACE_DEPOT: {
+			startingPoint: {
+				maxHP: 125,
+				buildTimeSeconds: 23,
+				generatedResourcesPerInterval: {},
+				maxStorageCapacity: {},
+				costs: {
+					IRON: 150,
+					ALUMNINUM: 80,
+					FOOD: 100,
+					PLUTONIUM: 5,
+				},
+				size: { width: 3, height: 1 },
+			},
+			scaling: DEFAULT_SCALING,
+		},
+		SCATTERGUN_TURRET: {
+			startingPoint: {
+				maxHP: 250,
+				buildTimeSeconds: 25,
+				generatedResourcesPerInterval: {},
+				maxStorageCapacity: {},
+				costs: {
+					GOLD: 50,
+					IRON: 150,
+					ALUMNINUM: 300,
+					PLUTONIUM: 110,
+				},
+				size: { width: 1, height: 1 },
+			},
+			scaling: DEFAULT_SCALING,
+		},
+		ENERGY_SHIELD_WALL: {
+			startingPoint: {
+				maxHP: 500,
+				buildTimeSeconds: 10,
+				generatedResourcesPerInterval: {},
+				maxStorageCapacity: {},
+				costs: {
+					GOLD: 50,
+					IRON: 800,
+					ALUMNINUM: 50,
+					PLUTONIUM: 100,
+				},
+				size: { width: 1, height: 1 },
+			},
+			scaling: DEFAULT_SCALING,
+		},
+		ANTI_AIRCRAFT_TURRET: {
+			startingPoint: {
+				maxHP: 250,
+				buildTimeSeconds: 25,
+				generatedResourcesPerInterval: {},
+				maxStorageCapacity: {},
+				costs: {
+					GOLD: 50,
+					IRON: 450,
+					ALUMNINUM: 150,
+					PLUTONIUM: 55,
+				},
+				size: { width: 1, height: 1 },
 			},
 			scaling: DEFAULT_SCALING,
 		},
@@ -153,6 +217,37 @@ export default class BuildingManager {
 				},
 				costs: {
 					IRON: 300,
+				},
+				size: { width: 2, height: 2 },
+			},
+			scaling: DEFAULT_SCALING,
+		},
+		RESEARCH_LAB: {
+			startingPoint: {
+				maxHP: 30,
+				buildTimeSeconds: 60,
+				generatedResourcesPerInterval: {},
+				maxStorageCapacity: {},
+				costs: {
+					IRON: 30,
+					GOLD: 150,
+					ALUMNINUM: 20,
+					PLUTONIUM: 25,
+				},
+				size: { width: 2, height: 2 },
+			},
+			scaling: DEFAULT_SCALING,
+		},
+		UNIVERSITY: {
+			startingPoint: {
+				maxHP: 20,
+				buildTimeSeconds: 45,
+				generatedResourcesPerInterval: {},
+				maxStorageCapacity: {},
+				costs: {
+					FOOD: 150,
+					GOLD: 150,
+					ALUMNINUM: 10,
 				},
 				size: { width: 2, height: 2 },
 			},

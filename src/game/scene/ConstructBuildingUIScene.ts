@@ -43,6 +43,13 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: Extractor.src },
 		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: Harvestor.src },
 		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		// TODO: Get valid textures
+		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		AEROSPACE_DEPOT: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		ANTI_AIRCRAFT_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		SCATTERGUN_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		ENERGY_SHIELD_WALL: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		UNIVERSITY: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
 	};
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager, mainScene: MainScene) {
@@ -54,6 +61,12 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 			EXTRACTOR: undefined,
 			HARVESTOR: undefined,
 			BARRACKS: undefined,
+			RESEARCH_LAB: undefined,
+			AEROSPACE_DEPOT: undefined,
+			ANTI_AIRCRAFT_TURRET: undefined,
+			SCATTERGUN_TURRET: undefined,
+			ENERGY_SHIELD_WALL: undefined,
+			UNIVERSITY: undefined,
 		};
 		this.mainScene = mainScene;
 	}
