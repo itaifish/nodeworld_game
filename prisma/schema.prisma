@@ -29,7 +29,6 @@ enum Building_Type {
     DWELLING
     HARVESTOR
     BARRACKS
-    POWER_STATION
     EXTRACTOR
 }
 
