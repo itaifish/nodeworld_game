@@ -14,22 +14,11 @@ import Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangl
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
-import EventEmitter from 'events';
-import type { ValuesOf } from 'src/utility/type-utils.ts/type-utils';
+import SelectedBuildingManager from '../manager/SelectedBuildingManager';
 
 export const cellSize: Size = {
 	width: 100,
 	height: 100,
-};
-
-export const MainSceneEvents = {
-	SELECT_BUILDING: 'SELECT_BUILDING',
-} as const;
-
-export type MainSceneEvent = ValuesOf<typeof MainSceneEvents>;
-
-export type MainSceneEventData = {
-	[key in typeof MainSceneEvents.SELECT_BUILDING]: BaseBuilding;
 };
 
 export default class MainScene extends Phaser.Scene {
@@ -46,23 +35,16 @@ export default class MainScene extends Phaser.Scene {
 	} | null;
 	buildings: BaseBuilding[];
 
-	private eventEmitter: EventEmitter;
-
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.dndData = null;
 		this.buildings = [];
-		this.eventEmitter = new EventEmitter();
 	}
 
 	preload() {
 		this.load.image('tiles', tilesImage.src);
 		this.load.tilemapTiledJSON('map', tileMap);
-	}
-
-	on<T extends MainSceneEvent>(eventName: T, listener: (data: MainSceneEventData[T]) => void) {
-		return this.eventEmitter.on(eventName, listener);
 	}
 
 	create() {
@@ -256,11 +238,9 @@ export default class MainScene extends Phaser.Scene {
 				x: position.x + ((cellSize.width * (size.width - 1)) >> 1),
 				y: position.y + ((cellSize.height * (size.height - 1)) >> 1),
 			};
-			const newBuilding = new BaseBuilding(building, this, centeredPosition, (newSelected) => {
-				this.eventEmitter.emit(MainSceneEvents.SELECT_BUILDING, newSelected);
-			});
+			const newBuilding = new BaseBuilding(building, this, centeredPosition);
 			if (building.id === selectedBuildingId) {
-				newBuilding.setSelected(true);
+				SelectedBuildingManager.instance.setSelectedBuilding(newBuilding);
 			}
 			this.buildings.push(newBuilding);
 		});

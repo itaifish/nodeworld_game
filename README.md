@@ -103,3 +103,7 @@ There are buildings that can train military units, as well as defensive building
 3. Scattergun Turret: This building is a defensive building that can attack ground units.
 4. Anti-Aircraft Turret: This building is a defensive building that can attack flying units.
 5. Energy Shield Wall: This building is a very tough building with no damage capabilities. It can be used to soak damage while other turrets and units deal damage to the opponent.
+
+### Guilds
+
+Guilds are groups of players who enter into an alliance in order to 

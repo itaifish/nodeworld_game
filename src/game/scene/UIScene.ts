@@ -18,6 +18,8 @@ import { MainSceneEvents } from './MainScene';
 import type BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import { titleize } from 'src/utility/function-utils/function-utils';
+import SelectedBuildingManager from '../manager/SelectedBuildingManager';
+import SceneManager from '../manager/SceneManager';
 
 const buildingStats = ['hp', 'level', 'type', 'lastHarvest', 'nextHarvest'] as const;
 type BuildingStat = (typeof buildingStats)[number];
@@ -31,10 +33,10 @@ export default class UIScene extends Phaser.Scene {
 	private statsText: Map<Resource_Type, Phaser.GameObjects.Text>;
 	buildingText: Phaser.GameObjects.Text[];
 	constructBuildingUIScene: Phaser.Scene;
-	readonly mainScene;
+
+	private selectedBuildingManager = SelectedBuildingManager.instance;
 
 	private selectedBuilding: {
-		building: BaseBuilding | null;
 		text: Phaser.GameObjects.Text[];
 		image: Phaser.GameObjects.Image | null;
 		harvestData: {
@@ -44,13 +46,11 @@ export default class UIScene extends Phaser.Scene {
 		};
 	};
 
-	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager, mainScene: MainScene) {
+	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.statsText = new Map();
-		this.mainScene = mainScene;
 		this.selectedBuilding = {
-			building: null,
 			text: [],
 			image: null,
 			harvestData: {
@@ -59,16 +59,13 @@ export default class UIScene extends Phaser.Scene {
 				nextHarvest: new Date(),
 			},
 		};
-		this.mainScene.on(MainSceneEvents.SELECT_BUILDING, (data) => {
-			this.setSelectedBuilding(data);
+		this.selectedBuildingManager.on(SelectedBuildingManager.SELECT_EVENT, (_data) => {
+			this.displaySelectedBuilding();
 		});
 	}
 
-	setSelectedBuilding(selectedBuilding: BaseBuilding | null) {
-		this.selectedBuilding.building?.setSelected(false);
-		this.selectedBuilding.building = selectedBuilding;
-		this.selectedBuilding.building?.setSelected(true);
-		this.displaySelectedBuilding();
+	getSelectedBuilding() {
+		return SelectedBuildingManager.instance.getSelectedBuilding();
 	}
 
 	preload() {
@@ -110,25 +107,26 @@ export default class UIScene extends Phaser.Scene {
 			clearInterval(keepResizing);
 		}, 10_000);
 
-		this.constructBuildingUIScene = this.scene.add(
-			'ConstructBuildingUIScene',
-			new ConstructBuildingUIScene({}, this.gameSyncManager, this.mainScene),
-			true,
-		);
+		const constructBuildingUIScene = new ConstructBuildingUIScene({}, this.gameSyncManager);
+		SceneManager.instance.constructBuildingUIScene = constructBuildingUIScene;
+		this.constructBuildingUIScene = this.scene.add('ConstructBuildingUIScene', constructBuildingUIScene, true);
 		this.scene.bringToTop('ConstructBuildingUIScene');
 		this.constructBuildingUIScene.sys.setVisible(false);
 	}
 
 	update(_time: number, _delta: number): void {
-		const now = new Date().getTime();
-		const nextHarvest = this.selectedBuilding.harvestData.nextHarvest?.getTime();
-		if (nextHarvest && nextHarvest < now) {
-			this.displaySelectedBuilding();
+		if (this.getSelectedBuilding() != null) {
+			const now = new Date().getTime();
+			const nextHarvest = this.selectedBuilding.harvestData.nextHarvest?.getTime();
+			if (nextHarvest && nextHarvest < now) {
+				this.displaySelectedBuilding();
+			}
 		}
 	}
 
 	private displaySelectedBuilding() {
-		const building = this.selectedBuilding.building?.building;
+		const building = this.getSelectedBuilding()?.building;
+		log.trace(`Displaying Selected Building: ${building?.type || 'null'}`);
 		this.selectedBuilding.image?.destroy(true);
 		this.selectedBuilding.text.forEach((textInstance) => textInstance.destroy(true));
 		this.selectedBuilding.text = [];
@@ -187,12 +185,12 @@ export default class UIScene extends Phaser.Scene {
 				statText.setText(textVal);
 				this.selectedBuilding.harvestData.text[resourceType] = statText;
 			});
+
 			this.selectedBuilding.image
 				.setInteractive()
 				.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
 					if (pointer.leftButtonDown()) {
 						this.gameSyncManager.harvestBuilding(building);
-						this.setSelectedBuilding(this.selectedBuilding.building);
 					}
 				});
 		}
