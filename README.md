@@ -6,6 +6,27 @@ The backend and frontend is Typescript, bootstrapped with Create-T3-App. This in
 
 The development build of this game is currently hosted at <https://dev.nodeworld.protractors.dev/>
 
+# Table of Contents
+- [Nodeworld](#nodeworld)
+  - [Development / Contributing](#development---contributing)
+    - [Getting started](#getting-started)
+    - [Making Changes](#making-changes)
+      - [**Database**](#--database--)
+      - [**Backend**](#--backend--)
+      - [**Frontend**](#--frontend--)
+      - [**Merging Changes**](#--merging-changes--)
+  - [Game Mechanics](#game-mechanics)
+    - [Summary](#summary)
+    - [Base](#base)
+    - [Buildings](#buildings)
+      - [Resource Management](#resource-management)
+      - [Technology and Research](#technology-and-research)
+      - [Military and Defense](#military-and-defense)
+    - [Guilds](#guilds)
+    - [Galactic Map](#galactic-map)
+      - [Summary](#summary-1)
+      - [Combat](#combat)
+
 ## Development / Contributing
 
 ### Getting started
@@ -38,19 +59,19 @@ The development build of this game is currently hosted at <https://dev.nodeworld
 
 ### Making Changes
 
-#### **Database**
+#### Database
 
 Nodeworld uses a database ORM called [Prisma](https://www.prisma.io/). In order to modify the structure of tables in the DB, open up the `prisma/schema.prisma`. After modifying this file to your liking ([Prisma Docs](https://www.prisma.io/docs) are very helpful here), run `yarn run generate` to transpile the corresponding typescript. In order to save your changes to the DB, run `yarn run migrate`.
 
-#### **Backend**
+#### Backend
 
 Nearly all of the relevant backend logic is in the `src/server` folder. Nodeworld uses [tRPC](https://trpc.io/) for an end-to-end typesafe RPC solution. 
 
-#### **Frontend**
+#### Frontend
 
 While Nodeworld is running in a Next.js/React container, all of the relevant frontend logic is done in [Phaser 3](https://phaser.io/). The `src/game` folder is where this code sits.  
 
-#### **Merging Changes**
+#### Merging Changes
 
 When your changes are ready to be merged into the main repository, open up a pull request. Include screenshots of any visual changes, and a description of what was changed and why.
 
