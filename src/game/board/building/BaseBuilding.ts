@@ -2,6 +2,7 @@ import type { Building } from '@prisma/client';
 import type { Position } from 'src/game/interfaces/general';
 import BuildingManager from 'src/game/logic/buildings/BuildingManager';
 import { clamp } from 'src/game/logic/general/math';
+import SelectedBuildingManager from 'src/game/manager/SelectedBuildingManager';
 import ConstructBuildingUIScene from 'src/game/scene/ConstructBuildingUIScene';
 import { cellSize } from 'src/game/scene/MainScene';
 import FillableBar from 'src/game/ui/fillable-bar/FillableBar';
@@ -14,20 +15,14 @@ export default class BaseBuilding {
 
 	private isSelected: boolean;
 
-	constructor(
-		building: Building,
-		scene: Phaser.Scene,
-		position: Position,
-		onSelectedCallback: (baseBuilding: BaseBuilding) => void,
-	) {
+	constructor(building: Building, scene: Phaser.Scene, position: Position) {
 		this.isSelected = false;
 		this.building = building;
 		this.image = scene.add.image(position.x, position.y, ConstructBuildingUIScene.Buildings[building.type].textureKey);
 		this.image.setInteractive();
 		this.image.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
 			if (pointer.leftButtonDown()) {
-				this.setSelected(true);
-				onSelectedCallback(this);
+				SelectedBuildingManager.instance.setSelectedBuilding(this);
 			}
 		});
 		const size = BuildingManager.getBuildingData(building.type, building.level).size;
@@ -57,6 +52,10 @@ export default class BaseBuilding {
 		} else {
 			this.image.clearTint();
 		}
+	}
+
+	getIsSelected() {
+		return this.isSelected;
 	}
 
 	delete() {

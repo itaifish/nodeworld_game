@@ -107,6 +107,9 @@ model Guild {
     imageURL         String?
     chat             MessageChannel    @relation(fields: [messageChannelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     messageChannelId String
+    rival            Guild?            @relation("rival", fields: [rivalGuildId], references: [id])
+    rivalGuildId     String?           @unique
+    rivaledBy        Guild[]           @relation("rival")
 }
 
 model GuildMembership {

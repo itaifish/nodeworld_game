@@ -18,6 +18,7 @@ import type { Rect } from '../interfaces/general';
 import { UIConstants } from '../ui/constants';
 import DragNDropBuilding from '../board/DragNDropBuilding';
 import { log } from 'src/utility/logger';
+import SceneManager from '../manager/SceneManager';
 
 type BuildingInfo = {
 	textureKey: string;
@@ -52,7 +53,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		UNIVERSITY: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
 	};
 
-	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager, mainScene: MainScene) {
+	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.textAndImages = {
@@ -68,7 +69,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 			ENERGY_SHIELD_WALL: undefined,
 			UNIVERSITY: undefined,
 		};
-		this.mainScene = mainScene;
+		this.mainScene = SceneManager.instance.mainScene as MainScene;
 	}
 
 	preload() {

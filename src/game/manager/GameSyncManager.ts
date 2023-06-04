@@ -11,6 +11,8 @@ import BuildingManager from '../logic/buildings/BuildingManager';
 import { mergeInto } from 'src/utility/function-utils/function-utils';
 import { clientEnv } from 'src/env/schema.mjs';
 import type { Unsubscribable } from '@trpc/server/observable';
+import { now } from 'cypress/types/lodash';
+import BaseManager from '../logic/base/BaseManager';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
 	private client;
@@ -82,6 +84,18 @@ export default class GameSyncManager extends EventEmitter {
 		this.baseGameState = newBase;
 		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
 		return newBase;
+	}
+
+	async harvestBuilding(building: Building) {
+		const harvestBuildingTask = this.client.base.harvestBuilding.mutate({ buildingId: building.id });
+		// temp clientside harvest to sync up with server
+		const tempHarvest = BuildingManager.getHarvestAmountAndTimeForBuilding(building);
+		building.lastHarvest = tempHarvest?.lastHarvested ?? building.lastHarvest;
+		if (this.baseGameState?.resources && tempHarvest?.harvest) {
+			BaseManager.modifyResources(this.baseGameState.resources, tempHarvest.harvest);
+		}
+		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+		return harvestBuildingTask;
 	}
 
 	getBaseData() {

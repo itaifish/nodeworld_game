@@ -103,3 +103,19 @@ There are buildings that can train military units, as well as defensive building
 3. Scattergun Turret: This building is a defensive building that can attack ground units.
 4. Anti-Aircraft Turret: This building is a defensive building that can attack flying units.
 5. Energy Shield Wall: This building is a very tough building with no damage capabilities. It can be used to soak damage while other turrets and units deal damage to the opponent.
+
+### Guilds
+
+Guilds are groups of players who enter into an alliance in order to control the galactic map. Guilds have a single leader, but can have multiple officers. In order to control territory on the world map, a player must be a member, officer, or leader of a guild. Any player may start a guild, and a guild has no maximum members*, but players may only be part of up to one guild at any one time. Guilds have their own chatroom. Guild leaders may designate one other guild as their rival. When guild members attack nodes controlled by rival guilds, their attacking units gain a bonus.  
+
+> \* This may be changed in the future
+
+### Galactic Map
+
+#### Summary
+
+The galactic map is where PvP combat occurs, where guilds fight for territory, trying to control as many nodes as possible. The galactic map is arranged as a grid of hexagonal nodes. Each node has its own resources that it generates for the guild. The guild leader designates how the resources are split among its members.  
+
+#### Combat
+
+Guilds that control no territory can warp(attack a node) to any unclaimed territory, or any edge nodes. An edge node is a node that is not surrounded on all sides by nodes that are all controlled by the same guild. Once a guild controls any amount of territory, guild members may only warp to adjacent nodes to their controlled territory. Guildmembers may designate any node not already claimed by another guildmember as their base node (This is called establishing a presence). This will mean that players on other guilds who wish to attack the established node will need to defeat the base of the player who established a presence. Establishing a presence is required in order for the player to earn guild rewards. 

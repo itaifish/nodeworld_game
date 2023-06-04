@@ -13,14 +13,12 @@ import Button from '../ui/button/Button';
 import ConstructBuildingUIScene from './ConstructBuildingUIScene';
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import { UIConstants } from '../ui/constants';
-import type MainScene from './MainScene';
-import { MainSceneEvents } from './MainScene';
-import { Position } from '../interfaces/general';
-import type BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import { titleize } from 'src/utility/function-utils/function-utils';
+import SelectedBuildingManager from '../manager/SelectedBuildingManager';
+import SceneManager from '../manager/SceneManager';
 
-const buildingStats = ['hp', 'level', 'type', 'lastHarvest'] as const;
+const buildingStats = ['hp', 'level', 'type', 'lastHarvest', 'nextHarvest'] as const;
 type BuildingStat = (typeof buildingStats)[number];
 
 export default class UIScene extends Phaser.Scene {
@@ -32,26 +30,24 @@ export default class UIScene extends Phaser.Scene {
 	private statsText: Map<Resource_Type, Phaser.GameObjects.Text>;
 	buildingText: Phaser.GameObjects.Text[];
 	constructBuildingUIScene: Phaser.Scene;
-	readonly mainScene;
+
+	private selectedBuildingManager = SelectedBuildingManager.instance;
 
 	private selectedBuilding: {
-		building: BaseBuilding | null;
 		text: Phaser.GameObjects.Text[];
 		image: Phaser.GameObjects.Image | null;
 		harvestData: {
 			title: Phaser.GameObjects.Text | null;
 			text: Partial<Record<Resource_Type, Phaser.GameObjects.Text>>;
-			nextHarvest: Date;
+			nextHarvest: Date | null;
 		};
 	};
 
-	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager, mainScene: MainScene) {
+	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
 		this.statsText = new Map();
-		this.mainScene = mainScene;
 		this.selectedBuilding = {
-			building: null,
 			text: [],
 			image: null,
 			harvestData: {
@@ -60,16 +56,13 @@ export default class UIScene extends Phaser.Scene {
 				nextHarvest: new Date(),
 			},
 		};
-		this.mainScene.on(MainSceneEvents.SELECT_BUILDING, (data) => {
-			this.setSelectedBuilding(data);
+		this.selectedBuildingManager.on(SelectedBuildingManager.SELECT_EVENT, (_data) => {
+			this.displaySelectedBuilding();
 		});
 	}
 
-	setSelectedBuilding(selectedBuilding: BaseBuilding | null) {
-		this.selectedBuilding.building?.setSelected(false);
-		this.selectedBuilding.building = selectedBuilding;
-		this.selectedBuilding.building?.setSelected(true);
-		this.displaySelectedBuilding();
+	getSelectedBuilding() {
+		return SelectedBuildingManager.instance.getSelectedBuilding();
 	}
 
 	preload() {
@@ -111,22 +104,26 @@ export default class UIScene extends Phaser.Scene {
 			clearInterval(keepResizing);
 		}, 10_000);
 
-		this.constructBuildingUIScene = this.scene.add(
-			'ConstructBuildingUIScene',
-			new ConstructBuildingUIScene({}, this.gameSyncManager, this.mainScene),
-			true,
-		);
+		const constructBuildingUIScene = new ConstructBuildingUIScene({}, this.gameSyncManager);
+		SceneManager.instance.constructBuildingUIScene = constructBuildingUIScene;
+		this.constructBuildingUIScene = this.scene.add('ConstructBuildingUIScene', constructBuildingUIScene, true);
 		this.scene.bringToTop('ConstructBuildingUIScene');
 		this.constructBuildingUIScene.sys.setVisible(false);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	update(time: number, delta: number): void {
-		//
+	update(_time: number, _delta: number): void {
+		if (this.getSelectedBuilding() != null) {
+			const now = new Date().getTime();
+			const nextHarvest = this.selectedBuilding.harvestData.nextHarvest?.getTime();
+			if (nextHarvest && nextHarvest < now) {
+				this.displaySelectedBuilding();
+			}
+		}
 	}
 
 	private displaySelectedBuilding() {
-		const building = this.selectedBuilding.building?.building;
+		const building = this.getSelectedBuilding()?.building;
+		log.trace(`Displaying Selected Building: ${building?.type || 'null'}`);
 		this.selectedBuilding.image?.destroy(true);
 		this.selectedBuilding.text.forEach((textInstance) => textInstance.destroy(true));
 		this.selectedBuilding.text = [];
@@ -136,16 +133,21 @@ export default class UIScene extends Phaser.Scene {
 		if (building == null) {
 			return;
 		}
+		const nextHarvestDate = BuildingManager.getNextHarvest(building);
+		this.selectedBuilding.harvestData.nextHarvest = nextHarvestDate;
+
 		const defaultY = this.cameras.main.height - UIScene.BAR_THICKNESS;
 		this.selectedBuilding.image = this.add.image(
 			UIScene.SELECTED_BUILDING_START_WIDTH,
 			defaultY,
 			ConstructBuildingUIScene.Buildings[building.type].textureKey,
 		);
-		this.selectedBuilding.image.setY(this.selectedBuilding.image.y + this.selectedBuilding.image.height / 2);
-		this.selectedBuilding.image.setX(this.selectedBuilding.image.x + this.selectedBuilding.image.width / 2);
-		const textX = UIScene.SELECTED_BUILDING_START_WIDTH + (this.selectedBuilding.image?.width ?? 0);
+		this.selectedBuilding.image.setScale(UIScene.BAR_THICKNESS / this.selectedBuilding.image.width);
+		this.selectedBuilding.image.setY(this.selectedBuilding.image.y + UIScene.BAR_THICKNESS / 2);
+		this.selectedBuilding.image.setX(this.selectedBuilding.image.x + this.selectedBuilding.image.displayWidth / 2);
+		const textX = UIScene.SELECTED_BUILDING_START_WIDTH + (this.selectedBuilding.image?.displayWidth ?? 0);
 		let farRight = textX;
+
 		buildingStats.forEach((data, index) => {
 			const text = this.add.text(
 				textX,
@@ -157,8 +159,6 @@ export default class UIScene extends Phaser.Scene {
 			farRight = Math.max(farRight, text.getRightCenter().x);
 		});
 
-		const nextHarvestDate = BuildingManager.getNextHarvest(building);
-		this.selectedBuilding.harvestData.nextHarvest = nextHarvestDate;
 		const harvest = BuildingManager.getHarvestAmountAndTimeForBuilding(building)?.harvest;
 		for (const text of Object.values(this.selectedBuilding.harvestData.text)) {
 			text.destroy();
@@ -182,15 +182,24 @@ export default class UIScene extends Phaser.Scene {
 				statText.setText(textVal);
 				this.selectedBuilding.harvestData.text[resourceType] = statText;
 			});
+
+			this.selectedBuilding.image
+				.setInteractive()
+				.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+					if (pointer.leftButtonDown()) {
+						this.gameSyncManager.harvestBuilding(building);
+					}
+				});
 		}
 	}
 
-	private formatBuildingStatsText(building: Building, statsKey: BuildingStat): string {
-		const map: Record<BuildingStat, string> = {
+	private formatBuildingStatsText(building: Building, statsKey: BuildingStat | 'nextHarvest'): string {
+		const map: Record<BuildingStat | 'nextHarvest', string> = {
 			hp: `${building.hp} / ${BuildingManager.getBuildingData(building.type, building.level).maxHP}`,
 			level: `${building.level}`,
 			type: building.type,
 			lastHarvest: building.lastHarvest ? `${building.lastHarvest.toLocaleString()}` : 'Never',
+			nextHarvest: this.selectedBuilding?.harvestData?.nextHarvest?.toLocaleString() ?? 'Never',
 		};
 		return map[statsKey] ?? '';
 	}
