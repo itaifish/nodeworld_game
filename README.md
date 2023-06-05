@@ -9,7 +9,7 @@ The development build of this game is currently hosted at <https://dev.nodeworld
 ## Table of Contents
 
 - [Nodeworld](#nodeworld)
-  - [Development / Contributing](#development contributing)
+  - [Development / Contributing](#development--contributing)
     - [Getting started](#getting-started)
     - [Making Changes](#making-changes)
       - [Database](#database)
