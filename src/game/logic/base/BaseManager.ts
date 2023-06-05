@@ -44,13 +44,35 @@ export default class BaseManager {
 		return currentResources;
 	}
 
+	static canBuildWithoutExceedingMaximumBuildings(building: Building_Type, existingBuildings: Building[]): boolean {
+		const buildingData = BuildingManager.getBuildingData(building, 1);
+		log.trace(`Checking if can build ${building} `);
+		if (buildingData?.maxPerBase) {
+			const numberOfExistingBuildings = existingBuildings.filter(
+				(existingBuilding) => existingBuilding.type == building,
+			).length;
+			if (numberOfExistingBuildings >= buildingData.maxPerBase) {
+				log.trace(
+					`Can't build because there can only be a maximum of ${buildingData.maxPerBase} ${building}s, but there are ${numberOfExistingBuildings} ${building}s already`,
+				);
+				return false;
+			}
+		}
+		return true;
+	}
+
 	static canBuildAtPosition(
 		position: Position,
 		building: Building_Type,
 		existingBuildings: Building[],
 		baseSize: Size,
 	) {
-		const buildingSize = BuildingManager.getBuildingData(building, 1).size;
+		if (!this.canBuildWithoutExceedingMaximumBuildings(building, existingBuildings)) {
+			return false;
+		}
+		const buildingData = BuildingManager.getBuildingData(building, 1);
+		const buildingSize = buildingData.size;
+
 		if (
 			!isBetween(position, ORIGIN_POSITION, {
 				x: baseSize.width - buildingSize.width,

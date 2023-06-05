@@ -19,6 +19,7 @@ import { UIConstants } from '../ui/constants';
 import DragNDropBuilding from '../board/DragNDropBuilding';
 import { log } from 'src/utility/logger';
 import SceneManager from '../manager/SceneManager';
+import BaseManager from '../logic/base/BaseManager';
 
 type BuildingInfo = {
 	textureKey: string;
@@ -96,7 +97,9 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 	}
 
 	private updateTextAndImages() {
-		const resources = this.gameSyncManager.getBaseData()?.resources;
+		const baseData = this.gameSyncManager.getBaseData();
+		const resources = baseData?.resources;
+		const buildings = baseData?.buildings;
 		Object.entries(this.textAndImages).forEach(([key, value]) => {
 			if (value == undefined) {
 				log.warn(`Unable to find data for ${key}`);
@@ -104,7 +107,11 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 			}
 			const buildingType = key as Building_Type;
 			const resourcesAfter = resources && BuildingManager.getResourcesAfterPurchase(resources, buildingType);
-			if (resourcesAfter == null) {
+
+			if (
+				resourcesAfter == null ||
+				!BaseManager.canBuildWithoutExceedingMaximumBuildings(buildingType, buildings ?? [])
+			) {
 				value.text.setColor('red');
 				value.text.setShadow(1, 1, 'black', 1);
 			} else {
@@ -146,9 +153,14 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 					if (!pointer.leftButtonDown() || !this.sys.isVisible()) {
 						return;
 					}
-					const resources = this.gameSyncManager.getBaseData()?.resources;
+					const baseData = this.gameSyncManager.getBaseData();
+					const resources = baseData?.resources;
+					const buildings = baseData?.buildings;
 					const resourcesAfter = resources && BuildingManager.getResourcesAfterPurchase(resources, buildingType);
-					if (resourcesAfter == null) {
+					if (
+						resourcesAfter == null ||
+						!BaseManager.canBuildWithoutExceedingMaximumBuildings(buildingType, buildings ?? [])
+					) {
 						return;
 					}
 					const _building = new DragNDropBuilding(

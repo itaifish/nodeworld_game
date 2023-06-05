@@ -11,7 +11,7 @@ type BuildingStats<TData> = {
 	costs: Partial<Record<Resource_Type, TData>>;
 };
 
-type StartingPointStats = BuildingStats<number> & { size: Size };
+type StartingPointStats = BuildingStats<number> & { size: Size } & { maxPerBase?: number };
 type ScalingStats = BuildingStats<(currentLevel: number, startingPoint: number) => number>;
 
 type LeveledBuildingStats = {
@@ -73,6 +73,7 @@ export default class BuildingManager {
 					GOLD: 90,
 				},
 				size: { width: 3, height: 3 },
+				maxPerBase: 1,
 			},
 			scaling: DEFAULT_SCALING,
 		},
@@ -225,6 +226,7 @@ export default class BuildingManager {
 					PLUTONIUM: 25,
 				},
 				size: { width: 2, height: 2 },
+				maxPerBase: 1,
 			},
 			scaling: DEFAULT_SCALING,
 		},
@@ -240,6 +242,7 @@ export default class BuildingManager {
 					ALUMNINUM: 10,
 				},
 				size: { width: 2, height: 2 },
+				maxPerBase: 1,
 			},
 			scaling: DEFAULT_SCALING,
 		},
@@ -253,8 +256,8 @@ export default class BuildingManager {
 		const knownBuildingData = this.BUILDING_DATA[building];
 		const keys = Object.keys(knownBuildingData.startingPoint) as Array<keyof StartingPointStats>;
 		keys.forEach((key) => {
-			if (key == 'size') {
-				calculatedBuildingData[key] = knownBuildingData.startingPoint[key];
+			if (key == 'size' || key == 'maxPerBase') {
+				calculatedBuildingData[key] = knownBuildingData.startingPoint[key] as any;
 				return;
 			}
 			const resourceMapKeys = ['generatedResourcesPerInterval', 'maxStorageCapacity', 'costs'] as const;

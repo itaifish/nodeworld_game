@@ -6,15 +6,16 @@ The backend and frontend is Typescript, bootstrapped with Create-T3-App. This in
 
 The development build of this game is currently hosted at <https://dev.nodeworld.protractors.dev/>
 
-# Table of Contents
+## Table of Contents
+
 - [Nodeworld](#nodeworld)
-  - [Development / Contributing](#development---contributing)
+  - [Development / Contributing](#development contributing)
     - [Getting started](#getting-started)
     - [Making Changes](#making-changes)
-      - [Database](#--database--)
-      - [Backend](#--backend--)
-      - [Frontend](#--frontend--)
-      - [Merging Changes](#--merging-changes--)
+      - [Database](#database)
+      - [Backend](#backend)
+      - [Frontend](#frontend)
+      - [Merging Changes](#merging-changes)
   - [Game Mechanics](#game-mechanics)
     - [Summary](#summary)
     - [Base](#base)
