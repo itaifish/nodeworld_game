@@ -147,7 +147,11 @@ export default class GameSyncManager extends EventEmitter {
 					if (this.baseGameState == null) {
 						return;
 					}
-					this.baseGameState.resources = data;
+					const resourcesBeingUpdated = new Set(data.map((x) => x.type));
+					this.baseGameState.resources = [
+						...data,
+						...this.baseGameState.resources.filter((x) => !resourcesBeingUpdated.has(x.type)),
+					];
 					this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
 				},
 				onError: (err) => {

@@ -160,24 +160,20 @@ export const baseRouter = createTRPCRouter({
 		const { harvest, lastHarvested } = res;
 		const resourcesAfter = BaseManager.modifyResources(baseUser.resources, harvest);
 
-		const transactions = await ctx.prisma.$transaction([
-			...resourcesAfter.map((resource) =>
-				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
-			),
+		const [newBuilding, ...newResources] = await ctx.prisma.$transaction([
 			ctx.prisma.building.update({
 				where: { id: input.buildingId },
 				data: {
 					lastHarvest: lastHarvested,
 				},
 			}),
+			...resourcesAfter.map((resource) =>
+				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
+			),
 		]);
-
-		const newBuilding = transactions[transactions.length - 1] as Building;
-		const newResources = transactions.slice(0, -1) as Resource[];
 
 		WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, newResources);
 		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BuildingUpdate}${userId}`, { ...newBuilding, action: 'updated' });
-		return transactions;
 	}),
 
 	constructBuilding: protectedProcedure
@@ -235,6 +231,47 @@ export const baseRouter = createTRPCRouter({
 			return baseAfter;
 		}),
 
+	levelUpBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
+		const userId = ctx.session.user.id;
+		const userBase: BaseDetails | null = await getBaseDataFromUser(ctx);
+		const buildingToUpgrade = userBase?.buildings.find((building) => building.id === input.buildingId);
+		const capitalBuilding = userBase?.buildings.find((building) => building.type === Building_Type.CAPITAL_BUILDING);
+
+		if (
+			userBase == null ||
+			buildingToUpgrade == null ||
+			capitalBuilding == null ||
+			capitalBuilding.level <= buildingToUpgrade.level
+		) {
+			return null;
+		}
+		const [type, newLevel] = [buildingToUpgrade.type, buildingToUpgrade.level + 1];
+		const resourcesAfter = BuildingManager.getResourcesAfterPurchase(userBase.resources, type, newLevel);
+		if (resourcesAfter == null) {
+			return null;
+		}
+		const finishedAt = BuildingManager.getBuildingFinishedTime(type, newLevel);
+		const [updatedBuilding, ...newResources] = await ctx.prisma.$transaction([
+			ctx.prisma.building.update({
+				where: {
+					id: buildingToUpgrade.id,
+				},
+				data: {
+					hp: BuildingManager.getBuildingData(type, newLevel).maxHP,
+					level: newLevel,
+					finishedAt,
+				},
+			}),
+			...resourcesAfter.map((resource) =>
+				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
+			),
+		]);
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, newResources);
+		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BuildingUpdate}${userId}`, {
+			action: 'updated',
+			...updatedBuilding,
+		});
+	}),
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
 		const data = await getBaseDataFromUser(ctx);
