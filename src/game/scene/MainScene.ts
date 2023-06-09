@@ -17,8 +17,8 @@ import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
 
 export const cellSize: Size = {
-	width: 100,
-	height: 100,
+	width: 64,
+	height: 32,
 };
 
 export default class MainScene extends Phaser.Scene {
@@ -27,7 +27,7 @@ export default class MainScene extends Phaser.Scene {
 	board: BaseGridBoard;
 	cameraController: Phaser.Cameras.Controls.SmoothedKeyControl;
 	background: Phaser.GameObjects.Image;
-	bounds: Size;
+	bounds: Rectangle;
 	dndData: {
 		building: DragNDropBuilding;
 		tilesOver: Set<Phaser.GameObjects.Image>;
@@ -51,6 +51,10 @@ export default class MainScene extends Phaser.Scene {
 		log.info('MainScene created');
 		// TODO: Investigate if this will cause a memory leak
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.createBoard());
+		if (this.input == null || this.input.keyboard == null) {
+			log.warn(`Error: Input/keyboard is null`);
+			return;
+		}
 
 		const cursors = this.input.keyboard.createCursorKeys();
 
@@ -70,6 +74,9 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
+			if (this.cameraController?.camera == null) {
+				return;
+			}
 			if (!pointer.middleButtonDown()) {
 				return;
 			}
@@ -79,12 +86,16 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		this.input.on(Phaser.Input.Events.POINTER_WHEEL, (_pointer: Phaser.Input.Pointer, _gameObjects: any[]) => {
+			if (this.cameraController?.camera?.zoom == null) {
+				return;
+			}
 			this.cameraController.camera.zoom -= (this.cameraController.zoomSpeed * _pointer.deltaY) / 30;
 			this.constrainCamera();
 		});
 
 		this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
 			if (pointer.leftButtonDown()) {
+				log.debug(JSON.stringify(this.board?.worldXYToTileXY(pointer.worldX, pointer.worldY) ?? 'Nothing Found'));
 				if (this.dndData == null || this.dndData.placementCoord == null) {
 					return;
 				}
@@ -98,22 +109,21 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		// tileset map
-		const map = this.make.tilemap({ key: 'map' });
+		// const map = this.make.tilemap({ key: 'map' });
 
-		// Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
-		// Phaser's cache (i.e. the name you used in preload)
-		// TODO: Credit  www.zingot.com
-		const tileset = map.addTilesetImage('space-blks-64', 'tiles');
-		// Parameters: layer name (or index) from Tiled, tileset, x, y
-		const layers = [];
-		layers.push(map.createLayer('BackgroundLayer', tileset, -25, -25));
-		layers.push(map.createLayer('ForegroundLayer', tileset, -25, -25));
-		layers.push(map.createLayer('TopLayer', tileset, -25, -25));
-		layers.forEach((layer) => {
-			layer.setScale(cellSize.width / map.tileWidth);
-		});
+		// // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
+		// // Phaser's cache (i.e. the name you used in preload)
+		// // TODO: Credit  www.zingot.com
+		// const tileset = map.addTilesetImage('space-blks-64', 'tiles');
+		// // Parameters: layer name (or index) from Tiled, tileset, x, y
+		// const layers = [];
+		// layers.push(map.createLayer('BackgroundLayer', tileset, -25, -25));
+		// layers.push(map.createLayer('ForegroundLayer', tileset, -25, -25));
+		// layers.push(map.createLayer('TopLayer', tileset, -25, -25));
+		// layers.forEach((layer) => {
+		// 	layer.setScale(cellSize.width / map.tileWidth);
+		// });
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		this.bounds = { width: layers[0]!.displayWidth, height: layers[0]!.displayHeight };
 	}
 
 	update(time: number, delta: number) {
@@ -122,7 +132,7 @@ export default class MainScene extends Phaser.Scene {
 		this.cameraController.update(delta);
 		this.constrainCamera();
 		if (this.dndData != null) {
-			this.input.activePointer.updateWorldPoint(this.cameraController.camera);
+			this.input.activePointer.updateWorldPoint(this.cameraController?.camera as any);
 			const mousePos = {
 				x: this.input.activePointer.worldX,
 				y: this.input.activePointer.worldY,
@@ -196,7 +206,7 @@ export default class MainScene extends Phaser.Scene {
 			y: 26,
 			cellWidth: cellSize.width,
 			cellHeight: cellSize.height,
-			type: 'orthogonal',
+			type: 'isometric',
 		});
 		const baseSize = BaseManager.getBaseSize(base.level);
 		const board = new BaseGridBoard(
@@ -206,9 +216,9 @@ export default class MainScene extends Phaser.Scene {
 			},
 			baseSize,
 		);
-		// board.setInteractive();
+		board.setInteractive();
 		if (this.board == null) {
-			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.Tile, 0xffffff00, 0xffffff, 1);
+			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.Tile, 0x000000ff, 0xffffff, 1);
 			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.GreenTile, 0x005511, 0xffffff, 1);
 			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.RedTile, 0x551100, 0xffffff, 1);
 		} else {
@@ -217,6 +227,7 @@ export default class MainScene extends Phaser.Scene {
 		board.forEachTileXY((tileXY) => {
 			const tileImage = this.add.image(0, 0, TEXTURE_KEYS.Tile).setAlpha(0.5);
 			tileImage.setDisplaySize(cellSize.width, cellSize.height);
+			tileImage.setInteractive();
 			board.addChess(tileImage, tileXY.x, tileXY.y, 0);
 		});
 
@@ -231,12 +242,14 @@ export default class MainScene extends Phaser.Scene {
 			}
 		}
 		this.buildings = [];
+		const ratio = cellSize.width / cellSize.height;
 		base?.buildings.forEach((building) => {
 			const size = BuildingManager.getBuildingData(building.type, building.level).size;
 			const position = board.tileXYToWorldXY(building.x, building.y);
+			log.debug(`position: ${position.x},${position.y} from buildingPos: ${building.x}, ${building.y}`);
 			const centeredPosition = {
-				x: position.x + ((cellSize.width * (size.width - 1)) >> 1),
-				y: position.y + ((cellSize.height * (size.height - 1)) >> 1),
+				x: position.x + cellSize.width * ((size.width - size.height) / 4),
+				y: position.y + cellSize.height * ((size.height + size.width) / 4 - 0.5),
 			};
 			const newBuilding = new BaseBuilding(building, this, centeredPosition);
 			if (building.id === selectedBuildingId) {
@@ -244,19 +257,19 @@ export default class MainScene extends Phaser.Scene {
 			}
 			this.buildings.push(newBuilding);
 		});
-
+		this.bounds = board.getBoardBoundRect();
 		this.board = board;
 
 		this.constrainCamera();
 	}
 
 	private constrainCamera() {
-		if (this.board == null) {
+		if (this.board == null || this.cameraController?.camera?.zoom == null) {
 			return;
 		}
 		// Camera
 		const maxSize = this.board.getWorldSize();
-		const minXY = this.board.getWorldCameraOrigin();
+		const minXY = this.bounds;
 		const extraRoom = 250 / this.cameraController.camera.zoom;
 		this.cameraController.camera.setBounds(
 			minXY.x - extraRoom,
@@ -264,6 +277,6 @@ export default class MainScene extends Phaser.Scene {
 			Math.max(maxSize.x, this.bounds.width) + extraRoom * 2,
 			Math.max(maxSize.y, this.bounds.height) + extraRoom + 300 / this.cameraController.camera.zoom,
 		);
-		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 3, 0.4));
+		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 3, 0.75));
 	}
 }
