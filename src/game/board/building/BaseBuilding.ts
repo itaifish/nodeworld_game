@@ -78,6 +78,7 @@ export default class BaseBuilding {
 			} else {
 				this.progressBar.destroy();
 				this.progressBar = undefined;
+				this.image.setAlpha(1);
 			}
 		}
 	}

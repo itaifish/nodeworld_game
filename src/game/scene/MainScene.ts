@@ -10,11 +10,12 @@ import tileMap from '../resources/tileProjects/gameMap.json';
 import tilesImage from '../resources/images/tilemaps/space-blks-1.034.png';
 import type { Position, Size } from '../interfaces/general';
 import type DragNDropBuilding from '../board/DragNDropBuilding';
-import Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangle';
+import type Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangle';
 import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
+import IsometricGridDiamond from '../shape/IsometricGridDiamond';
 
 export const cellSize: Size = {
 	width: 64,
@@ -34,6 +35,7 @@ export default class MainScene extends Phaser.Scene {
 		placementCoord: Position | null;
 	} | null;
 	buildings: BaseBuilding[];
+	testGraphics: Phaser.GameObjects.Graphics;
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
@@ -48,6 +50,7 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	create() {
+		this.testGraphics = this.add.graphics();
 		log.info('MainScene created');
 		// TODO: Investigate if this will cause a memory leak
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.createBoard());
@@ -95,7 +98,7 @@ export default class MainScene extends Phaser.Scene {
 
 		this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
 			if (pointer.leftButtonDown()) {
-				log.debug(JSON.stringify(this.board?.worldXYToTileXY(pointer.worldX, pointer.worldY) ?? 'Nothing Found'));
+				log.trace(JSON.stringify(this.board?.worldXYToTileXY(pointer.worldX, pointer.worldY) ?? 'Nothing Found'));
 				if (this.dndData == null || this.dndData.placementCoord == null) {
 					return;
 				}
@@ -139,21 +142,23 @@ export default class MainScene extends Phaser.Scene {
 			};
 			const boardSize = this.board.getWorldSize();
 			const newPosition = {
-				x: clamp(mousePos.x, boardSize.x, 0),
-				y: clamp(mousePos.y, boardSize.y, 0),
+				x: mousePos.x, // clamp(mousePos.x, boardSize.x, 0),
+				y: mousePos.y - this.dndData.building.image.displayHeight / 4, //clamp(mousePos.y, boardSize.y, 0),
 			};
 			this.dndData.building.setPosition(newPosition);
 			// DragNDrop box highlighting
 			const tileXY: Position = this.board.worldXYToTileXY(newPosition.x, newPosition.y);
-			this.dndData.placementCoord = { x: tileXY.x - 1, y: tileXY.y - 1 };
+			this.dndData.placementCoord = { x: tileXY.x, y: tileXY.y };
 			const buildingCellSize = this.dndData.building.getCellSize();
-			const tilesWorldXY: Position = this.board.tileXYToWorldXY(
-				tileXY.x - Math.floor(buildingCellSize.width / 2),
-				tileXY.y - Math.floor(buildingCellSize.height / 2),
+			const tilesWorldXY: Position = this.board.tileXYToWorldXY(tileXY.x, tileXY.y);
+			const buildingPosDiamond = new IsometricGridDiamond(
+				tilesWorldXY.x - cellSize.width / 4,
+				tilesWorldXY.y - cellSize.height / 2,
+				buildingCellSize.width,
+				buildingCellSize.height,
 			);
-			const { width, height } = this.dndData.building.getDisplaySize();
-			const buildingPosRectangle = new Rectangle(tilesWorldXY.x, tilesWorldXY.y, width - 1, height - 1);
-			const tilesOverCords = this.board.rectangleToTileXYArray(buildingPosRectangle);
+
+			const tilesOverCords = this.board.polygonToTileXYArray(buildingPosDiamond);
 			const tilesOver = new Set(this.board.tileXYArrayToChessArray(tilesOverCords) as Phaser.GameObjects.Image[]);
 			let isValidPlacement = true;
 			// check placement validity

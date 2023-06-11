@@ -47,6 +47,9 @@ export default class GameSyncManager extends EventEmitter {
 		this.createBaseIfNotExists().then(() => {
 			this.client.base.getBaseData.query();
 		});
+		setTimeout(() => {
+			this.client.base.getBaseData.query();
+		}, 1_000);
 	}
 
 	async createBaseIfNotExists() {
