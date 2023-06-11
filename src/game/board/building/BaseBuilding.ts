@@ -19,7 +19,7 @@ export default class BaseBuilding {
 		this.isSelected = false;
 		this.building = building;
 		this.image = scene.add.image(position.x, position.y, ConstructBuildingUIScene.Buildings[building.type].textureKey);
-		this.image.setInteractive();
+		this.image.setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 0.4 });
 		this.image.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
 			if (pointer.leftButtonDown()) {
 				SelectedBuildingManager.instance.setSelectedBuilding(this);
