@@ -18,8 +18,8 @@ import SelectedBuildingManager from '../manager/SelectedBuildingManager';
 import IsometricGridDiamond from '../shape/IsometricGridDiamond';
 
 export const cellSize: Size = {
-	width: 64,
-	height: 32,
+	width: 128,
+	height: 64,
 };
 
 export default class MainScene extends Phaser.Scene {
@@ -282,6 +282,6 @@ export default class MainScene extends Phaser.Scene {
 			Math.max(maxSize.x, this.bounds.width) + extraRoom * 2,
 			Math.max(maxSize.y, this.bounds.height) + extraRoom + 300 / this.cameraController.camera.zoom,
 		);
-		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 3, 0.75));
+		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 2, 0.66));
 	}
 }
