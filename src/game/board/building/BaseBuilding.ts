@@ -26,13 +26,10 @@ export default class BaseBuilding {
 			}
 		});
 		const size = BuildingManager.getBuildingData(building.type, building.level).size;
-		const scale =
-			Math.min(
-				(cellSize.height * size.height) / this.image.displayHeight,
-				(cellSize.width * size.width) / this.image.displayWidth,
-			) * 0.95;
+		const scale = (cellSize.width * size.width) / this.image.width;
 		this.image.setScale(scale);
-		this.image.setOrigin(0.5, 0.5);
+		this.image.setOrigin(0.5, 0.75);
+		this.image.setDepth(building.x + building.y);
 		this.progressBar = new FillableBar(
 			scene,
 			{

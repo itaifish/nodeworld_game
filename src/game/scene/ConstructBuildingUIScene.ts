@@ -9,6 +9,7 @@ import Dwelling from '../resources/images/buildings/dwelling.png';
 import Extractor from '../resources/images/buildings/extractor.png';
 import Harvestor from '../resources/images/buildings/harvestor.png';
 import Barracks from '../resources/images/buildings/barracks.png';
+import DefaultBuilding2_2 from '../resources/images/buildings/isometric/default_building_2x2.png';
 import UIScene from './UIScene';
 import type { Building_Type, Resource_Type } from '@prisma/client';
 import type MainScene from './MainScene';
@@ -41,9 +42,9 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 
 	static Buildings: Record<Building_Type, BuildingInfo> = {
 		CAPITAL_BUILDING: { textureKey: TEXTURE_KEYS.CapitalBuilding, src: CapitalBuilding.src },
-		DWELLING: { textureKey: TEXTURE_KEYS.Dwelling, src: Dwelling.src },
-		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: Extractor.src },
-		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: Harvestor.src },
+		DWELLING: { textureKey: TEXTURE_KEYS.Dwelling, src: DefaultBuilding2_2.src },
+		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: DefaultBuilding2_2.src },
+		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: DefaultBuilding2_2.src },
 		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
 		// TODO: Get valid textures
 		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
