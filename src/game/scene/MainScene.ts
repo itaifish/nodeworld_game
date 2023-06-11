@@ -150,16 +150,18 @@ export default class MainScene extends Phaser.Scene {
 			const tileXY: Position = this.board.worldXYToTileXY(newPosition.x, newPosition.y);
 			this.dndData.placementCoord = { x: tileXY.x, y: tileXY.y };
 			const buildingCellSize = this.dndData.building.getCellSize();
-			const tilesWorldXY: Position = this.board.tileXYToWorldXY(tileXY.x, tileXY.y);
-			const buildingPosDiamond = new IsometricGridDiamond(
-				tilesWorldXY.x - cellSize.width / 4,
-				tilesWorldXY.y - cellSize.height / 2,
-				buildingCellSize.width,
-				buildingCellSize.height,
-			);
 
-			const tilesOverCords = this.board.polygonToTileXYArray(buildingPosDiamond);
-			const tilesOver = new Set(this.board.tileXYArrayToChessArray(tilesOverCords) as Phaser.GameObjects.Image[]);
+			// Get Tiles over
+			const tilesOver = new Set<Phaser.GameObjects.Image>();
+			for (let xOffset = 0; xOffset < buildingCellSize.width; xOffset++) {
+				for (let yOffset = 0; yOffset < buildingCellSize.height; yOffset++) {
+					const chesses = this.board.tileXYToChessArray(tileXY.x + xOffset, tileXY.y + yOffset);
+					if (chesses.length > 0 && chesses[0] != null) {
+						tilesOver.add(chesses[0] as Phaser.GameObjects.Image);
+					}
+				}
+			}
+
 			let isValidPlacement = true;
 			// check placement validity
 			const overEnoughTiles = tilesOver.size == buildingCellSize.width * buildingCellSize.height;
@@ -176,8 +178,13 @@ export default class MainScene extends Phaser.Scene {
 				this.dndData.placementCoord = null;
 			}
 			const noLongerOver = setDifference(this.dndData.tilesOver, tilesOver);
-			tilesOver.forEach((tile) => tile.setTexture(isValidPlacement ? TEXTURE_KEYS.GreenTile : TEXTURE_KEYS.RedTile));
-			noLongerOver.forEach((tile) => tile.setTexture(TEXTURE_KEYS.Tile));
+			for (const tile of noLongerOver) {
+				tile.setTexture(TEXTURE_KEYS.Tile);
+			}
+			for (const tile of tilesOver) {
+				tile.setTexture(isValidPlacement ? TEXTURE_KEYS.GreenTile : TEXTURE_KEYS.RedTile);
+			}
+
 			this.dndData.tilesOver = tilesOver;
 		}
 

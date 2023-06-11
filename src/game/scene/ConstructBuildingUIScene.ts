@@ -10,6 +10,7 @@ import Extractor from '../resources/images/buildings/extractor.png';
 import Harvestor from '../resources/images/buildings/harvestor.png';
 import Barracks from '../resources/images/buildings/barracks.png';
 import DefaultBuilding2_2 from '../resources/images/buildings/isometric/default_building_2x2.png';
+import DefaultBuilding1_1 from '../resources/images/buildings/isometric/default_building_1x1.png';
 import UIScene from './UIScene';
 import type { Building_Type, Resource_Type } from '@prisma/client';
 import type MainScene from './MainScene';
@@ -45,14 +46,14 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		DWELLING: { textureKey: TEXTURE_KEYS.Dwelling, src: DefaultBuilding2_2.src },
 		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: DefaultBuilding2_2.src },
 		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: DefaultBuilding2_2.src },
-		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 		// TODO: Get valid textures
-		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		AEROSPACE_DEPOT: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		ANTI_AIRCRAFT_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		SCATTERGUN_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		ENERGY_SHIELD_WALL: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		UNIVERSITY: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.ResearchLab, src: DefaultBuilding1_1.src },
+		AEROSPACE_DEPOT: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
+		ANTI_AIRCRAFT_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding1_1.src },
+		SCATTERGUN_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding1_1.src },
+		ENERGY_SHIELD_WALL: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding1_1.src },
+		UNIVERSITY: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 	};
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {

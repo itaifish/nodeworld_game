@@ -29,7 +29,8 @@ export default class BaseBuilding {
 		const scale = (cellSize.width * size.width) / this.image.width;
 		this.image.setScale(scale);
 		this.image.setOrigin(0.5, 0.75);
-		this.image.setDepth(building.x + building.y);
+		const depth = building.x + building.y;
+		this.image.setDepth(depth);
 		this.progressBar = new FillableBar(
 			scene,
 			{
@@ -40,6 +41,7 @@ export default class BaseBuilding {
 			},
 			0,
 			0x1122ff,
+			depth,
 		);
 	}
 

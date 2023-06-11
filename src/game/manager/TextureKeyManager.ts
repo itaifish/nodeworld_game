@@ -16,6 +16,7 @@ export const TEXTURE_KEYS = {
 	Harvestor: 'Harvestor',
 	PowerStation: 'PowerStation',
 	Barracks: 'Barracks',
+	ResearchLab: 'ResearchLab',
 	// colors:
 	Tile: 'Tile',
 	GreenTile: 'GreenTile',
