@@ -15,7 +15,6 @@ import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
-import IsometricGridDiamond from '../shape/IsometricGridDiamond';
 
 export const cellSize: Size = {
 	width: 128,
@@ -140,10 +139,9 @@ export default class MainScene extends Phaser.Scene {
 				x: this.input.activePointer.worldX,
 				y: this.input.activePointer.worldY,
 			};
-			const boardSize = this.board.getWorldSize();
 			const newPosition = {
-				x: mousePos.x, // clamp(mousePos.x, boardSize.x, 0),
-				y: mousePos.y - this.dndData.building.image.displayHeight / 4, //clamp(mousePos.y, boardSize.y, 0),
+				x: mousePos.x,
+				y: mousePos.y - this.dndData.building.image.displayHeight / 4,
 			};
 			this.dndData.building.setPosition(newPosition);
 			// DragNDrop box highlighting
