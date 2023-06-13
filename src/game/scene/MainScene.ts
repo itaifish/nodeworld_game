@@ -5,7 +5,7 @@ import { QuadGrid } from 'phaser3-rex-plugins/plugins/board-components';
 import { log } from '../../utility/logger';
 import BaseManager from '../logic/base/BaseManager';
 import BaseGridBoard from '../board/BaseGridBoard';
-import { clamp, setDifference } from '../logic/general/math';
+import { clamp, getDifferenceBetweenSets } from '../logic/general/math';
 import tileMap from '../resources/tileProjects/gameMap.json';
 import tilesImage from '../resources/images/tilemaps/space-blks-1.034.png';
 import type { Position, Size } from '../interfaces/general';
@@ -177,7 +177,7 @@ export default class MainScene extends Phaser.Scene {
 				isValidPlacement = false;
 				this.dndData.placementCoord = null;
 			}
-			const noLongerOver = setDifference(this.dndData.tilesOver, tilesOver);
+			const noLongerOver = getDifferenceBetweenSets(this.dndData.tilesOver, tilesOver);
 			for (const tile of noLongerOver) {
 				tile.setTexture(TEXTURE_KEYS.Tile);
 			}

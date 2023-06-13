@@ -23,6 +23,6 @@ export function getRandomElementInList<T>(list: Array<T>): T {
 	return list[Math.floor(Math.random() * list.length)] as T;
 }
 
-export function setDifference<T>(a: Set<T>, b: Set<T>): T[] {
+export function getDifferenceBetweenSets<T>(a: Set<T>, b: Set<T>): T[] {
 	return [...a].filter((x) => !b.has(x));
 }
