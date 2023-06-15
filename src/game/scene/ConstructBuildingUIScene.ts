@@ -5,12 +5,9 @@ import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import BrickTileBG from '../resources/images/backgrounds/brick_tile_bg.png';
 import CloseButton from '../ui/button/CloseButton';
 import CapitalBuilding from '../resources/images/buildings/capital_building.png';
-import Dwelling from '../resources/images/buildings/dwelling.png';
-import Extractor from '../resources/images/buildings/extractor.png';
-import Harvestor from '../resources/images/buildings/harvestor.png';
-import Barracks from '../resources/images/buildings/barracks.png';
 import DefaultBuilding2_2 from '../resources/images/buildings/isometric/default_building_2x2.png';
 import DefaultBuilding1_1 from '../resources/images/buildings/isometric/default_building_1x1.png';
+import ResearchLab from '../resources/images/buildings/isometric/ResearchLab.png';
 import UIScene from './UIScene';
 import type { Building_Type, Resource_Type } from '@prisma/client';
 import type MainScene from './MainScene';
@@ -48,9 +45,9 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: DefaultBuilding2_2.src },
 		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 		// TODO: Get valid textures
-		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.ResearchLab, src: DefaultBuilding1_1.src },
+		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.ResearchLab, src: ResearchLab.src },
 		AEROSPACE_DEPOT: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
-		ANTI_AIRCRAFT_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding1_1.src },
+		ANTI_AIRCRAFT_TURRET: { textureKey: TEXTURE_KEYS.AntiAircraftTurret, src: DefaultBuilding1_1.src },
 		SCATTERGUN_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding1_1.src },
 		ENERGY_SHIELD_WALL: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding1_1.src },
 		UNIVERSITY: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },

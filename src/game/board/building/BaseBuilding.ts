@@ -26,8 +26,8 @@ export default class BaseBuilding {
 			}
 		});
 		const size = BuildingManager.getBuildingData(building.type, building.level).size;
-		const scale = (cellSize.width * size.width) / this.image.width;
-		this.image.setScale(scale);
+		// const scale = (cellSize.width * size.width) / this.image.width;
+		// this.image.setScale(scale);
 		this.image.setOrigin(0.5, 0.75);
 		const depth = building.x + building.y;
 		this.image.setDepth(depth);

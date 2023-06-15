@@ -225,7 +225,7 @@ export default class BuildingManager {
 					ALUMNINUM: 20,
 					PLUTONIUM: 25,
 				},
-				size: { width: 1, height: 1 },
+				size: { width: 2, height: 2 },
 				maxPerBase: 1,
 			},
 			scaling: DEFAULT_SCALING,

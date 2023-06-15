@@ -17,8 +17,8 @@ import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
 
 export const cellSize: Size = {
-	width: 128,
-	height: 64,
+	width: 64,
+	height: 32,
 };
 
 export default class MainScene extends Phaser.Scene {
@@ -44,8 +44,8 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	preload() {
-		this.load.image('tiles', tilesImage.src);
-		this.load.tilemapTiledJSON('map', tileMap);
+		// this.load.image('tiles', tilesImage.src);
+		//this.load.tilemapTiledJSON('map', tileMap);
 	}
 
 	create() {
@@ -74,6 +74,8 @@ export default class MainScene extends Phaser.Scene {
 			drag: 0.003,
 			maxSpeed: 0.8,
 		});
+
+		this.cameraController.camera?.setZoom(2);
 
 		this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
 			if (this.cameraController?.camera == null) {
@@ -228,7 +230,7 @@ export default class MainScene extends Phaser.Scene {
 		);
 		board.setInteractive();
 		if (this.board == null) {
-			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.Tile, 0x000000ff, 0xffffff, 1);
+			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.Tile, 0x0000ff, 0x0000ff, 1);
 			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.GreenTile, 0x005511, 0xffffff, 1);
 			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.RedTile, 0x551100, 0xffffff, 1);
 		} else {
@@ -285,6 +287,6 @@ export default class MainScene extends Phaser.Scene {
 			Math.max(maxSize.x, this.bounds.width) + extraRoom * 2,
 			Math.max(maxSize.y, this.bounds.height) + extraRoom + 300 / this.cameraController.camera.zoom,
 		);
-		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 2, 0.66));
+		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 4, 1));
 	}
 }
