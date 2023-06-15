@@ -106,7 +106,11 @@ export default class UIScene extends Phaser.Scene {
 
 		const constructBuildingUIScene = new ConstructBuildingUIScene({}, this.gameSyncManager);
 		SceneManager.instance.constructBuildingUIScene = constructBuildingUIScene;
-		this.constructBuildingUIScene = this.scene.add('ConstructBuildingUIScene', constructBuildingUIScene, true);
+		this.constructBuildingUIScene = this.scene.add(
+			'ConstructBuildingUIScene',
+			constructBuildingUIScene,
+			true,
+		) as ConstructBuildingUIScene;
 		this.scene.bringToTop('ConstructBuildingUIScene');
 		this.constructBuildingUIScene.sys.setVisible(false);
 	}
@@ -156,7 +160,7 @@ export default class UIScene extends Phaser.Scene {
 			);
 			this.formatText(text);
 			this.selectedBuilding.text.push(text);
-			farRight = Math.max(farRight, text.getRightCenter().x);
+			farRight = Math.max(farRight, text.getRightCenter().x ?? 0);
 		});
 
 		const harvest = BuildingManager.getHarvestAmountAndTimeForBuilding(building)?.harvest;
@@ -178,7 +182,7 @@ export default class UIScene extends Phaser.Scene {
 					'',
 				);
 				this.formatText(statText);
-				const textVal = `${UIConstants.getResourceSymbol(resourceType)} | ${amount}`;
+				const textVal = `${UIConstants.getResourceDisplay(resourceType)} | ${amount}`;
 				statText.setText(textVal);
 				this.selectedBuilding.harvestData.text[resourceType] = statText;
 			});
@@ -222,7 +226,7 @@ export default class UIScene extends Phaser.Scene {
 				this.statsText.set(type, statsText);
 			}
 			this.formatText(statsText);
-			statsText.setText(`${UIConstants.getResourceSymbol(type)} | ${amount}`);
+			statsText.setText(`${UIConstants.getResourceDisplay(type)} | ${amount}`);
 		}
 	}
 

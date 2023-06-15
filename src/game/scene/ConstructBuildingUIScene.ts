@@ -142,9 +142,9 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				const buildingType = buildings[buildingIndex]!;
 				const imageX = x + 100 + xOffset * i;
 				const image = this.add.image(imageX, y + yOffset, ConstructBuildingUIScene.Buildings[buildingType].textureKey);
-				const scale = cellSize.height / image.displayHeight;
-				yIndexHeightIncrease = Math.max(yIndexHeightIncrease, image.displayHeight);
+				const scale = cellSize.width / image.displayWidth;
 				image.setScale(scale);
+				yIndexHeightIncrease = Math.max(yIndexHeightIncrease, image.displayHeight);
 				image.setDepth(10);
 				image.setOrigin(0.5, 0.5);
 				image.setInteractive();
@@ -171,18 +171,15 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				});
 				const { size, buildTimeSeconds, costs } = BuildingManager.getBuildingData(buildingType, 1);
 				const costsStr = Object.entries(costs)
-					.map(
-						([costKey, costValue]) => `
-						> ${UIConstants.getResourceSymbol(costKey as Resource_Type)}: ${costValue}`,
-					)
-					.join('\n');
+					.map(([costKey, costValue]) => `_ ${UIConstants.getResourceSymbol(costKey as Resource_Type)}: ${costValue}`)
+					.join(', ');
 				const imageInfoText = `${buildingType}\n
 					- ${size.width} x ${size.height}
 					- ${buildTimeSeconds} seconds to build
 					- Costs:
 						${costsStr}`;
 				const infoTextObj = this.add.text(
-					imageX + cellSize.height * 0.6,
+					imageX + cellSize.width * 0.6,
 					y + yOffset - cellSize.height / 2,
 					imageInfoText,
 				);
