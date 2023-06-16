@@ -1,6 +1,6 @@
 import type { Position, Rect } from '../../interfaces/general';
 
-export const ORIGIN_POSITION = { x: 0, y: 0 };
+export const ORIGIN_POSITION = { x: 0, y: 0 } as const;
 
 export function isBetween(point: Position, min: Position, max: Position) {
 	return point.x >= min.x && point.y >= min.y && point.x <= max.x && point.y <= max.y;

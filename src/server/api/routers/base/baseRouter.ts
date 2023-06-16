@@ -158,11 +158,10 @@ export const baseRouter = createTRPCRouter({
 			return null;
 		}
 		const { harvest, lastHarvested } = res;
-		const resourcesAfter = BaseManager.modifyResources(baseUser.resources, harvest);
-
+		const resourcesAfter = BaseManager.getModificationToResourceDelta(baseUser.resources, harvest);
 		const transactions = await ctx.prisma.$transaction([
 			...resourcesAfter.map((resource) =>
-				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
+				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: { increment: resource.amount } } }),
 			),
 			ctx.prisma.building.update({
 				where: { id: input.buildingId },
@@ -211,12 +210,7 @@ export const baseRouter = createTRPCRouter({
 
 			const finishedAt = BuildingManager.getBuildingFinishedTime(newBuilding, 1);
 
-			const _resourceUpdate = await ctx.prisma.$transaction(
-				resourcesAfter.map((resource) =>
-					ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
-				),
-			);
-			const baseAfter = await ctx.prisma.base.update({
+			const baseAfterUpdate = ctx.prisma.base.update({
 				where: { id: userBase.id },
 				data: {
 					buildings: {
@@ -231,6 +225,13 @@ export const baseRouter = createTRPCRouter({
 				},
 				include: baseInclude,
 			});
+			const updates = await ctx.prisma.$transaction([
+				...resourcesAfter.map((resource) =>
+					ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
+				),
+				baseAfterUpdate,
+			]);
+			const baseAfter = updates[updates.length - 1] as BaseDetails;
 			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...baseAfter });
 			return baseAfter;
 		}),

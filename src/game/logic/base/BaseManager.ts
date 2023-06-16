@@ -44,6 +44,23 @@ export default class BaseManager {
 		return currentResources;
 	}
 
+	static getModificationToResourceDelta(
+		currentResources: Resource[],
+		modificationToResources: Partial<Record<Resource_Type, number>>,
+	) {
+		for (let i = 0; i < currentResources.length; i++) {
+			if (currentResources[i] == undefined) {
+				continue;
+			}
+			const type = currentResources[i]!.type;
+			if (type == undefined || currentResources[i]?.amount == undefined) {
+				continue;
+			}
+			currentResources[i]!.amount = modificationToResources[type] ?? 0;
+		}
+		return currentResources;
+	}
+
 	static canBuildWithoutExceedingMaximumBuildings(building: Building_Type, existingBuildings: Building[]): boolean {
 		const buildingData = BuildingManager.getBuildingData(building, 1);
 		log.trace(`Checking if can build ${building} `);

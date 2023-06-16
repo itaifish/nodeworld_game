@@ -25,11 +25,12 @@ export default class BaseBuilding {
 				SelectedBuildingManager.instance.setSelectedBuilding(this);
 			}
 		});
+		// Removing this code for now - we don't need to scale the images as they are all the exact right size anyways
 		const size = BuildingManager.getBuildingData(building.type, building.level).size;
 		// const scale = (cellSize.width * size.width) / this.image.width;
 		// this.image.setScale(scale);
 		this.image.setOrigin(0.5, 0.75);
-		const depth = building.x + building.y;
+		const depth = building.x + building.y + size.width + size.height;
 		this.image.setDepth(depth);
 		this.progressBar = new FillableBar(
 			scene,
@@ -37,7 +38,7 @@ export default class BaseBuilding {
 				x: position.x - this.image.displayWidth / 2,
 				y: position.y - this.image.displayHeight / 2 - 10,
 				width: this.image.displayWidth,
-				height: 20,
+				height: 10,
 			},
 			0,
 			0x1122ff,

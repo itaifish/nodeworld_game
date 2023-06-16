@@ -48,8 +48,8 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.ResearchLab, src: ResearchLab.src },
 		AEROSPACE_DEPOT: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 		ANTI_AIRCRAFT_TURRET: { textureKey: TEXTURE_KEYS.AntiAircraftTurret, src: DefaultBuilding1_1.src },
-		SCATTERGUN_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding1_1.src },
-		ENERGY_SHIELD_WALL: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding1_1.src },
+		SCATTERGUN_TURRET: { textureKey: TEXTURE_KEYS.ScattergunTurret, src: DefaultBuilding1_1.src },
+		ENERGY_SHIELD_WALL: { textureKey: TEXTURE_KEYS.EnergyShieldWall, src: DefaultBuilding1_1.src },
 		UNIVERSITY: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 	};
 

@@ -8,6 +8,7 @@ import BaseGridBoard from '../board/BaseGridBoard';
 import { clamp, getDifferenceBetweenSets } from '../logic/general/math';
 import tileMap from '../resources/tileProjects/gameMap.json';
 import tilesImage from '../resources/images/tilemaps/space-blks-1.034.png';
+import backgroundTile from '../resources/images/buildings/isometric/Base_1x1.png';
 import type { Position, Size } from '../interfaces/general';
 import type DragNDropBuilding from '../board/DragNDropBuilding';
 import type Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangle';
@@ -44,6 +45,7 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	preload() {
+		this.load.image(TEXTURE_KEYS.Tile, backgroundTile.src);
 		// this.load.image('tiles', tilesImage.src);
 		//this.load.tilemapTiledJSON('map', tileMap);
 	}
@@ -147,7 +149,7 @@ export default class MainScene extends Phaser.Scene {
 			};
 			this.dndData.building.setPosition(newPosition);
 			// DragNDrop box highlighting
-			const tileXY: Position = this.board.worldXYToTileXY(newPosition.x, newPosition.y);
+			const tileXY: Position = this.board.worldXYToTileXY(mousePos.x, mousePos.y);
 			this.dndData.placementCoord = { x: tileXY.x, y: tileXY.y };
 			const buildingCellSize = this.dndData.building.getCellSize();
 
@@ -180,9 +182,11 @@ export default class MainScene extends Phaser.Scene {
 			const noLongerOver = getDifferenceBetweenSets(this.dndData.tilesOver, tilesOver);
 			for (const tile of noLongerOver) {
 				tile.setTexture(TEXTURE_KEYS.Tile);
+				tile.setTint(0x444444);
 			}
 			for (const tile of tilesOver) {
 				tile.setTexture(isValidPlacement ? TEXTURE_KEYS.GreenTile : TEXTURE_KEYS.RedTile);
+				tile.setTint(undefined);
 			}
 
 			this.dndData.tilesOver = tilesOver;
@@ -194,7 +198,10 @@ export default class MainScene extends Phaser.Scene {
 
 	setDragNDropBuilding(dragNDropBuilding: DragNDropBuilding | null) {
 		if (dragNDropBuilding == null) {
-			this.dndData?.tilesOver.forEach((tile) => tile.setTexture(TEXTURE_KEYS.Tile));
+			this.dndData?.tilesOver.forEach((tile) => {
+				tile.setTexture(TEXTURE_KEYS.Tile);
+				tile.setTint(0x444444);
+			});
 			this.dndData?.building.delete();
 			this.dndData = null;
 		} else {
@@ -230,14 +237,14 @@ export default class MainScene extends Phaser.Scene {
 		);
 		board.setInteractive();
 		if (this.board == null) {
-			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.Tile, 0x0000ff, 0x0000ff, 1);
+			// this.rexBoard.createTileTexture(board, TEXTURE_KEYS.Tile, 0x0000ff, 0x0000ff, 1);
 			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.GreenTile, 0x005511, 0xffffff, 1);
 			this.rexBoard.createTileTexture(board, TEXTURE_KEYS.RedTile, 0x551100, 0xffffff, 1);
 		} else {
 			this.board.destroy();
 		}
 		board.forEachTileXY((tileXY) => {
-			const tileImage = this.add.image(0, 0, TEXTURE_KEYS.Tile).setAlpha(0.5);
+			const tileImage = this.add.image(0, 0, TEXTURE_KEYS.Tile).setAlpha(1).setTint(0x444444);
 			tileImage.setDisplaySize(cellSize.width, cellSize.height);
 			tileImage.setInteractive();
 			board.addChess(tileImage, tileXY.x, tileXY.y, 0);
