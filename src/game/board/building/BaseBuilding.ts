@@ -25,10 +25,11 @@ export default class BaseBuilding {
 				SelectedBuildingManager.instance.setSelectedBuilding(this);
 			}
 		});
+		const size = BuildingManager.getBuildingData(building.type, building.level, building.isRotated).size;
 		// Removing this code for now - we don't need to scale the images as they are all the exact right size anyways
-		const size = BuildingManager.getBuildingData(building.type, building.level).size;
 		// const scale = (cellSize.width * size.width) / this.image.width;
 		// this.image.setScale(scale);
+		this.image.setFlipX(building.isRotated);
 		this.image.setOrigin(0.5, 0.75);
 		const depth = building.x + building.y + size.width + size.height;
 		this.image.setDepth(depth);

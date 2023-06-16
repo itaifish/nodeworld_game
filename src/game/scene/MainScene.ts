@@ -51,8 +51,9 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	create() {
-		this.testGraphics = this.add.graphics();
 		log.info('MainScene created');
+
+		this.testGraphics = this.add.graphics();
 		// TODO: Investigate if this will cause a memory leak
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.createBoard());
 		if (this.input == null || this.input.keyboard == null) {
@@ -107,11 +108,16 @@ export default class MainScene extends Phaser.Scene {
 				}
 				const placementCoord = { ...this.dndData.placementCoord };
 				const buildingType = this.dndData.building.buildingType;
+				this.gameSyncManager.constructBuilding(buildingType, placementCoord, this.dndData.building.isRotated);
 				this.setDragNDropBuilding(null);
-				this.gameSyncManager.constructBuilding(buildingType, placementCoord);
 			} else if (pointer.rightButtonDown()) {
 				this.setDragNDropBuilding(null);
 			}
+		});
+
+		this.input.keyboard.on(`keydown-R`, () => {
+			log.info(`Rotate`);
+			this.dndData?.building.rotate();
 		});
 
 		// tileset map
@@ -181,10 +187,12 @@ export default class MainScene extends Phaser.Scene {
 			}
 			const noLongerOver = getDifferenceBetweenSets(this.dndData.tilesOver, tilesOver);
 			for (const tile of noLongerOver) {
+				tile.scene = this;
 				tile.setTexture(TEXTURE_KEYS.Tile);
 				tile.setTint(0x444444);
 			}
 			for (const tile of tilesOver) {
+				tile.scene = this;
 				tile.setTexture(isValidPlacement ? TEXTURE_KEYS.GreenTile : TEXTURE_KEYS.RedTile);
 				tile.setTint(undefined);
 			}
@@ -198,10 +206,13 @@ export default class MainScene extends Phaser.Scene {
 
 	setDragNDropBuilding(dragNDropBuilding: DragNDropBuilding | null) {
 		if (dragNDropBuilding == null) {
-			this.dndData?.tilesOver.forEach((tile) => {
+			for (const tile of this.dndData?.tilesOver ?? []) {
+				// No idea why this line is needed, but it is
+				tile.scene = this;
 				tile.setTexture(TEXTURE_KEYS.Tile);
 				tile.setTint(0x444444);
-			});
+			}
+
 			this.dndData?.building.delete();
 			this.dndData = null;
 		} else {
@@ -262,7 +273,7 @@ export default class MainScene extends Phaser.Scene {
 		}
 		this.buildings = [];
 		base?.buildings.forEach((building) => {
-			const size = BuildingManager.getBuildingData(building.type, building.level).size;
+			const size = BuildingManager.getBuildingData(building.type, building.level, building.isRotated).size;
 			const position = board.tileXYToWorldXY(building.x, building.y);
 			const centeredPosition = {
 				x: position.x + cellSize.width * ((size.width - size.height) / 4),

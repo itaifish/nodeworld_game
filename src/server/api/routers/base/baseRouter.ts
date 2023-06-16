@@ -184,6 +184,7 @@ export const baseRouter = createTRPCRouter({
 			z.object({
 				building: z.enum(Object.keys(Building_Type) as [string, ...string[]]),
 				position: z.object({ x: z.number().min(0), y: z.number().min(0) }),
+				isRotated: z.boolean().optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -193,6 +194,7 @@ export const baseRouter = createTRPCRouter({
 			if (userBase == null) {
 				return null;
 			}
+			const isRotated = input.isRotated ?? false;
 			// TODO: Replace with structuredClone when the bug gets solved
 			const resourcesCopy: Resource[] = JSON.parse(JSON.stringify(userBase.resources));
 			log.info(`creating structured clone of ${JSON.stringify(resourcesCopy)}`);
@@ -207,6 +209,7 @@ export const baseRouter = createTRPCRouter({
 					newBuilding,
 					userBase.buildings,
 					BaseManager.getBaseSize(userBase.level),
+					isRotated,
 				)
 			) {
 				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...userBase });
@@ -244,6 +247,7 @@ export const baseRouter = createTRPCRouter({
 									y: input.position.y,
 									hp: BuildingManager.getBuildingData(newBuilding, 1).maxHP,
 									finishedAt,
+									isRotated,
 								},
 							},
 						},
@@ -260,7 +264,7 @@ export const baseRouter = createTRPCRouter({
 			} else {
 				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...userBase });
 			}
-			return null;
+			return transaction;
 		}),
 
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {

@@ -55,8 +55,8 @@ export default class GameSyncManager extends EventEmitter {
 		this.client.base.createBaseIfNotExists.mutate();
 	}
 
-	async constructBuilding(building: Building_Type, position: Position) {
-		const newBaseTask = this.client.base.constructBuilding.mutate({ building, position });
+	async constructBuilding(building: Building_Type, position: Position, isRotated = false) {
+		const newBaseTask = this.client.base.constructBuilding.mutate({ building, position, isRotated });
 		const now = new Date();
 		const networkDelayOffsetSecondsNow = new Date(now.getTime() + 3_500);
 		// Create temporary Building
@@ -69,6 +69,7 @@ export default class GameSyncManager extends EventEmitter {
 			type: building,
 			hp: BuildingManager.getBuildingData(building, 1).maxHP,
 			level: 1,
+			isRotated,
 			...position,
 		};
 		const tempResources = BuildingManager.getResourcesAfterPurchase(this.baseGameState?.resources ?? [], building);
