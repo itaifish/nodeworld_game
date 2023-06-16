@@ -300,6 +300,16 @@ export default class BuildingManager {
 		return newResourcePool;
 	}
 
+	static getCostsForPurchase(resourcePool: Resource[], building: Building_Type, buildingLevel = 1) {
+		const cost = this.getBuildingData(building, buildingLevel).costs;
+		const newResourcePool: Resource[] = [];
+		for (const resource of resourcePool) {
+			const deltaAmount = cost[resource.type] ?? 0;
+			newResourcePool.push({ ...resource, amount: deltaAmount });
+		}
+		return newResourcePool;
+	}
+
 	static getHarvestAmountAndTimeForBuilding(building: Building | null) {
 		if (building == null) {
 			return null;

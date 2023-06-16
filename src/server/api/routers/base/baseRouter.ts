@@ -193,8 +193,12 @@ export const baseRouter = createTRPCRouter({
 			if (userBase == null) {
 				return null;
 			}
-			const resourcesAfter = BuildingManager.getResourcesAfterPurchase(userBase.resources, newBuilding);
+			// TODO: Replace with structuredClone when the bug gets solved
+			const resourcesCopy: Resource[] = JSON.parse(JSON.stringify(userBase.resources));
+			log.info(`creating structured clone of ${JSON.stringify(resourcesCopy)}`);
+			const resourcesAfter = BuildingManager.getResourcesAfterPurchase(resourcesCopy, newBuilding);
 			if (resourcesAfter == null) {
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...userBase });
 				return null;
 			}
 			if (
@@ -205,35 +209,58 @@ export const baseRouter = createTRPCRouter({
 					BaseManager.getBaseSize(userBase.level),
 				)
 			) {
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...userBase });
 				return null;
 			}
 
 			const finishedAt = BuildingManager.getBuildingFinishedTime(newBuilding, 1);
-
-			const baseAfterUpdate = ctx.prisma.base.update({
-				where: { id: userBase.id },
-				data: {
-					buildings: {
-						create: {
-							type: newBuilding,
-							x: input.position.x,
-							y: input.position.y,
-							hp: BuildingManager.getBuildingData(newBuilding, 1).maxHP,
-							finishedAt,
+			let transaction = null;
+			try {
+				transaction = await prisma?.$transaction(async (prismaTx) => {
+					const costs = BuildingManager.getCostsForPurchase(userBase.resources, newBuilding);
+					const resourcesUpdate = await Promise.all(
+						costs.map((resource) =>
+							prismaTx.resource.update({
+								where: { id: resource.id },
+								data: { amount: { decrement: resource.amount } },
+							}),
+						),
+					);
+					const negativeResources = resourcesUpdate.filter((resource) => resource.amount < 0);
+					if (negativeResources.length > 0) {
+						throw new Error(
+							`${JSON.stringify(
+								negativeResources.map((resource) => resource.type),
+							)} are negative after this update, cancelling`,
+						);
+					}
+					const baseUpdate = prismaTx.base.update({
+						where: { id: userBase.id },
+						data: {
+							buildings: {
+								create: {
+									type: newBuilding,
+									x: input.position.x,
+									y: input.position.y,
+									hp: BuildingManager.getBuildingData(newBuilding, 1).maxHP,
+									finishedAt,
+								},
+							},
 						},
-					},
-				},
-				include: baseInclude,
-			});
-			const updates = await ctx.prisma.$transaction([
-				...resourcesAfter.map((resource) =>
-					ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
-				),
-				baseAfterUpdate,
-			]);
-			const baseAfter = updates[updates.length - 1] as BaseDetails;
-			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...baseAfter });
-			return baseAfter;
+						include: baseInclude,
+					});
+
+					return baseUpdate;
+				});
+			} catch (e) {
+				log.warn((e as Error)?.message);
+			}
+			if (transaction) {
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...transaction });
+			} else {
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...userBase });
+			}
+			return null;
 		}),
 
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {
