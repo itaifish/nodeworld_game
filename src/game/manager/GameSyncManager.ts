@@ -76,9 +76,10 @@ export default class GameSyncManager extends EventEmitter {
 			...position,
 		};
 		this.temporaryBuildings.set(tempBuilding.id, tempBuilding);
-		this.client.base.constructBuilding
-			.mutate({ building, position, isRotated })
-			.then(() => this.temporaryBuildings.delete(tempBuilding.id));
+		this.client.base.constructBuilding.mutate({ building, position, isRotated }).then(() => {
+			this.temporaryBuildings.delete(tempBuilding.id);
+			this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+		});
 		const tempResources = BuildingManager.getResourcesAfterPurchase(this.baseGameState?.resources ?? [], building);
 		if (this.baseGameState && tempResources) {
 			this.baseGameState.resources = tempResources;

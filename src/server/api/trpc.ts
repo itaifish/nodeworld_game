@@ -94,7 +94,8 @@ const loggerMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
 		},
 	});
 	const durationMs = Date.now() - start;
-	const meta = { path, type, durationMs };
+	const { name, id } = ctx.session.user;
+	const meta = { path, type, durationMs, user: { name, id } };
 	result.ok ? log.info(meta, '[OK Request]') : log.warn(meta, '[Non-OK request]');
 
 	return result;
