@@ -72,7 +72,7 @@ export default class BaseBuilding {
 		if (this.progressBar) {
 			const rawProgress =
 				(this.building.finishedAt.getTime() - now) /
-				(BuildingManager.getBuildingData(this.building.type, this.building.level).buildTimeSeconds * 1_000);
+				(this.building.finishedAt.getTime() - this.building.createdAt.getTime());
 			const finishedProgress = 1 - clamp(rawProgress, 1, 0);
 			log.trace(`Building Progress: ${finishedProgress} [Raw progress: ${rawProgress}]`);
 			if (finishedProgress != 1) {
