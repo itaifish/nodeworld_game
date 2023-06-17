@@ -6,17 +6,20 @@ import BuildingManager from '../logic/buildings/BuildingManager';
 import type { Position, Size } from '../interfaces/general';
 
 export default class DragNDropBuilding {
+	isRotated;
 	readonly buildingType;
 	readonly image;
 
 	constructor(scene: MainScene, buildingType: Building_Type, textureKey: string) {
 		this.image = scene.add.image(scene.input.mousePointer.x, scene.input.mousePointer.y, textureKey);
 		this.buildingType = buildingType;
+		this.isRotated = false;
 		const size = this.getDisplaySize();
-		const scale = Math.min(size.height / this.image.displayHeight, size.width / this.image.displayWidth);
+		const scale = size.width / this.image.width;
 		this.image.setScale(scale);
 		this.image.setInteractive();
-		this.image.setDepth(1);
+		this.image.setDepth(1000);
+		this.image.setAlpha(0.4);
 		scene.setDragNDropBuilding(this);
 	}
 
@@ -29,7 +32,7 @@ export default class DragNDropBuilding {
 	}
 
 	getCellSize(): Size {
-		const size = BuildingManager.getBuildingData(this.buildingType, 1).size;
+		const size = BuildingManager.getBuildingData(this.buildingType, 1, this.isRotated).size;
 		return {
 			width: size.width,
 			height: size.height,
@@ -38,6 +41,11 @@ export default class DragNDropBuilding {
 
 	setPosition(position: Position) {
 		this.image.setPosition(position.x, position.y);
+	}
+
+	rotate() {
+		this.isRotated = !this.isRotated;
+		this.image.setFlipX(this.isRotated);
 	}
 
 	delete() {

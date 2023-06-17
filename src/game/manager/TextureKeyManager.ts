@@ -16,6 +16,10 @@ export const TEXTURE_KEYS = {
 	Harvestor: 'Harvestor',
 	PowerStation: 'PowerStation',
 	Barracks: 'Barracks',
+	AntiAircraftTurret: 'AntiAircraftTurret',
+	ScattergunTurret: 'ScattergunTurret',
+	EnergyShieldWall: 'EnergyShieldWall',
+	ResearchLab: 'ResearchLab',
 	// colors:
 	Tile: 'Tile',
 	GreenTile: 'GreenTile',

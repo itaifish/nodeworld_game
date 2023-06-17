@@ -43,6 +43,32 @@ export default class BaseManager {
 		}
 		return currentResources;
 	}
+	/**
+	 * Returns an array of resources, where the amounts for those resources are the changes that `modificationToResources` would apply
+	 * @param currentResources Resources to get modifications of
+	 * @param modificationToResources Modification (Positive for addition, Negative for subtraction)
+	 * @returns array of resource deltas
+	 */
+	static getModificationToResourceDelta(
+		currentResources: Resource[],
+		modificationToResources: Partial<Record<Resource_Type, number>>,
+	) {
+		const newResources: Resource[] = [];
+		for (let i = 0; i < currentResources.length; i++) {
+			if (currentResources[i] == undefined) {
+				continue;
+			}
+			const type = currentResources[i]!.type;
+			if (type == undefined || currentResources[i]?.amount == undefined) {
+				continue;
+			}
+			newResources.push({
+				...(currentResources[i] as Resource),
+				amount: modificationToResources[type] ?? 0,
+			});
+		}
+		return newResources;
+	}
 
 	static canBuildWithoutExceedingMaximumBuildings(building: Building_Type, existingBuildings: Building[]): boolean {
 		const buildingData = BuildingManager.getBuildingData(building, 1);
@@ -66,11 +92,12 @@ export default class BaseManager {
 		building: Building_Type,
 		existingBuildings: Building[],
 		baseSize: Size,
+		isRotated = false,
 	) {
 		if (!this.canBuildWithoutExceedingMaximumBuildings(building, existingBuildings)) {
 			return false;
 		}
-		const buildingData = BuildingManager.getBuildingData(building, 1);
+		const buildingData = BuildingManager.getBuildingData(building, 1, isRotated);
 		const buildingSize = buildingData.size;
 
 		if (
@@ -84,7 +111,11 @@ export default class BaseManager {
 		}
 		const newBuildingRect: Rect = { ...position, ...buildingSize };
 		for (const existingBuilding of existingBuildings) {
-			const size = BuildingManager.getBuildingData(existingBuilding.type, existingBuilding.level).size;
+			const size = BuildingManager.getBuildingData(
+				existingBuilding.type,
+				existingBuilding.level,
+				existingBuilding.isRotated,
+			).size;
 			if (isRectCollision(newBuildingRect, { ...existingBuilding, ...size })) {
 				return false;
 			}

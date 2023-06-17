@@ -18,6 +18,7 @@ export default class SelectedBuildingManager extends EventEmitter {
 		this.selectedBuilding = newSelectedBuilding;
 		this.selectedBuilding?.setSelected(true);
 		log.trace(`Set selected building called on ${newSelectedBuilding?.building.type || 'null'}`);
+		log.debug(`Selected Building @ position: ${newSelectedBuilding?.building.x}, ${newSelectedBuilding?.building.y}`);
 		this.emit(SelectedBuildingManager.SELECT_EVENT, this.selectedBuilding);
 	}
 

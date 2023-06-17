@@ -158,11 +158,10 @@ export const baseRouter = createTRPCRouter({
 			return null;
 		}
 		const { harvest, lastHarvested } = res;
-		const resourcesAfter = BaseManager.modifyResources(baseUser.resources, harvest);
-
+		const resourcesAfter = BaseManager.getModificationToResourceDelta(baseUser.resources, harvest);
 		const transactions = await ctx.prisma.$transaction([
 			...resourcesAfter.map((resource) =>
-				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
+				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: { increment: resource.amount } } }),
 			),
 			ctx.prisma.building.update({
 				where: { id: input.buildingId },
@@ -185,6 +184,7 @@ export const baseRouter = createTRPCRouter({
 			z.object({
 				building: z.enum(Object.keys(Building_Type) as [string, ...string[]]),
 				position: z.object({ x: z.number().min(0), y: z.number().min(0) }),
+				isRotated: z.boolean().optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -194,8 +194,13 @@ export const baseRouter = createTRPCRouter({
 			if (userBase == null) {
 				return null;
 			}
-			const resourcesAfter = BuildingManager.getResourcesAfterPurchase(userBase.resources, newBuilding);
+			const isRotated = input.isRotated ?? false;
+			// TODO: Replace with structuredClone when the bug gets solved
+			const resourcesCopy: Resource[] = JSON.parse(JSON.stringify(userBase.resources));
+			log.info(`creating structured clone of ${JSON.stringify(resourcesCopy)}`);
+			const resourcesAfter = BuildingManager.getResourcesAfterPurchase(resourcesCopy, newBuilding);
 			if (resourcesAfter == null) {
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...userBase });
 				return null;
 			}
 			if (
@@ -204,35 +209,62 @@ export const baseRouter = createTRPCRouter({
 					newBuilding,
 					userBase.buildings,
 					BaseManager.getBaseSize(userBase.level),
+					isRotated,
 				)
 			) {
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...userBase });
 				return null;
 			}
 
 			const finishedAt = BuildingManager.getBuildingFinishedTime(newBuilding, 1);
-
-			const _resourceUpdate = await ctx.prisma.$transaction(
-				resourcesAfter.map((resource) =>
-					ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
-				),
-			);
-			const baseAfter = await ctx.prisma.base.update({
-				where: { id: userBase.id },
-				data: {
-					buildings: {
-						create: {
-							type: newBuilding,
-							x: input.position.x,
-							y: input.position.y,
-							hp: BuildingManager.getBuildingData(newBuilding, 1).maxHP,
-							finishedAt,
+			let transaction: BaseDetails | null | undefined = null;
+			try {
+				transaction = await prisma?.$transaction(async (prismaTx) => {
+					const costs = BuildingManager.getCostsForPurchase(userBase.resources, newBuilding);
+					const resourcesUpdate = await Promise.all(
+						costs.map((resource) =>
+							prismaTx.resource.update({
+								where: { id: resource.id },
+								data: { amount: { decrement: resource.amount } },
+							}),
+						),
+					);
+					const negativeResources = resourcesUpdate.filter((resource) => resource.amount < 0);
+					if (negativeResources.length > 0) {
+						throw new Error(
+							`${JSON.stringify(
+								negativeResources.map((resource) => resource.type),
+							)} are negative after this update, cancelling`,
+						);
+					}
+					const baseUpdate = prismaTx.base.update({
+						where: { id: userBase.id },
+						data: {
+							buildings: {
+								create: {
+									type: newBuilding,
+									x: input.position.x,
+									y: input.position.y,
+									hp: BuildingManager.getBuildingData(newBuilding, 1).maxHP,
+									finishedAt,
+									isRotated,
+								},
+							},
 						},
-					},
-				},
-				include: baseInclude,
-			});
-			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...baseAfter });
-			return baseAfter;
+						include: baseInclude,
+					});
+
+					return baseUpdate;
+				});
+			} catch (e) {
+				log.warn((e as Error)?.message);
+			}
+			if (transaction) {
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...transaction });
+			} else {
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...userBase });
+			}
+			return transaction;
 		}),
 
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {

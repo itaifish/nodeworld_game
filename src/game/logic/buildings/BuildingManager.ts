@@ -251,13 +251,20 @@ export default class BuildingManager {
 	/** Interval is 20 minutes by default - plan to mess with it */
 	static readonly HARVEST_INTERVAL_MINS = 20;
 
-	static getBuildingData(building: Building_Type, level: number) {
+	static getBuildingData(building: Building_Type, level: number, isRotated = false) {
 		const calculatedBuildingData: Partial<StartingPointStats> = {};
 		const knownBuildingData = this.BUILDING_DATA[building];
 		const keys = Object.keys(knownBuildingData.startingPoint) as Array<keyof StartingPointStats>;
 		keys.forEach((key) => {
-			if (key == 'size' || key == 'maxPerBase') {
+			if (key == 'maxPerBase') {
 				calculatedBuildingData[key] = knownBuildingData.startingPoint[key] as any;
+				return;
+			}
+			if (key == 'size') {
+				const unflippedSize = knownBuildingData.startingPoint['size'];
+				calculatedBuildingData['size'] = isRotated
+					? { width: unflippedSize.height, height: unflippedSize.width }
+					: unflippedSize;
 				return;
 			}
 			const resourceMapKeys = ['generatedResourcesPerInterval', 'maxStorageCapacity', 'costs'] as const;
@@ -296,6 +303,16 @@ export default class BuildingManager {
 				return null;
 			}
 			newResourcePool.push({ ...resource, amount: newAmount });
+		}
+		return newResourcePool;
+	}
+
+	static getCostsForPurchase(resourcePool: Resource[], building: Building_Type, buildingLevel = 1) {
+		const cost = this.getBuildingData(building, buildingLevel).costs;
+		const newResourcePool: Resource[] = [];
+		for (const resource of resourcePool) {
+			const deltaAmount = cost[resource.type] ?? 0;
+			newResourcePool.push({ ...resource, amount: deltaAmount });
 		}
 		return newResourcePool;
 	}

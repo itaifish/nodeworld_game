@@ -4,14 +4,6 @@ import BackgroundScene from './scene/BackgroundScene';
 import MainScene from './scene/MainScene';
 import UIScene from './scene/UIScene';
 
-type InitalAddSceneName = 'BackgroundScene' | 'MainScene' | 'UIScene';
-
-type SceneNameMap = {
-	[`BackgroundScene`]: BackgroundScene;
-	[`MainScene`]: MainScene;
-	[`UIScene`]: UIScene;
-};
-
 export default class NodeworldGame extends Phaser.Game {
 	readonly gameSyncManager: GameSyncManager;
 	private readonly sceneManager: SceneManager;

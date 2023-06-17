@@ -5,10 +5,9 @@ import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
 import BrickTileBG from '../resources/images/backgrounds/brick_tile_bg.png';
 import CloseButton from '../ui/button/CloseButton';
 import CapitalBuilding from '../resources/images/buildings/capital_building.png';
-import Dwelling from '../resources/images/buildings/dwelling.png';
-import Extractor from '../resources/images/buildings/extractor.png';
-import Harvestor from '../resources/images/buildings/harvestor.png';
-import Barracks from '../resources/images/buildings/barracks.png';
+import DefaultBuilding2_2 from '../resources/images/buildings/isometric/default_building_2x2.png';
+import DefaultBuilding1_1 from '../resources/images/buildings/isometric/default_building_1x1.png';
+import ResearchLab from '../resources/images/buildings/isometric/ResearchLab.png';
 import UIScene from './UIScene';
 import type { Building_Type, Resource_Type } from '@prisma/client';
 import type MainScene from './MainScene';
@@ -41,17 +40,17 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 
 	static Buildings: Record<Building_Type, BuildingInfo> = {
 		CAPITAL_BUILDING: { textureKey: TEXTURE_KEYS.CapitalBuilding, src: CapitalBuilding.src },
-		DWELLING: { textureKey: TEXTURE_KEYS.Dwelling, src: Dwelling.src },
-		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: Extractor.src },
-		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: Harvestor.src },
-		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		DWELLING: { textureKey: TEXTURE_KEYS.Dwelling, src: DefaultBuilding2_2.src },
+		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: DefaultBuilding2_2.src },
+		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: DefaultBuilding2_2.src },
+		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 		// TODO: Get valid textures
-		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		AEROSPACE_DEPOT: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		ANTI_AIRCRAFT_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		SCATTERGUN_TURRET: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		ENERGY_SHIELD_WALL: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
-		UNIVERSITY: { textureKey: TEXTURE_KEYS.Barracks, src: Barracks.src },
+		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.ResearchLab, src: ResearchLab.src },
+		AEROSPACE_DEPOT: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
+		ANTI_AIRCRAFT_TURRET: { textureKey: TEXTURE_KEYS.AntiAircraftTurret, src: DefaultBuilding1_1.src },
+		SCATTERGUN_TURRET: { textureKey: TEXTURE_KEYS.ScattergunTurret, src: DefaultBuilding1_1.src },
+		ENERGY_SHIELD_WALL: { textureKey: TEXTURE_KEYS.EnergyShieldWall, src: DefaultBuilding1_1.src },
+		UNIVERSITY: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 	};
 
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
@@ -143,9 +142,9 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				const buildingType = buildings[buildingIndex]!;
 				const imageX = x + 100 + xOffset * i;
 				const image = this.add.image(imageX, y + yOffset, ConstructBuildingUIScene.Buildings[buildingType].textureKey);
-				const scale = cellSize.height / image.displayHeight;
-				yIndexHeightIncrease = Math.max(yIndexHeightIncrease, image.displayHeight);
+				const scale = cellSize.width / image.displayWidth;
 				image.setScale(scale);
+				yIndexHeightIncrease = Math.max(yIndexHeightIncrease, image.displayHeight);
 				image.setDepth(10);
 				image.setOrigin(0.5, 0.5);
 				image.setInteractive();
@@ -172,18 +171,15 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				});
 				const { size, buildTimeSeconds, costs } = BuildingManager.getBuildingData(buildingType, 1);
 				const costsStr = Object.entries(costs)
-					.map(
-						([costKey, costValue]) => `
-						> ${UIConstants.getResourceSymbol(costKey as Resource_Type)}: ${costValue}`,
-					)
-					.join('\n');
+					.map(([costKey, costValue]) => `_ ${UIConstants.getResourceSymbol(costKey as Resource_Type)}: ${costValue}`)
+					.join(', ');
 				const imageInfoText = `${buildingType}\n
 					- ${size.width} x ${size.height}
 					- ${buildTimeSeconds} seconds to build
 					- Costs:
 						${costsStr}`;
 				const infoTextObj = this.add.text(
-					imageX + cellSize.height * 0.6,
+					imageX + cellSize.width * 0.6,
 					y + yOffset - cellSize.height / 2,
 					imageInfoText,
 				);
