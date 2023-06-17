@@ -200,7 +200,7 @@ export const baseRouter = createTRPCRouter({
 			log.info(`creating structured clone of ${JSON.stringify(resourcesCopy)}`);
 			const resourcesAfter = BuildingManager.getResourcesAfterPurchase(resourcesCopy, newBuilding);
 			if (resourcesAfter == null) {
-				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...userBase });
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...userBase });
 				return null;
 			}
 			if (
@@ -212,12 +212,12 @@ export const baseRouter = createTRPCRouter({
 					isRotated,
 				)
 			) {
-				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...userBase });
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...userBase });
 				return null;
 			}
 
 			const finishedAt = BuildingManager.getBuildingFinishedTime(newBuilding, 1);
-			let transaction = null;
+			let transaction: BaseDetails | null | undefined = null;
 			try {
 				transaction = await prisma?.$transaction(async (prismaTx) => {
 					const costs = BuildingManager.getCostsForPurchase(userBase.resources, newBuilding);
@@ -260,9 +260,9 @@ export const baseRouter = createTRPCRouter({
 				log.warn((e as Error)?.message);
 			}
 			if (transaction) {
-				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...transaction });
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...transaction });
 			} else {
-				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'updated', ...userBase });
+				WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...userBase });
 			}
 			return transaction;
 		}),

@@ -14,6 +14,7 @@ import type { Unsubscribable } from '@trpc/server/observable';
 import BaseManager from '../logic/base/BaseManager';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
+	private temporaryBuildings: Map<string, Building>;
 	private client;
 	private readonly unsubscribableEvents: Unsubscribable[];
 	static EVENTS = {
@@ -25,6 +26,7 @@ export default class GameSyncManager extends EventEmitter {
 	private constructor() {
 		super();
 		this.baseGameState = null;
+		this.temporaryBuildings = new Map();
 		log.info('Game Sync Manager created');
 		const url = clientEnv.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000';
 		const wsClient = createWSClient({
@@ -56,7 +58,6 @@ export default class GameSyncManager extends EventEmitter {
 	}
 
 	async constructBuilding(building: Building_Type, position: Position, isRotated = false) {
-		const newBaseTask = this.client.base.constructBuilding.mutate({ building, position, isRotated });
 		const now = new Date();
 		const networkDelayOffsetSecondsNow = new Date(now.getTime() + 3_500);
 		// Create temporary Building
@@ -72,25 +73,16 @@ export default class GameSyncManager extends EventEmitter {
 			isRotated,
 			...position,
 		};
+		this.temporaryBuildings.set(tempBuilding.id, tempBuilding);
+		this.client.base.constructBuilding
+			.mutate({ building, position, isRotated })
+			.then(() => this.temporaryBuildings.delete(tempBuilding.id));
 		const tempResources = BuildingManager.getResourcesAfterPurchase(this.baseGameState?.resources ?? [], building);
 		if (this.baseGameState && tempResources) {
 			this.baseGameState.resources = tempResources;
+			this.baseGameState?.buildings?.push(tempBuilding);
 		}
-		this.baseGameState?.buildings?.push(tempBuilding);
 		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-		const newBase = await newBaseTask;
-		// Destroy temporary building
-		if (newBase == null) {
-			log.info(`Failed to construct ${building} at {${position.x}, ${position.y}}`);
-			if (this.baseGameState) {
-				this.baseGameState.buildings =
-					this.baseGameState?.buildings.filter((building) => building.id != tempBuilding.id) ?? [];
-			}
-			return null;
-		}
-		this.baseGameState = newBase;
-		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-		return newBase;
 	}
 
 	async harvestBuilding(building: Building) {
@@ -105,8 +97,14 @@ export default class GameSyncManager extends EventEmitter {
 		return harvestBuildingTask;
 	}
 
-	getBaseData() {
-		return this.baseGameState;
+	getBaseData(): BaseDetails | null {
+		if (this.baseGameState == null) {
+			return null;
+		}
+		return {
+			...this.baseGameState,
+			buildings: [...(this.baseGameState?.buildings ?? []), ...this.temporaryBuildings.values()],
+		};
 	}
 
 	// TODO: Since we already have incremental data updates, lets improve our emitter to have something besides BASE_GAME_STATE_UPDATED
