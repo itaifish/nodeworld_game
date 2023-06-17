@@ -23,7 +23,7 @@ if (!globalThis.fetch) {
  */
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
-import { log } from 'src/utility/logger';
+import { log } from '../../utility/logger';
 
 const t = initTRPC.context<typeof createContext>().create({
 	transformer: superjson,
@@ -82,6 +82,24 @@ const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
 	});
 });
 
+const loggerMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
+	if (!ctx.session || !ctx.session.user) {
+		throw new TRPCError({ code: 'UNAUTHORIZED' });
+	}
+	const start = Date.now();
+	const result = await next({
+		ctx: {
+			// infers the `session` as non-nullable
+			session: { ...ctx.session, user: ctx.session.user },
+		},
+	});
+	const durationMs = Date.now() - start;
+	const meta = { path, type, durationMs };
+	result.ok ? log.info(meta, '[OK Request]') : log.warn(meta, '[Non-OK request]');
+
+	return result;
+});
+
 /**
  * Protected (authed) procedure
  *
@@ -91,6 +109,6 @@ const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+export const protectedProcedure = t.procedure.use(enforceUserIsAuthed).use(loggerMiddleware);
 
-export const adminProcedure = t.procedure.use(enforceUserIsAdmin);
+export const adminProcedure = t.procedure.use(enforceUserIsAdmin).use(loggerMiddleware);

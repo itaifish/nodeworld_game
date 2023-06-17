@@ -54,10 +54,12 @@ export default class GameSyncManager extends EventEmitter {
 	}
 
 	async createBaseIfNotExists() {
+		log.info(`Creating Base if not exists`);
 		this.client.base.createBaseIfNotExists.mutate();
 	}
 
 	async constructBuilding(building: Building_Type, position: Position, isRotated = false) {
+		log.info(`Creating ${building} at ${position.x},${position.y} ${isRotated ? 'rotated' : ''}`);
 		const now = new Date();
 		const networkDelayOffsetSecondsNow = new Date(now.getTime() + 3_500);
 		// Create temporary Building
@@ -86,6 +88,7 @@ export default class GameSyncManager extends EventEmitter {
 	}
 
 	async harvestBuilding(building: Building) {
+		log.info(`Harvesting ${building.type}[${building.id}] `);
 		const harvestBuildingTask = this.client.base.harvestBuilding.mutate({ buildingId: building.id });
 		// temp clientside harvest to sync up with server
 		const tempHarvest = BuildingManager.getHarvestAmountAndTimeForBuilding(building);
@@ -112,6 +115,7 @@ export default class GameSyncManager extends EventEmitter {
 		return [
 			this.client.base.onBaseUpdated.subscribe(undefined, {
 				onData: (data) => {
+					log.info(`Recieved onBaseUpdated event: ${data.action}`);
 					if (data.action === 'updated') {
 						mergeInto(this.baseGameState, data);
 					} else if (data.action === 'created') {
@@ -127,6 +131,7 @@ export default class GameSyncManager extends EventEmitter {
 			}),
 			this.client.base.onBuildingUpdated.subscribe(undefined, {
 				onData: (data) => {
+					log.info(`Recieved onBuildingUpdated event: ${data.action}`);
 					if (data.action === 'updated') {
 						const building = this.baseGameState?.buildings?.find((x) => x.id === data.id);
 						if (building) {
@@ -149,6 +154,7 @@ export default class GameSyncManager extends EventEmitter {
 			}),
 			this.client.base.onUserResourcesChanged.subscribe(undefined, {
 				onData: (data) => {
+					log.info(`Recieved onUserResourcesChanged event`);
 					if (this.baseGameState == null) {
 						return;
 					}
@@ -156,7 +162,7 @@ export default class GameSyncManager extends EventEmitter {
 					this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
 				},
 				onError: (err) => {
-					log.error(err, `Error occured with onBuildingUpdated event`);
+					log.error(err, `Error occured with onUserResourcesChanged event`);
 				},
 			}),
 		];

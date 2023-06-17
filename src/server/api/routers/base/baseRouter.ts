@@ -9,7 +9,7 @@ import type { BaseDetails } from '../../../../game/interfaces/base';
 import BaseManager from '../../../../game/logic/base/BaseManager';
 import type { AtLeastOne } from '../../../../utility/type-utils.ts/type-utils';
 import { WS_EVENT_EMITTER, WS_EVENTS } from '../../events/websocketServerEvents';
-import { log } from 'src/utility/logger';
+import { log } from '../../../../utility/logger';
 
 type tRPCContext = Parameters<Parameters<typeof protectedProcedure.query>[0]>[0]['ctx'];
 
