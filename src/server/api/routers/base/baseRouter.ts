@@ -219,7 +219,7 @@ export const baseRouter = createTRPCRouter({
 			const finishedAt = BuildingManager.getBuildingFinishedTime(newBuilding, 1);
 			let transaction: BaseDetails | null | undefined = null;
 			try {
-				transaction = await prisma?.$transaction(async (prismaTx) => {
+				transaction = await ctx.prisma?.$transaction(async (prismaTx) => {
 					const costs = BuildingManager.getCostsForPurchase(userBase.resources, newBuilding);
 					const resourcesUpdate = await Promise.all(
 						costs.map((resource) =>
