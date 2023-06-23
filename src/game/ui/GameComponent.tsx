@@ -25,6 +25,10 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 	},
 	autoFocus: true,
 	title: 'Nodeworld',
+	pixelArt: true,
+	antialias: false,
+	autoRound: true,
+	roundPixels: true,
 	plugins: {
 		scene: [
 			{
