@@ -99,7 +99,7 @@ export const baseRouter = createTRPCRouter({
 		}
 		const deletedBuilding = await ctx.prisma.building.delete({ where: { id: input.buildingId } });
 		const now = new Date().getTime();
-		const returnedResources = { ...BuildingManager.getBuildingData(building.type, building.level).costs };
+		const returnedResources = { ...BuildingManager.getBuildingData(building).costs };
 		if (building.finishedAt.getTime() >= now) {
 			for (const key in returnedResources) {
 				returnedResources[key as Resource_Type] = Math.floor(returnedResources[key as Resource_Type]! / 2);
@@ -219,7 +219,7 @@ export const baseRouter = createTRPCRouter({
 			const finishedAt = BuildingManager.getBuildingFinishedTime(newBuilding, 1);
 			let transaction: BaseDetails | null | undefined = null;
 			try {
-				transaction = await ctx.prisma?.$transaction(async (prismaTx) => {
+				transaction = await ctx.prisma.$transaction(async (prismaTx) => {
 					const costs = BuildingManager.getCostsForPurchase(userBase.resources, newBuilding);
 					const resourcesUpdate = await Promise.all(
 						costs.map((resource) =>

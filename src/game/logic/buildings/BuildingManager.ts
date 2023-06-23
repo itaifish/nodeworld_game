@@ -251,7 +251,19 @@ export default class BuildingManager {
 	/** Interval is 20 minutes by default - plan to mess with it */
 	static readonly HARVEST_INTERVAL_MINS = 20;
 
-	static getBuildingData(building: Building_Type, level: number, isRotated = false) {
+	/**
+	 * Get data for a building
+	 * @param building Building_Type or Building
+	 * @param level the level of the building, if the type was supplied. Defaults to 1
+	 * @param isRotated whether or not the building is rotated, if the type was supplied. Defaults to false
+	 * @returns Relevant data for the given building
+	 */
+	static getBuildingData(building: Building_Type | Building, level = 1, isRotated = false) {
+		if (typeof building == 'object') {
+			isRotated = building.isRotated;
+			level = building.level;
+			building = building.type;
+		}
 		const calculatedBuildingData: Partial<StartingPointStats> = {};
 		const knownBuildingData = this.BUILDING_DATA[building];
 		const keys = Object.keys(knownBuildingData.startingPoint) as Array<keyof StartingPointStats>;
@@ -346,7 +358,7 @@ export default class BuildingManager {
 	}
 
 	static getNextHarvest(building: Building): Date | null {
-		if (Object.keys(this.getBuildingData(building.type, building.level).generatedResourcesPerInterval).length === 0) {
+		if (Object.keys(this.getBuildingData(building).generatedResourcesPerInterval).length === 0) {
 			return null;
 		}
 		const now = new Date().getTime();
