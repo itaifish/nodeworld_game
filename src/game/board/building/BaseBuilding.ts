@@ -4,7 +4,6 @@ import BuildingManager from 'src/game/logic/buildings/BuildingManager';
 import { clamp } from 'src/game/logic/general/math';
 import SelectedBuildingManager from 'src/game/manager/SelectedBuildingManager';
 import ConstructBuildingUIScene from 'src/game/scene/ConstructBuildingUIScene';
-import { cellSize } from 'src/game/scene/MainScene';
 import FillableBar from 'src/game/ui/fillable-bar/FillableBar';
 import { log } from 'src/utility/logger';
 
@@ -70,11 +69,20 @@ export default class BaseBuilding {
 	update(_time: number, _delta: number) {
 		const now = new Date().getTime();
 		if (this.progressBar) {
-			const rawProgress =
-				(this.building.finishedAt.getTime() - now) /
-				(this.building.finishedAt.getTime() - this.building.createdAt.getTime());
+			let rawProgress;
+			if (this.building.level === 1) {
+				rawProgress =
+					(this.building.finishedAt.getTime() - now) /
+					(this.building.finishedAt.getTime() - this.building.createdAt.getTime());
+			} else {
+				rawProgress =
+					(this.building.finishedAt.getTime() - now) /
+					(BuildingManager.getBuildingData(this.building).buildTimeSeconds * 1_000);
+			}
 			const finishedProgress = 1 - clamp(rawProgress, 1, 0);
-			log.trace(`Building Progress: ${finishedProgress} [Raw progress: ${rawProgress}]`);
+			// if (Math.random() * 10 <= 1) {
+			// 	log.debug(`Building Progress: ${finishedProgress} [Raw progress: ${rawProgress}]`);
+			// }
 			if (finishedProgress != 1) {
 				this.image.setAlpha(0.25 + finishedProgress * 0.65);
 				this.image.setTint(0xffffff);

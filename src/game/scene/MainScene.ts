@@ -227,10 +227,6 @@ export default class MainScene extends Phaser.Scene {
 			return;
 		}
 
-		if (this.board != undefined) {
-			this.board.destroy();
-		}
-
 		const quadGrid = new QuadGrid({
 			x: 26,
 			y: 26,

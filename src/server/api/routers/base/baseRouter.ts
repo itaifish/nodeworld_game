@@ -266,7 +266,70 @@ export const baseRouter = createTRPCRouter({
 			}
 			return transaction;
 		}),
+	levelUpBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
+		const userId = ctx.session.user.id;
+		let transaction: Building | null | undefined = null;
+		try {
+			transaction = await ctx.prisma.$transaction(async (prismaTx) => {
+				const userBase: BaseDetails | null = await getBaseDataFromUser({ ...ctx, prisma: prismaTx as any });
+				const buildingToLevelUp = userBase?.buildings.find((building) => building.id === input.buildingId);
+				if (!userBase || !buildingToLevelUp) {
+					throw new Error(`Building ${input.buildingId} doesn't exist`);
+				}
 
+				// check if building can be leveled up
+				if (!BaseManager.canUpgradeBuilding(buildingToLevelUp, userBase)) {
+					throw new Error(`Can't level up building ${buildingToLevelUp.id}[${buildingToLevelUp.type}]`);
+				}
+
+				const costs = BuildingManager.getCostsForPurchase(
+					userBase.resources,
+					buildingToLevelUp.type,
+					buildingToLevelUp.level + 1,
+				);
+				const resourcesUpdate = await Promise.all(
+					costs.map((resource) =>
+						prismaTx.resource.update({
+							where: { id: resource.id },
+							data: { amount: { decrement: resource.amount } },
+						}),
+					),
+				);
+				const negativeResources = resourcesUpdate.filter((resource) => resource.amount < 0);
+				if (negativeResources.length > 0) {
+					throw new Error(
+						`${JSON.stringify(negativeResources.map((resource) => resource.type))} ${
+							negativeResources.length > 0 ? 'are' : 'is'
+						} negative after this update, cancelling`,
+					);
+				}
+				const finishedAt = BuildingManager.getBuildingFinishedTime(buildingToLevelUp.type, buildingToLevelUp.level + 1);
+				const newMaxHP = BuildingManager.getBuildingData(buildingToLevelUp.type, buildingToLevelUp.level + 1).maxHP;
+				const buildingUpdate = prismaTx.building.update({
+					where: { id: buildingToLevelUp.id },
+					data: { level: { increment: 1 }, finishedAt, hp: newMaxHP, lastHarvest: new Date() },
+				});
+				return buildingUpdate;
+			});
+		} catch (e) {
+			log.warn((e as Error)?.message);
+		}
+
+		if (transaction) {
+			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BuildingUpdate}${userId}`, {
+				action: 'updated',
+				...{
+					id: transaction.id,
+					level: transaction.level,
+					finishedAt: transaction.finishedAt,
+					hp: transaction.hp,
+					lastHarvest: transaction.lastHarvest,
+				},
+			});
+		}
+		return transaction;
+	}),
+	// Data getters
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
 		const data = await getBaseDataFromUser(ctx);

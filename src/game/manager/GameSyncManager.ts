@@ -101,6 +101,12 @@ export default class GameSyncManager extends EventEmitter {
 		return harvestBuildingTask;
 	}
 
+	async levelUpBuilding(building: Building) {
+		log.info(`Leveling up ${building.type}[${building.id}]`);
+		const levelUpBuildingTask = this.client.base.levelUpBuilding.mutate({ buildingId: building.id });
+		return levelUpBuildingTask;
+	}
+
 	getBaseData(): BaseDetails | null {
 		if (this.baseGameState == null) {
 			return null;

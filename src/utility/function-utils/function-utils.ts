@@ -11,7 +11,7 @@ export function mergeInto<TData>(data: TData, dataToUpdate: Partial<TData>) {
 
 	for (const key of Object.keys(dataToUpdate)) {
 		const typedKey = key as keyof TData;
-		if (typeof data[typedKey] === 'object') {
+		if (typeof data[typedKey] === 'object' && !(data[typedKey] instanceof Date)) {
 			mergeInto(data[typedKey], dataToUpdate[typedKey] as Partial<TData[keyof TData]>);
 		} else {
 			data[typedKey] = dataToUpdate[typedKey] as NonNullable<TData>[keyof TData];

@@ -10,7 +10,8 @@ export default class Button {
 	scene: Phaser.Scene;
 	buttonImage: Phaser.GameObjects.Image;
 	buttonType: ButtonType;
-
+	private buttonText: Phaser.GameObjects.Text;
+	private isHidden = false;
 	static readonly buttonTextures: Record<ButtonType, Record<ButtonAction, string>> = {
 		square: {
 			normal: TEXTURE_KEYS.SquareNormalButton,
@@ -31,6 +32,7 @@ export default class Button {
 		buttonName: string,
 		type: ButtonType = 'rectangle',
 	) {
+		this.isHidden = false;
 		this.buttonType = type;
 		this.scene = scene;
 		this.buttonImage = scene.add.image(position.x, position.y, Button.buttonTextures[this.buttonType].normal);
@@ -43,6 +45,7 @@ export default class Button {
 		text.setShadow(1, 1);
 
 		text.setOrigin(0.5, 0.5);
+		this.buttonText = text;
 		this.buttonImage.setInteractive();
 
 		this.buttonImage.on(Phaser.Input.Events.POINTER_OVER, () => {
@@ -60,11 +63,28 @@ export default class Button {
 			text.setShadow(1, 1);
 		});
 		this.buttonImage.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
-			if (pointer.leftButtonDown()) {
+			if (!this.isHidden && pointer.leftButtonDown()) {
 				this.buttonImage.setTexture(Button.buttonTextures[this.buttonType].pressed);
 				text.setShadow(1, 0);
 				onClick();
 			}
 		});
+	}
+
+	setPosition(position: Position) {
+		this.buttonImage.setPosition(position.x, position.y);
+		this.buttonText.setPosition(position.x, position.y);
+	}
+
+	hide() {
+		this.isHidden = true;
+		this.buttonImage.setAlpha(0);
+		this.buttonText.setAlpha(0);
+	}
+
+	show() {
+		this.isHidden = false;
+		this.buttonImage.setAlpha(1);
+		this.buttonText.setAlpha(1);
 	}
 }

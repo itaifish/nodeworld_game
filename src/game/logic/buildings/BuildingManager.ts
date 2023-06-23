@@ -2,6 +2,7 @@
 import type { Building, Building_Type, Resource, Resource_Type } from '@prisma/client';
 import { Constants } from '../../../utility/constants';
 import type { Size } from '../../interfaces/general';
+import { log } from 'src/utility/logger';
 
 type BuildingStats<TData> = {
 	maxHP: TData;
