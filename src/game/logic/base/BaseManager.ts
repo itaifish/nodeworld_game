@@ -140,7 +140,7 @@ export default class BaseManager {
 			return false;
 		}
 
-		const capitalLevel = capital.level - (capital.finishedAt.getTime() < now ? 1 : 0);
+		const capitalLevel = capital.level - (capital.finishedAt.getTime() > now ? 1 : 0);
 
 		if (building.level >= capitalLevel && capital.id !== building.id) {
 			log.trace(
