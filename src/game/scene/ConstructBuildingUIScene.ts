@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Phaser from 'phaser';
 import GameSyncManager from '../manager/GameSyncManager';
-import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
+import { TEXTURE_KEYS } from '../manager/keys/TextureKeyManager';
 import BrickTileBG from '../resources/images/backgrounds/brick_tile_bg.png';
 import CloseButton from '../ui/button/CloseButton';
 import CapitalBuilding from '../resources/images/buildings/capital_building.png';
+import Harvester from '../resources/images/buildings/isometric/harvester/Harvester_Sprite_Sheet/spritesheet.png';
 import DefaultBuilding2_2 from '../resources/images/buildings/isometric/default_building_2x2.png';
 import DefaultBuilding1_1 from '../resources/images/buildings/isometric/default_building_1x1.png';
 import ResearchLab from '../resources/images/buildings/isometric/ResearchLab.png';
@@ -13,16 +14,18 @@ import type { Building_Type, Resource_Type } from '@prisma/client';
 import type MainScene from './MainScene';
 import { cellSize } from './MainScene';
 import BuildingManager from '../logic/buildings/BuildingManager';
-import type { Rect } from '../interfaces/general';
+import type { Rect, Size } from '../interfaces/general';
 import { UIConstants } from '../ui/constants';
 import DragNDropBuilding from '../board/DragNDropBuilding';
 import { log } from 'src/utility/logger';
 import SceneManager from '../manager/SceneManager';
 import BaseManager from '../logic/base/BaseManager';
+import { ANIMATION_KEYS } from '../manager/keys/AnimationKeyManager';
 
 type BuildingInfo = {
 	textureKey: string;
 	src: string;
+	spriteSheetData?: Size;
 };
 
 export default class ConstructBuildingUIScene extends Phaser.Scene {
@@ -42,7 +45,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 		CAPITAL_BUILDING: { textureKey: TEXTURE_KEYS.CapitalBuilding, src: CapitalBuilding.src },
 		DWELLING: { textureKey: TEXTURE_KEYS.Dwelling, src: DefaultBuilding2_2.src },
 		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: DefaultBuilding2_2.src },
-		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: DefaultBuilding2_2.src },
+		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: Harvester.src, spriteSheetData: { width: 64, height: 64 } },
 		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 		// TODO: Get valid textures
 		RESEARCH_LAB: { textureKey: TEXTURE_KEYS.ResearchLab, src: ResearchLab.src },
@@ -75,11 +78,19 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 	preload() {
 		this.load.image(TEXTURE_KEYS.BrickTileBg, BrickTileBG.src);
 		Object.values(ConstructBuildingUIScene.Buildings).forEach((buildingObj) => {
-			this.load.image(buildingObj.textureKey, buildingObj.src);
+			if (buildingObj.spriteSheetData) {
+				this.load.spritesheet(buildingObj.textureKey, buildingObj.src, {
+					frameWidth: buildingObj.spriteSheetData.width,
+					frameHeight: buildingObj.spriteSheetData.height,
+				});
+			} else {
+				this.load.image(buildingObj.textureKey, buildingObj.src);
+			}
 		});
 	}
 
 	create() {
+		this.createAnimations();
 		const cameraHeight = this.cameras.main.displayHeight - UIScene.BAR_THICKNESS;
 		const height = cameraHeight * 0.75;
 		const width = this.cameras.main.displayWidth * 0.85;
@@ -117,6 +128,15 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 				value.text.setColor('white');
 				value.text.setShadow(1, 1, 'blue', 3);
 			}
+		});
+	}
+
+	private createAnimations() {
+		this.anims.create({
+			key: ANIMATION_KEYS.Harvester_Harvest,
+			frameRate: 6,
+			frames: this.anims.generateFrameNumbers(TEXTURE_KEYS.Harvestor, { start: 6 }),
+			repeat: 0,
 		});
 	}
 

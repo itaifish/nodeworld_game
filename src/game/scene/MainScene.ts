@@ -12,7 +12,7 @@ import backgroundTile from '../resources/images/buildings/isometric/Base_1x1.png
 import type { Position, Size } from '../interfaces/general';
 import type DragNDropBuilding from '../board/DragNDropBuilding';
 import type Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangle';
-import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
+import { TEXTURE_KEYS } from '../manager/keys/TextureKeyManager';
 import BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';

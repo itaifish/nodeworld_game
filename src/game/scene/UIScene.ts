@@ -11,7 +11,7 @@ import SquarePressedButton from '../resources/images/gui/buttons/SquareButtonPre
 import XCloseIcon from '../resources/images/gui/icons/x_icon.png';
 import Button from '../ui/button/Button';
 import ConstructBuildingUIScene from './ConstructBuildingUIScene';
-import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
+import { TEXTURE_KEYS } from '../manager/keys/TextureKeyManager';
 import { UIConstants } from '../ui/constants';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import { titleize } from 'src/utility/function-utils/function-utils';
