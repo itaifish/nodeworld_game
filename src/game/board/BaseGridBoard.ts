@@ -23,9 +23,6 @@ export default class BaseGridBoard extends Board {
 	getWorldCameraOrigin(): { x: number; y: number } {
 		return this.tileXYToWorldXY(-1, -1);
 	}
-	getWorldSize(): { x: number; y: number } {
-		return this.tileXYToWorldXY(this.size.width, this.size.height);
-	}
 
 	getBoardBoundRect(): Rectangle {
 		// This function exists but its type definitions don't. We do a little bit of type fuckery here to make it all work nicely

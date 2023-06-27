@@ -18,6 +18,8 @@ import { titleize } from 'src/utility/function-utils/function-utils';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
 import SceneManager from '../manager/SceneManager';
 import BaseManager from '../logic/base/BaseManager';
+import type { AnimationKey } from '../manager/keys/AnimationKeyManager';
+import { ANIMATION_KEYS } from '../manager/keys/AnimationKeyManager';
 
 const buildingStats = ['hp', 'level', 'type', 'lastHarvest', 'nextHarvest'] as const;
 type BuildingStat = (typeof buildingStats)[number];
@@ -216,7 +218,14 @@ export default class UIScene extends Phaser.Scene {
 				.setInteractive()
 				.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
 					if (pointer.leftButtonDown()) {
-						this.gameSyncManager.harvestBuilding(building);
+						const animationKey: AnimationKey | null = (ANIMATION_KEYS as any)[building.type]?.harvest;
+						if (animationKey) {
+							this.selectedBuildingManager.runAnimationForSelectedBuilding(animationKey).then(() => {
+								this.gameSyncManager.harvestBuilding(building);
+							});
+						} else {
+							this.gameSyncManager.harvestBuilding(building);
+						}
 					}
 				});
 		}

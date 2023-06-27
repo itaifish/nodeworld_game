@@ -1,6 +1,7 @@
 import EventEmitter from 'events';
 import type BaseBuilding from '../board/building/BaseBuilding';
 import { log } from 'src/utility/logger';
+import type { AnimationKey } from './keys/AnimationKeyManager';
 
 export default class SelectedBuildingManager extends EventEmitter {
 	private selectedBuilding: BaseBuilding | null;
@@ -28,5 +29,9 @@ export default class SelectedBuildingManager extends EventEmitter {
 
 	on(eventName: typeof SelectedBuildingManager.SELECT_EVENT, listener: (data: BaseBuilding | null) => void): this {
 		return super.on(eventName, listener);
+	}
+
+	runAnimationForSelectedBuilding(animationKey: AnimationKey): Promise<void> {
+		return this.selectedBuilding?.playAnimation(animationKey) || Promise.resolve();
 	}
 }

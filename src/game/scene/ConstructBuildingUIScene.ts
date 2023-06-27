@@ -133,7 +133,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 
 	private createAnimations() {
 		this.anims.create({
-			key: ANIMATION_KEYS.Harvester_Harvest,
+			key: ANIMATION_KEYS.HARVESTOR.harvest,
 			frameRate: 6,
 			frames: this.anims.generateFrameNumbers(TEXTURE_KEYS.Harvestor, { start: 6 }),
 			repeat: 0,

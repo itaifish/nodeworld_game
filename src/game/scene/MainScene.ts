@@ -16,6 +16,8 @@ import { TEXTURE_KEYS } from '../manager/keys/TextureKeyManager';
 import BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
+import { Building_Type } from '@prisma/client';
+import { HarvesterBuilding } from '../board/building/HarvesterBuilding';
 
 export const cellSize: Size = {
 	width: 64,
@@ -65,7 +67,6 @@ export default class MainScene extends Phaser.Scene {
 
 		this.cameraController = new Phaser.Cameras.Controls.SmoothedKeyControl({
 			camera: this.cameras.main,
-
 			left: cursors.left,
 			right: cursors.right,
 			up: cursors.up,
@@ -275,7 +276,10 @@ export default class MainScene extends Phaser.Scene {
 				x: position.x + cellSize.width * ((size.width - size.height) / 4),
 				y: position.y + cellSize.height * ((size.height + size.width) / 4 - 0.5),
 			};
-			const newBuilding = new BaseBuilding(building, this, centeredPosition);
+			const newBuilding =
+				building.type === Building_Type.HARVESTOR
+					? new HarvesterBuilding(building, this, centeredPosition)
+					: new BaseBuilding(building, this, centeredPosition);
 			if (building.id === selectedBuildingId) {
 				SelectedBuildingManager.instance.setSelectedBuilding(newBuilding);
 			}
@@ -292,15 +296,15 @@ export default class MainScene extends Phaser.Scene {
 			return;
 		}
 		// Camera
-		const maxSize = this.board.getWorldSize();
 		const minXY = this.bounds;
 		const extraRoom = 250 / this.cameraController.camera.zoom;
 		this.cameraController.camera.setBounds(
 			minXY.x - extraRoom,
 			minXY.y - extraRoom,
-			Math.max(maxSize.x, this.bounds.width) + extraRoom * 2,
-			Math.max(maxSize.y, this.bounds.height) + extraRoom + 300 / this.cameraController.camera.zoom,
+			this.bounds.width + extraRoom,
+			this.bounds.height + extraRoom + 300 / this.cameraController.camera.zoom,
 		);
+
 		this.cameraController.camera.setZoom(clamp(this.cameraController.camera.zoom, 4, 1));
 	}
 }
