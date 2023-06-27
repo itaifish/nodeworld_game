@@ -163,7 +163,7 @@ export default class BaseBuilding {
 
 				const currSpriteFrame =
 					this.animationOptions.progressAnimation.start +
-					Math.round(
+					Math.floor(
 						(this.animationOptions.progressAnimation.end - this.animationOptions.progressAnimation.start) *
 							harvestProgress,
 					);
