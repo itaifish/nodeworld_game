@@ -27,6 +27,7 @@ export default class BaseBuilding {
 	private readonly animationOptions: AnimationOptions;
 	private isSelected: boolean;
 	private isInAnimation: boolean;
+	private glowFx: Phaser.FX.Glow | undefined;
 
 	constructor(building: Building, scene: Phaser.Scene, position: Position, animationOptions = defaultAnimation) {
 		this.isSelected = false;
@@ -88,9 +89,23 @@ export default class BaseBuilding {
 	setSelected(isSelected: boolean) {
 		this.isSelected = isSelected;
 		if (this.isSelected) {
-			this.sprite.setTint(0x1122ff, 0x3322aa, 0x3322aa, 0x1122ff);
+			this.glowFx = this.sprite.preFX?.addGlow();
+			this.sprite?.scene?.tweens.add({
+				targets: this.glowFx,
+				outerStrength: 5,
+				yoyo: true,
+				loop: -1,
+				ease: 'sine.inout',
+				duration: 1500,
+			});
 		} else {
-			this.sprite.clearTint();
+			if (this.glowFx && this.sprite.scene) {
+				this.sprite.scene.tweens.getTweensOf(this.glowFx).forEach((tween) => {
+					tween.remove();
+					tween.destroy();
+				});
+			}
+			this.sprite.preFX?.clear();
 		}
 	}
 

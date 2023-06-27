@@ -14,6 +14,16 @@ import styles from '../../pages/index.module.css';
 import { log } from '../../utility/logger';
 import GameSyncManager from '../manager/GameSyncManager';
 
+// The gameConfig type currently does not have this field even though it should
+const fxConfig = {
+	fx: {
+		glow: {
+			distance: 10,
+			quality: 0.1,
+		},
+	},
+} as any;
+
 const gameConfig: Phaser.Types.Core.GameConfig = {
 	width: window?.innerWidth ?? '100%',
 	height: window?.innerHeight ?? '100%',
@@ -29,6 +39,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 	antialias: false,
 	autoRound: true,
 	roundPixels: true,
+	...fxConfig,
 	plugins: {
 		scene: [
 			{
