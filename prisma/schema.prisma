@@ -89,15 +89,16 @@ model InventoryItem {
 }
 
 model Base {
-    id        String          @id @unique @default(cuid())
-    userId    String          @unique
-    createdAt DateTime        @default(now())
-    level     Int             @default(1)
-    buildings Building[]
-    owner     User            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    resources Resource[]
-    military  Unit[]
-    inventory InventoryItem[]
+    id              String          @id @unique @default(cuid())
+    userId          String          @unique
+    createdAt       DateTime        @default(now())
+    level           Int             @default(1)
+    buildings       Building[]
+    owner           User            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    resources       Resource[]
+    military        Unit[]
+    inventory       InventoryItem[]
+    establishedNode Node?
 }
 
 model Guild {
@@ -111,6 +112,7 @@ model Guild {
     rival            Guild?            @relation("rival", fields: [rivalGuildId], references: [id])
     rivalGuildId     String?           @unique
     rivaledBy        Guild[]           @relation("rival")
+    nodes            Node[]
 }
 
 model GuildMembership {
@@ -124,13 +126,40 @@ model GuildMembership {
     @@id([userId])
 }
 
+// World Map
+
+enum Terrain {
+    MOUNTANS
+    MEADOWS
+    RADIOACTIVE
+    CAVES
+    DESERT
+}
+
+model Node {
+    id              String    @id @unique @default(cuid())
+    x               Int
+    y               Int
+    guildController Guild?    @relation(fields: [guildId], references: [id])
+    guildId         String?
+    baseNodeOf      Base?     @relation(fields: [baseId], references: [id])
+    baseId          String?   @unique
+    level           Int       @default(1)
+    terrain         Terrain[]
+    takenOverAt     DateTime?
+    underAttackBy   User?     @relation(fields: [underAttackById], references: [id])
+    underAttackById String?   @unique
+
+    @@unique([x, y])
+}
+
 // END GAME SECTION
 // LOGIN SECTION BELOW
 
 // Necessary for Next auth
 model Account {
     id                String  @id @unique @default(cuid())
-    userId            String
+    userId            String  @unique
     type              String
     provider          String
     providerAccountId String
@@ -160,13 +189,14 @@ model User {
     email           String?                  @unique
     emailVerified   DateTime?
     image           String?
-    accounts        Account[]
+    account         Account?
     sessions        Session[]
     Base            Base[]
     isAdmin         Boolean                  @default(false)
     messageChannels UserMessageChannelLink[]
     messages        Message[]
     guildMembership GuildMembership?
+    nodeAttacking   Node?
 }
 
 model VerificationToken {
