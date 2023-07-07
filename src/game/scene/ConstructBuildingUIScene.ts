@@ -6,6 +6,7 @@ import BrickTileBG from '../resources/images/backgrounds/brick_tile_bg.png';
 import CloseButton from '../ui/button/CloseButton';
 import CapitalBuilding from '../resources/images/buildings/capital_building.png';
 import Harvester from '../resources/images/buildings/isometric/harvester/Harvester_Sprite_Sheet/spritesheet.png';
+import Extractor from '../resources/images/buildings/isometric/extractor/spritesheet.png';
 import DefaultBuilding2_2 from '../resources/images/buildings/isometric/default_building_2x2.png';
 import DefaultBuilding1_1 from '../resources/images/buildings/isometric/default_building_1x1.png';
 import ResearchLab from '../resources/images/buildings/isometric/ResearchLab.png';
@@ -44,7 +45,7 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 	static Buildings: Record<Building_Type, BuildingInfo> = {
 		CAPITAL_BUILDING: { textureKey: TEXTURE_KEYS.CapitalBuilding, src: CapitalBuilding.src },
 		DWELLING: { textureKey: TEXTURE_KEYS.Dwelling, src: DefaultBuilding2_2.src },
-		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: DefaultBuilding2_2.src },
+		EXTRACTOR: { textureKey: TEXTURE_KEYS.Extractor, src: Extractor.src, spriteSheetData: { width: 64, height: 64 } },
 		HARVESTOR: { textureKey: TEXTURE_KEYS.Harvestor, src: Harvester.src, spriteSheetData: { width: 64, height: 64 } },
 		BARRACKS: { textureKey: TEXTURE_KEYS.Barracks, src: DefaultBuilding2_2.src },
 		// TODO: Get valid textures
@@ -137,6 +138,12 @@ export default class ConstructBuildingUIScene extends Phaser.Scene {
 			frameRate: 6,
 			frames: this.anims.generateFrameNumbers(TEXTURE_KEYS.Harvestor, { start: 6 }),
 			repeat: 0,
+		});
+		this.anims.create({
+			key: ANIMATION_KEYS.EXTRACTOR.idle,
+			frameRate: 9,
+			frames: this.anims.generateFrameNumbers(TEXTURE_KEYS.Extractor, { start: 0, end: 11 }),
+			repeat: -1,
 		});
 	}
 

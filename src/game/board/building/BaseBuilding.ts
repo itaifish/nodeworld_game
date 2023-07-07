@@ -3,7 +3,7 @@ import type { NumberRange, Position } from 'src/game/interfaces/general';
 import BuildingManager from 'src/game/logic/buildings/BuildingManager';
 import { clamp } from 'src/game/logic/general/math';
 import SelectedBuildingManager from 'src/game/manager/SelectedBuildingManager';
-import type { ANIMATION_KEYS, AnimationKey } from 'src/game/manager/keys/AnimationKeyManager';
+import type { AnimationKey } from 'src/game/manager/keys/AnimationKeyManager';
 import ConstructBuildingUIScene from 'src/game/scene/ConstructBuildingUIScene';
 import FillableBar from 'src/game/ui/fillable-bar/FillableBar';
 import { log } from 'src/utility/logger';
@@ -78,12 +78,17 @@ export default class BaseBuilding {
 	}
 
 	playAnimation(animation: AnimationKey): Promise<void> {
-		this.sprite.play(animation);
-		return new Promise((resolve, _reject) => {
-			this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + animation, () => {
-				resolve();
+		try {
+			this.sprite.play(animation);
+			return new Promise((resolve, _reject) => {
+				this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + animation, () => {
+					resolve();
+				});
 			});
-		});
+		} catch (e) {
+			// this needs to be caught because phaser is dumb, and sometimes it can't play animations
+			return Promise.resolve();
+		}
 	}
 
 	setSelected(isSelected: boolean) {
@@ -146,6 +151,12 @@ export default class BaseBuilding {
 				this.progressBar.destroy();
 				this.progressBar = undefined;
 				this.sprite.setAlpha(1);
+				if (this.animationOptions.idleAnimation) {
+					const animationKey = this.animationOptions.idleAnimation;
+					setTimeout(() => {
+						this.playAnimation(animationKey);
+					}, Math.random() * 500);
+				}
 			}
 		}
 		// Harvest Progress

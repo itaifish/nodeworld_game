@@ -13,11 +13,12 @@ import type { Position, Size } from '../interfaces/general';
 import type DragNDropBuilding from '../board/DragNDropBuilding';
 import type Rectangle from 'phaser3-rex-plugins/plugins/utils/geom/rectangle/Rectangle';
 import { TEXTURE_KEYS } from '../manager/keys/TextureKeyManager';
-import BaseBuilding from '../board/building/BaseBuilding';
+import type BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
 import { Building_Type } from '@prisma/client';
 import { HarvesterBuilding } from '../board/building/HarvesterBuilding';
+import { buildingTypeToBuilding } from '../board/building/building-utility';
 
 export const cellSize: Size = {
 	width: 64,
@@ -276,10 +277,8 @@ export default class MainScene extends Phaser.Scene {
 				x: position.x + cellSize.width * ((size.width - size.height) / 4),
 				y: position.y + cellSize.height * ((size.height + size.width) / 4 - 0.5),
 			};
-			const newBuilding =
-				building.type === Building_Type.HARVESTOR
-					? new HarvesterBuilding(building, this, centeredPosition)
-					: new BaseBuilding(building, this, centeredPosition);
+			const newBuilding = buildingTypeToBuilding(building.type, building, this, centeredPosition);
+
 			if (building.id === selectedBuildingId) {
 				SelectedBuildingManager.instance.setSelectedBuilding(newBuilding);
 			}
