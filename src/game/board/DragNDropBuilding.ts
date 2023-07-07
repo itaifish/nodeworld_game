@@ -16,7 +16,7 @@ export default class DragNDropBuilding {
 		this.isRotated = false;
 		const size = this.getDisplaySize();
 		const scale = size.width / this.image.width;
-		this.image.setScale(scale);
+		// this.image.setScale(scale);
 		this.image.setInteractive();
 		this.image.setDepth(1000);
 		this.image.setAlpha(0.4);
