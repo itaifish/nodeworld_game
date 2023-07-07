@@ -14,9 +14,6 @@ export default class DragNDropBuilding {
 		this.image = scene.add.image(scene.input.mousePointer.x, scene.input.mousePointer.y, textureKey);
 		this.buildingType = buildingType;
 		this.isRotated = false;
-		const size = this.getDisplaySize();
-		const scale = size.width / this.image.width;
-		this.image.setScale(scale);
 		this.image.setInteractive();
 		this.image.setDepth(1000);
 		this.image.setAlpha(0.4);
