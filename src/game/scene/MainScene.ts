@@ -161,8 +161,8 @@ export default class MainScene extends Phaser.Scene {
 				this.dndData.placementCoord = null;
 			}
 			const noLongerOver = setDifference(this.dndData.tilesOver, tilesOver);
-			tilesOver.forEach((tile) => tile.setTexture(isValidPlacement ? TEXTURE_KEYS.GreenTile : TEXTURE_KEYS.RedTile));
-			noLongerOver.forEach((tile) => tile.setTexture(TEXTURE_KEYS.Tile));
+			tilesOver.forEach((tile) => tile?.setTexture(isValidPlacement ? TEXTURE_KEYS.GreenTile : TEXTURE_KEYS.RedTile));
+			noLongerOver.forEach((tile) => tile?.setTexture(TEXTURE_KEYS.Tile));
 			this.dndData.tilesOver = tilesOver;
 		}
 

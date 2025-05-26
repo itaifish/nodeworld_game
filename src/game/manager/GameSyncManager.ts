@@ -11,7 +11,6 @@ import BuildingManager from '../logic/buildings/BuildingManager';
 import { mergeInto } from 'src/utility/function-utils/function-utils';
 import { clientEnv } from 'src/env/schema.mjs';
 import type { Unsubscribable } from '@trpc/server/observable';
-import { now } from 'cypress/types/lodash';
 import BaseManager from '../logic/base/BaseManager';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
