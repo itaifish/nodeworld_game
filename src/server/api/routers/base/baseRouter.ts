@@ -160,9 +160,6 @@ export const baseRouter = createTRPCRouter({
 		const { harvest, lastHarvested } = res;
 		const resourcesAfter = BaseManager.getModificationToResourceDelta(baseUser.resources, harvest);
 		const transactions = await ctx.prisma.$transaction([
-			...resourcesAfter.map((resource) =>
-				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: { increment: resource.amount } } }),
-			),
 			ctx.prisma.building.update({
 				where: { id: input.buildingId },
 				data: {
@@ -173,6 +170,8 @@ export const baseRouter = createTRPCRouter({
 				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
 			),
 		]);
+
+		const [newBuilding, ...newResources] = transactions as [Building, ...Resource[]];
 
 		WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, newResources);
 		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BuildingUpdate}${userId}`, { ...newBuilding, action: 'updated' });
