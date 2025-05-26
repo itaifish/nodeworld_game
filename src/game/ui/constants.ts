@@ -1,16 +1,20 @@
 import type { Resource_Type } from '@prisma/client';
+import { titleize } from 'src/utility/function-utils/function-utils';
 
-const map: Record<Resource_Type, string> = {
-	FOOD: 'Food 🍞',
-	GOLD: 'Gold 🪙',
-	ALUMNINUM: 'Aluminum 🧱',
-	IRON: 'Iron 🪨',
-	PLUTONIUM: 'Plutonium ☢️',
+const resourceSymbolMap: Record<Resource_Type, string> = {
+	FOOD: '🍞',
+	GOLD: '🪙',
+	ALUMNINUM: '🧱',
+	IRON: '🪨',
+	PLUTONIUM: '☢️',
 };
 
 export const UIConstants = {
 	font: 'Consolas',
 	getResourceSymbol(resourceType: Resource_Type) {
-		return map[resourceType] ?? resourceType;
+		return resourceSymbolMap[resourceType] ?? resourceType;
+	},
+	getResourceDisplay(resourceType: Resource_Type) {
+		return `${titleize(resourceType.toLocaleLowerCase())} ${this.getResourceSymbol(resourceType)}`;
 	},
 };

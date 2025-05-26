@@ -14,6 +14,7 @@ import type { Unsubscribable } from '@trpc/server/observable';
 import BaseManager from '../logic/base/BaseManager';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
+	private temporaryBuildings: Map<string, Building>;
 	private client;
 	private readonly unsubscribableEvents: Unsubscribable[];
 	static EVENTS = {
@@ -25,6 +26,7 @@ export default class GameSyncManager extends EventEmitter {
 	private constructor() {
 		super();
 		this.baseGameState = null;
+		this.temporaryBuildings = new Map();
 		log.info('Game Sync Manager created');
 		const url = clientEnv.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000';
 		const wsClient = createWSClient({
@@ -46,14 +48,18 @@ export default class GameSyncManager extends EventEmitter {
 		this.createBaseIfNotExists().then(() => {
 			this.client.base.getBaseData.query();
 		});
+		setTimeout(() => {
+			this.client.base.getBaseData.query();
+		}, 1_000);
 	}
 
 	async createBaseIfNotExists() {
+		log.info(`Creating Base if not exists`);
 		this.client.base.createBaseIfNotExists.mutate();
 	}
 
-	async constructBuilding(building: Building_Type, position: Position) {
-		const newBaseTask = this.client.base.constructBuilding.mutate({ building, position });
+	async constructBuilding(building: Building_Type, position: Position, isRotated = false) {
+		log.info(`Creating ${building} at ${position.x},${position.y} ${isRotated ? 'rotated' : ''}`);
 		const now = new Date();
 		const networkDelayOffsetSecondsNow = new Date(now.getTime() + 3_500);
 		// Create temporary Building
@@ -66,26 +72,24 @@ export default class GameSyncManager extends EventEmitter {
 			type: building,
 			hp: BuildingManager.getBuildingData(building, 1).maxHP,
 			level: 1,
+			isRotated,
 			...position,
 		};
-		this.baseGameState?.buildings?.push(tempBuilding);
-		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-		const newBase = await newBaseTask;
-		// Destroy temporary building
-		if (newBase == null) {
-			log.info(`Failed to construct ${building} at {${position.x}, ${position.y}}`);
-			if (this.baseGameState) {
-				this.baseGameState.buildings =
-					this.baseGameState?.buildings.filter((building) => building.id != tempBuilding.id) ?? [];
-			}
-			return null;
+		this.temporaryBuildings.set(tempBuilding.id, tempBuilding);
+		this.client.base.constructBuilding.mutate({ building, position, isRotated }).then(() => {
+			this.temporaryBuildings.delete(tempBuilding.id);
+			this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
+		});
+		const tempResources = BuildingManager.getResourcesAfterPurchase(this.baseGameState?.resources ?? [], building);
+		if (this.baseGameState && tempResources) {
+			this.baseGameState.resources = tempResources;
+			this.baseGameState?.buildings?.push(tempBuilding);
 		}
-		this.baseGameState = newBase;
 		this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
-		return newBase;
 	}
 
 	async harvestBuilding(building: Building) {
+		log.info(`Harvesting ${building.type}[${building.id}] `);
 		const harvestBuildingTask = this.client.base.harvestBuilding.mutate({ buildingId: building.id });
 		// temp clientside harvest to sync up with server
 		const tempHarvest = BuildingManager.getHarvestAmountAndTimeForBuilding(building);
@@ -97,8 +101,20 @@ export default class GameSyncManager extends EventEmitter {
 		return harvestBuildingTask;
 	}
 
-	getBaseData() {
-		return this.baseGameState;
+	async levelUpBuilding(building: Building) {
+		log.info(`Leveling up ${building.type}[${building.id}]`);
+		const levelUpBuildingTask = this.client.base.levelUpBuilding.mutate({ buildingId: building.id });
+		return levelUpBuildingTask;
+	}
+
+	getBaseData(): BaseDetails | null {
+		if (this.baseGameState == null) {
+			return null;
+		}
+		return {
+			...this.baseGameState,
+			buildings: [...(this.baseGameState?.buildings ?? []), ...this.temporaryBuildings.values()],
+		};
 	}
 
 	// TODO: Since we already have incremental data updates, lets improve our emitter to have something besides BASE_GAME_STATE_UPDATED
@@ -106,6 +122,7 @@ export default class GameSyncManager extends EventEmitter {
 		return [
 			this.client.base.onBaseUpdated.subscribe(undefined, {
 				onData: (data) => {
+					log.info(`Recieved onBaseUpdated event: ${data.action}`);
 					if (data.action === 'updated') {
 						mergeInto(this.baseGameState, data);
 					} else if (data.action === 'created') {
@@ -121,6 +138,7 @@ export default class GameSyncManager extends EventEmitter {
 			}),
 			this.client.base.onBuildingUpdated.subscribe(undefined, {
 				onData: (data) => {
+					log.info(`Recieved onBuildingUpdated event: ${data.action}`);
 					if (data.action === 'updated') {
 						const building = this.baseGameState?.buildings?.find((x) => x.id === data.id);
 						if (building) {
@@ -143,6 +161,7 @@ export default class GameSyncManager extends EventEmitter {
 			}),
 			this.client.base.onUserResourcesChanged.subscribe(undefined, {
 				onData: (data) => {
+					log.info(`Recieved onUserResourcesChanged event`);
 					if (this.baseGameState == null) {
 						return;
 					}
@@ -154,7 +173,7 @@ export default class GameSyncManager extends EventEmitter {
 					this.emit(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED);
 				},
 				onError: (err) => {
-					log.error(err, `Error occured with onBuildingUpdated event`);
+					log.error(err, `Error occured with onUserResourcesChanged event`);
 				},
 			}),
 		];

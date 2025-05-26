@@ -1,5 +1,5 @@
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
-import ws, { WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import { log } from '../../utility/logger';
 import { websocketsRouter } from '../api/root';
 import { createContext } from './context';

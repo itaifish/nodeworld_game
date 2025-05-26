@@ -11,12 +11,15 @@ import SquarePressedButton from '../resources/images/gui/buttons/SquareButtonPre
 import XCloseIcon from '../resources/images/gui/icons/x_icon.png';
 import Button from '../ui/button/Button';
 import ConstructBuildingUIScene from './ConstructBuildingUIScene';
-import { TEXTURE_KEYS } from '../manager/TextureKeyManager';
+import { TEXTURE_KEYS } from '../manager/keys/TextureKeyManager';
 import { UIConstants } from '../ui/constants';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import { titleize } from 'src/utility/function-utils/function-utils';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
 import SceneManager from '../manager/SceneManager';
+import BaseManager from '../logic/base/BaseManager';
+import type { AnimationKey } from '../manager/keys/AnimationKeyManager';
+import { ANIMATION_KEYS } from '../manager/keys/AnimationKeyManager';
 
 const buildingStats = ['hp', 'level', 'type', 'lastHarvest', 'nextHarvest'] as const;
 type BuildingStat = (typeof buildingStats)[number];
@@ -43,6 +46,8 @@ export default class UIScene extends Phaser.Scene {
 		};
 	};
 
+	private levelUpBuildingButton: Button | null;
+
 	constructor(config: Phaser.Types.Scenes.SettingsConfig, gameSyncManager: GameSyncManager) {
 		super(config);
 		this.gameSyncManager = gameSyncManager;
@@ -56,6 +61,7 @@ export default class UIScene extends Phaser.Scene {
 				nextHarvest: new Date(),
 			},
 		};
+		this.levelUpBuildingButton = null;
 		this.selectedBuildingManager.on(SelectedBuildingManager.SELECT_EVENT, (_data) => {
 			this.displaySelectedBuilding();
 		});
@@ -87,14 +93,29 @@ export default class UIScene extends Phaser.Scene {
 		graphics.stroke();
 		// TODO: Do we need to delete this event if the scene *dies* or something? Research https://gist.github.com/samme/01a33324a427f626254c1a4da7f9b6a3?permalink_comment_id=3321966#gistcomment-3321966
 		this.gameSyncManager.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => this.displayStats());
-		new Button(
+		const buttonHeight = mainHeight - UIScene.BAR_THICKNESS / 2;
+		const shopButton = new Button(
 			this,
-			{ x: 330, y: mainHeight - UIScene.BAR_THICKNESS / 2 },
+			{ x: 330, y: buttonHeight },
 			() => {
 				this.constructBuildingUIScene.sys.setVisible(true);
 			},
 			'Create Building',
 		);
+
+		this.levelUpBuildingButton = new Button(
+			this,
+			{ x: 330 + shopButton.buttonImage.displayWidth * 5, y: buttonHeight },
+			() => {
+				const building = this.getSelectedBuilding()?.building;
+				// Logic for leveling up building
+				if (building && BaseManager.canUpgradeBuilding(building, this.gameSyncManager.getBaseData())) {
+					this.gameSyncManager.levelUpBuilding(building);
+				}
+			},
+			'Upgrade Building',
+		);
+		this.levelUpBuildingButton.hide();
 
 		// Dispatch a window resize event every half second for 10 seconds to allow for mouse input
 		// Bizzare workaround to input bug
@@ -106,7 +127,11 @@ export default class UIScene extends Phaser.Scene {
 
 		const constructBuildingUIScene = new ConstructBuildingUIScene({}, this.gameSyncManager);
 		SceneManager.instance.constructBuildingUIScene = constructBuildingUIScene;
-		this.constructBuildingUIScene = this.scene.add('ConstructBuildingUIScene', constructBuildingUIScene, true);
+		this.constructBuildingUIScene = this.scene.add(
+			'ConstructBuildingUIScene',
+			constructBuildingUIScene,
+			true,
+		) as ConstructBuildingUIScene;
 		this.scene.bringToTop('ConstructBuildingUIScene');
 		this.constructBuildingUIScene.sys.setVisible(false);
 	}
@@ -130,8 +155,13 @@ export default class UIScene extends Phaser.Scene {
 		this.selectedBuilding.image = null;
 		this.selectedBuilding.harvestData.title?.destroy();
 		this.selectedBuilding.harvestData.title = null;
+		this.levelUpBuildingButton?.hide();
 		if (building == null) {
 			return;
+		}
+		// check if building can be upgraded
+		if (BaseManager.canUpgradeBuilding(building, this.gameSyncManager.getBaseData())) {
+			this.levelUpBuildingButton?.show();
 		}
 		const nextHarvestDate = BuildingManager.getNextHarvest(building);
 		this.selectedBuilding.harvestData.nextHarvest = nextHarvestDate;
@@ -156,7 +186,7 @@ export default class UIScene extends Phaser.Scene {
 			);
 			this.formatText(text);
 			this.selectedBuilding.text.push(text);
-			farRight = Math.max(farRight, text.getRightCenter().x);
+			farRight = Math.max(farRight, text.getRightCenter().x ?? 0);
 		});
 
 		const harvest = BuildingManager.getHarvestAmountAndTimeForBuilding(building)?.harvest;
@@ -164,38 +194,50 @@ export default class UIScene extends Phaser.Scene {
 			text.destroy();
 		}
 		this.selectedBuilding.harvestData.text = {};
-
+		const currentFarRight = farRight;
 		if (harvest && Object.keys(harvest).length > 0) {
 			this.selectedBuilding.harvestData.title = this.formatText(
-				this.add.text(farRight + UIScene.TEXT_MARGIN_TOP, defaultY + 10, 'Harvest Data'),
+				this.add.text(currentFarRight + UIScene.TEXT_MARGIN_TOP, defaultY + 10, 'Harvest Data'),
 			).setStroke('#000000', 3);
 			Object.keys(harvest).forEach((key, index) => {
 				const resourceType = key as Resource_Type;
 				const amount = harvest[resourceType];
 				const statText = this.add.text(
-					farRight + UIScene.TEXT_MARGIN_TOP,
+					currentFarRight + UIScene.TEXT_MARGIN_TOP,
 					defaultY + 10 + UIScene.TEXT_MARGIN_TOP * (index + 1),
 					'',
 				);
 				this.formatText(statText);
-				const textVal = `${UIConstants.getResourceSymbol(resourceType)} | ${amount}`;
+				const textVal = `${UIConstants.getResourceDisplay(resourceType)} | ${amount}`;
 				statText.setText(textVal);
 				this.selectedBuilding.harvestData.text[resourceType] = statText;
+				farRight = Math.max(farRight, statText.getRightCenter().x ?? 0);
 			});
 
 			this.selectedBuilding.image
 				.setInteractive()
 				.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
 					if (pointer.leftButtonDown()) {
-						this.gameSyncManager.harvestBuilding(building);
+						const animationKey: AnimationKey | null = (ANIMATION_KEYS as any)[building.type]?.harvest;
+						if (animationKey) {
+							this.selectedBuildingManager.runAnimationForSelectedBuilding(animationKey).then(() => {
+								this.gameSyncManager.harvestBuilding(building);
+							});
+						} else {
+							this.gameSyncManager.harvestBuilding(building);
+						}
 					}
 				});
 		}
+		this.levelUpBuildingButton?.setPosition({
+			x: farRight + this.levelUpBuildingButton.buttonImage.displayWidth,
+			y: this.levelUpBuildingButton.buttonImage.y,
+		});
 	}
 
 	private formatBuildingStatsText(building: Building, statsKey: BuildingStat | 'nextHarvest'): string {
 		const map: Record<BuildingStat | 'nextHarvest', string> = {
-			hp: `${building.hp} / ${BuildingManager.getBuildingData(building.type, building.level).maxHP}`,
+			hp: `${building.hp} / ${BuildingManager.getBuildingData(building).maxHP}`,
 			level: `${building.level}`,
 			type: building.type,
 			lastHarvest: building.lastHarvest ? `${building.lastHarvest.toLocaleString()}` : 'Never',
@@ -222,7 +264,7 @@ export default class UIScene extends Phaser.Scene {
 				this.statsText.set(type, statsText);
 			}
 			this.formatText(statsText);
-			statsText.setText(`${UIConstants.getResourceSymbol(type)} | ${amount}`);
+			statsText.setText(`${UIConstants.getResourceDisplay(type)} | ${amount}`);
 		}
 	}
 

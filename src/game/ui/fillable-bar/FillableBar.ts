@@ -8,8 +8,16 @@ export default class FillableBar {
 	private readonly borderSize: number;
 	private percentFilled: number;
 
-	constructor(scene: Phaser.Scene, positionAndSize: Rect, percentFilled: number, color: number, borderSize = 2) {
+	constructor(
+		scene: Phaser.Scene,
+		positionAndSize: Rect,
+		percentFilled: number,
+		color: number,
+		depth: number,
+		borderSize = 2,
+	) {
 		this.graphicsBar = new Phaser.GameObjects.Graphics(scene);
+		this.graphicsBar.setDepth(depth);
 		this.positionAndSize = positionAndSize;
 		this.color = color;
 		this.borderSize = borderSize;

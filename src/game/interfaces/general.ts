@@ -8,4 +8,9 @@ export type Size = {
 	height: number;
 };
 
+export type NumberRange = {
+	start: number;
+	end: number;
+};
+
 export type Rect = Position & Size;

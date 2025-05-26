@@ -1,3 +1,5 @@
+import type { ValuesOf } from 'src/utility/type-utils.ts/type-utils';
+
 export const TEXTURE_KEYS = {
 	// UI
 	NormalButton: 'NormalButton',
@@ -16,8 +18,14 @@ export const TEXTURE_KEYS = {
 	Harvestor: 'Harvestor',
 	PowerStation: 'PowerStation',
 	Barracks: 'Barracks',
+	AntiAircraftTurret: 'AntiAircraftTurret',
+	ScattergunTurret: 'ScattergunTurret',
+	EnergyShieldWall: 'EnergyShieldWall',
+	ResearchLab: 'ResearchLab',
 	// colors:
 	Tile: 'Tile',
 	GreenTile: 'GreenTile',
 	RedTile: 'RedTile',
-};
+} as const;
+
+export type TextureKey = ValuesOf<typeof TEXTURE_KEYS>;

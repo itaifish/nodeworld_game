@@ -2,6 +2,7 @@
 import type { Building, Building_Type, Resource, Resource_Type } from '@prisma/client';
 import { Constants } from '../../../utility/constants';
 import type { Size } from '../../interfaces/general';
+import { log } from 'src/utility/logger';
 
 type BuildingStats<TData> = {
 	maxHP: TData;
@@ -251,13 +252,32 @@ export default class BuildingManager {
 	/** Interval is 20 minutes by default - plan to mess with it */
 	static readonly HARVEST_INTERVAL_MINS = 20;
 
-	static getBuildingData(building: Building_Type, level: number) {
+	/**
+	 * Get data for a building
+	 * @param building Building_Type or Building
+	 * @param level the level of the building, if the type was supplied. Defaults to 1
+	 * @param isRotated whether or not the building is rotated, if the type was supplied. Defaults to false
+	 * @returns Relevant data for the given building
+	 */
+	static getBuildingData(building: Building_Type | Building, level = 1, isRotated = false) {
+		if (typeof building == 'object') {
+			isRotated = building.isRotated;
+			level = building.level;
+			building = building.type;
+		}
 		const calculatedBuildingData: Partial<StartingPointStats> = {};
 		const knownBuildingData = this.BUILDING_DATA[building];
 		const keys = Object.keys(knownBuildingData.startingPoint) as Array<keyof StartingPointStats>;
 		keys.forEach((key) => {
-			if (key == 'size' || key == 'maxPerBase') {
+			if (key == 'maxPerBase') {
 				calculatedBuildingData[key] = knownBuildingData.startingPoint[key] as any;
+				return;
+			}
+			if (key == 'size') {
+				const unflippedSize = knownBuildingData.startingPoint['size'];
+				calculatedBuildingData['size'] = isRotated
+					? { width: unflippedSize.height, height: unflippedSize.width }
+					: unflippedSize;
 				return;
 			}
 			const resourceMapKeys = ['generatedResourcesPerInterval', 'maxStorageCapacity', 'costs'] as const;
@@ -300,6 +320,16 @@ export default class BuildingManager {
 		return newResourcePool;
 	}
 
+	static getCostsForPurchase(resourcePool: Resource[], building: Building_Type, buildingLevel = 1) {
+		const cost = this.getBuildingData(building, buildingLevel).costs;
+		const newResourcePool: Resource[] = [];
+		for (const resource of resourcePool) {
+			const deltaAmount = cost[resource.type] ?? 0;
+			newResourcePool.push({ ...resource, amount: deltaAmount });
+		}
+		return newResourcePool;
+	}
+
 	static getHarvestAmountAndTimeForBuilding(building: Building | null) {
 		if (building == null) {
 			return null;
@@ -329,7 +359,7 @@ export default class BuildingManager {
 	}
 
 	static getNextHarvest(building: Building): Date | null {
-		if (Object.keys(this.getBuildingData(building.type, building.level).generatedResourcesPerInterval).length === 0) {
+		if (Object.keys(this.getBuildingData(building).generatedResourcesPerInterval).length === 0) {
 			return null;
 		}
 		const now = new Date().getTime();

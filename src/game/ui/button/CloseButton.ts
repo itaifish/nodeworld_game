@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import type { Position } from 'src/game/interfaces/general';
-import { TEXTURE_KEYS } from 'src/game/manager/TextureKeyManager';
+import { TEXTURE_KEYS } from 'src/game/manager/keys/TextureKeyManager';
 import Button from './Button';
 
 export default class CloseButton extends Button {

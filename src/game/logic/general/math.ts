@@ -1,6 +1,6 @@
 import type { Position, Rect } from '../../interfaces/general';
 
-export const ORIGIN_POSITION = { x: 0, y: 0 };
+export const ORIGIN_POSITION = { x: 0, y: 0 } as const;
 
 export function isBetween(point: Position, min: Position, max: Position) {
 	return point.x >= min.x && point.y >= min.y && point.x <= max.x && point.y <= max.y;
@@ -23,6 +23,6 @@ export function getRandomElementInList<T>(list: Array<T>): T {
 	return list[Math.floor(Math.random() * list.length)] as T;
 }
 
-export function setDifference<T>(a: Set<T>, b: Set<T>): T[] {
+export function getDifferenceBetweenSets<T>(a: Set<T>, b: Set<T>): T[] {
 	return [...a].filter((x) => !b.has(x));
 }
