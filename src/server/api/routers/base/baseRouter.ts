@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, adminProcedure } from '../../trpc';
-import type { Base, Building, Resource } from '@prisma/client';
+import type { Building, Resource } from '@prisma/client';
 import { Resource_Type } from '@prisma/client';
 import { Building_Type } from '@prisma/client';
 import BuildingManager from '../../../../game/logic/buildings/BuildingManager';
@@ -167,7 +167,7 @@ export const baseRouter = createTRPCRouter({
 				},
 			}),
 			...resourcesAfter.map((resource) =>
-				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: resource.amount } }),
+				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: { increment: resource.amount } } }),
 			),
 		]);
 

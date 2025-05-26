@@ -94,7 +94,7 @@ export default class BaseBuilding {
 	setSelected(isSelected: boolean) {
 		this.isSelected = isSelected;
 		if (this.isSelected) {
-			this.glowFx = this.sprite.preFX?.addGlow();
+			this.glowFx = this.sprite.preFX?.addGlow(0xffffff, 4, 1, false);
 			this.sprite?.scene?.tweens.add({
 				targets: this.glowFx,
 				outerStrength: 5,
