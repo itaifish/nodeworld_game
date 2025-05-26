@@ -5,6 +5,7 @@ import { clamp } from 'src/game/logic/general/math';
 import SelectedBuildingManager from 'src/game/manager/SelectedBuildingManager';
 import type { AnimationKey } from 'src/game/manager/keys/AnimationKeyManager';
 import ConstructBuildingUIScene from 'src/game/scene/ConstructBuildingUIScene';
+import { cellSize } from 'src/game/scene/MainScene';
 import FillableBar from 'src/game/ui/fillable-bar/FillableBar';
 import { log } from 'src/utility/logger';
 
@@ -63,6 +64,7 @@ export default class BaseBuilding {
 		this.sprite.setOrigin(0.5, 0.75);
 		const depth = building.x + building.y + size.width + size.height;
 		this.sprite.setDepth(depth);
+		this.sprite.preFX?.setPadding(32);
 		this.progressBar = new FillableBar(
 			scene,
 			{
@@ -93,11 +95,13 @@ export default class BaseBuilding {
 
 	setSelected(isSelected: boolean) {
 		this.isSelected = isSelected;
+		log.info(`Selected: ${this.isSelected}`);
 		if (this.isSelected) {
-			this.glowFx = this.sprite.preFX?.addGlow(0xffffff, 4, 1, false);
+			this.glowFx = this.sprite.postFX?.addGlow(0xffffff, 3);
 			this.sprite?.scene?.tweens.add({
 				targets: this.glowFx,
-				outerStrength: 5,
+				outerStrength: 1,
+				innerStrength: 0,
 				yoyo: true,
 				loop: -1,
 				ease: 'sine.inout',
@@ -110,7 +114,7 @@ export default class BaseBuilding {
 					tween.destroy();
 				});
 			}
-			this.sprite.preFX?.clear();
+			this.sprite.postFX?.clear();
 		}
 	}
 

@@ -18,7 +18,7 @@ import GameSyncManager from '../manager/GameSyncManager';
 const fxConfig = {
 	fx: {
 		glow: {
-			distance: 10,
+			distance: 12,
 			quality: 0.1,
 		},
 	},
