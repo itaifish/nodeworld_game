@@ -263,6 +263,7 @@ export default class MainScene extends Phaser.Scene {
 				newBuildings.push(buildingTypeToBuilding(building.type, building, this, centeredPosition));
 			}
 		});
+		this.buildings.push(...newBuildings);
 	}
 
 	private createBoard() {

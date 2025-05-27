@@ -36,45 +36,8 @@ export default class BaseBuilding {
 		this.building = building;
 		this.scene = scene;
 		this.position = position;
-		this.setBuildingImage(building);
 		this.animationOptions = animationOptions;
-		this.sprite.setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 0.4 });
-		this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-			this.isInAnimation = false;
-		});
-		this.sprite.on(Phaser.Animations.Events.ANIMATION_START, () => {
-			this.isInAnimation = true;
-		});
-		this.sprite.on(
-			Phaser.Input.Events.POINTER_DOWN,
-
-			(pointer: Phaser.Input.Pointer) => {
-				if (pointer.leftButtonDown()) {
-					SelectedBuildingManager.instance.setSelectedBuilding(this);
-				}
-			},
-		);
-		const size = BuildingManager.getBuildingData(building).size;
-		// Removing this code for now - we don't need to scale the images as they are all the exact right size anyways
-		// const scale = (cellSize.width * size.width) / this.image.width;
-		// this.image.setScale(scale);
-		this.sprite.setFlipX(building.isRotated);
-		this.sprite.setOrigin(0.5, 0.75);
-		const depth = building.x + building.y + size.width + size.height;
-		this.sprite.setDepth(depth);
-		this.sprite.preFX?.setPadding(32);
-		this.progressBar = new FillableBar(
-			scene,
-			{
-				x: position.x - this.sprite.displayWidth / 2,
-				y: position.y - this.sprite.displayHeight / 2 - 10,
-				width: this.sprite.displayWidth,
-				height: 10,
-			},
-			0,
-			0x1122ff,
-			depth,
-		);
+		this.setBuildingImage(building);
 	}
 
 	playAnimation(animation: AnimationKey): Promise<void> {
@@ -132,6 +95,43 @@ export default class BaseBuilding {
 			this.position.y,
 			ConstructBuildingUIScene.Buildings[building.type].textureKey,
 			0,
+		);
+		this.sprite.setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 0.4 });
+		this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+			this.isInAnimation = false;
+		});
+		this.sprite.on(Phaser.Animations.Events.ANIMATION_START, () => {
+			this.isInAnimation = true;
+		});
+		this.sprite.on(
+			Phaser.Input.Events.POINTER_DOWN,
+
+			(pointer: Phaser.Input.Pointer) => {
+				if (pointer.leftButtonDown()) {
+					SelectedBuildingManager.instance.setSelectedBuilding(this);
+				}
+			},
+		);
+		const size = BuildingManager.getBuildingData(building).size;
+		// Removing this code for now - we don't need to scale the images as they are all the exact right size anyways
+		// const scale = (cellSize.width * size.width) / this.image.width;
+		// this.image.setScale(scale);
+		this.sprite.setFlipX(building.isRotated);
+		this.sprite.setOrigin(0.5, 0.75);
+		const depth = building.x + building.y + size.width + size.height;
+		this.sprite.setDepth(depth);
+		this.sprite.preFX?.setPadding(32);
+		this.progressBar = new FillableBar(
+			this.scene,
+			{
+				x: this.position.x - this.sprite.displayWidth / 2,
+				y: this.position.y - this.sprite.displayHeight / 2 - 10,
+				width: this.sprite.displayWidth,
+				height: 10,
+			},
+			0,
+			0x1122ff,
+			depth,
 		);
 	}
 
