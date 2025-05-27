@@ -159,8 +159,9 @@ model Galaxy {
     id             String           @id @unique @default(cuid())
     name           String           @unique
     maxSize        Int
-    Node           Node[]
-    UserGalaxyInfo UserGalaxyInfo[]
+    nodes          Node[]
+    linkedUsers    UserGalaxyInfo[]
+    connectedUsers User[]
 }
 
 // END GAME SECTION
@@ -194,15 +195,17 @@ model Session {
 }
 
 model User {
-    id             String           @id @unique @default(cuid())
-    name           String?
-    email          String?          @unique
-    emailVerified  DateTime?
-    image          String?
-    account        Account?
-    sessions       Session[]
-    isAdmin        Boolean          @default(false)
-    userGalaxyInfo UserGalaxyInfo[]
+    id              String           @id @unique @default(cuid())
+    name            String?
+    email           String?          @unique
+    emailVerified   DateTime?
+    image           String?
+    account         Account?
+    sessions        Session[]
+    isAdmin         Boolean          @default(false)
+    userGalaxyInfo  UserGalaxyInfo[]
+    currentGalaxy   Galaxy?          @relation(fields: [currentGalaxyId], references: [id])
+    currentGalaxyId String?
 }
 
 model UserGalaxyInfo {
@@ -211,11 +214,13 @@ model UserGalaxyInfo {
     userId          String
     galaxy          Galaxy                   @relation(fields: [galaxyId], references: [id])
     galaxyId        String
-    base            Base[]
+    base            Base?
     messageChannels UserMessageChannelLink[]
     messages        Message[]
     nodeAttacking   Node[]
     guildMembership GuildMembership[]
+
+    @@unique([userId, galaxyId])
 }
 
 model VerificationToken {

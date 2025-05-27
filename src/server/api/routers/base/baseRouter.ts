@@ -19,10 +19,21 @@ const BUILDING_ID_INPUT = z.object({ buildingId: z.string() });
 
 const RESOURCES_INPUT = z.record(z.enum(Object.keys(Resource_Type) as AtLeastOne<Resource_Type>), z.number().int());
 
-async function getBaseDataFromUserGalaxy(ctx: tRPCContext) {
+async function getBaseDataFromUser(ctx: tRPCContext) {
 	const id = ctx.session.user.id;
+	const userData = await ctx.prisma.user.findUnique({ where: { id } });
+	if (userData?.currentGalaxyId == null) {
+		return null;
+	}
+	const userGalaxyInfo = await ctx.prisma.userGalaxyInfo.findUnique({
+		where: { userId_galaxyId: { userId: id, galaxyId: userData.currentGalaxyId } },
+		include: { base: true },
+	});
+	if (userGalaxyInfo?.base?.id == null) {
+		return null;
+	}
 	return ctx.prisma.base.findUnique({
-		where: { userGalaxyInfoId: id },
+		where: { id: userGalaxyInfo.base.id },
 		include: baseInclude,
 	});
 }
@@ -76,7 +87,7 @@ export const baseRouter = createTRPCRouter({
 
 	deleteBase: protectedProcedure.mutation(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const baseUser: BaseDetails | null = await getBaseDataFromUserGalaxy(ctx);
+		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
 		if (baseUser == null) {
 			return null;
 		}
@@ -91,7 +102,7 @@ export const baseRouter = createTRPCRouter({
 		return WS_EVENT_EMITTER.getObservable(`${WS_EVENTS.BuildingUpdate}${id}`);
 	}),
 	scrapBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
-		const baseUser: BaseDetails | null = await getBaseDataFromUserGalaxy(ctx);
+		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
 		const userId = ctx.session.user.id;
 		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
 		if (baseUser == null || building == null) {
@@ -121,7 +132,7 @@ export const baseRouter = createTRPCRouter({
 
 	harvestAllBuildings: protectedProcedure.mutation(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const baseUser = await getBaseDataFromUserGalaxy(ctx);
+		const baseUser = await getBaseDataFromUser(ctx);
 		if (baseUser == null) {
 			return;
 		}
@@ -148,7 +159,7 @@ export const baseRouter = createTRPCRouter({
 
 	harvestBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
 		const userId = ctx.session.user.id;
-		const baseUser: BaseDetails | null = await getBaseDataFromUserGalaxy(ctx);
+		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
 		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
 		if (baseUser == null || building == null) {
 			return null;
@@ -187,7 +198,7 @@ export const baseRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.session.user.id;
-			const userBase: BaseDetails | null = await getBaseDataFromUserGalaxy(ctx);
+			const userBase: BaseDetails | null = await getBaseDataFromUser(ctx);
 			const newBuilding = input.building as Building_Type;
 			if (userBase == null) {
 				return null;
@@ -269,7 +280,7 @@ export const baseRouter = createTRPCRouter({
 		let transaction: Building | null | undefined = null;
 		try {
 			transaction = await ctx.prisma.$transaction(async (prismaTx) => {
-				const userBase: BaseDetails | null = await getBaseDataFromUserGalaxy({ ...ctx, prisma: prismaTx as any });
+				const userBase: BaseDetails | null = await getBaseDataFromUser({ ...ctx, prisma: prismaTx as any });
 				const buildingToLevelUp = userBase?.buildings.find((building) => building.id === input.buildingId);
 				if (!userBase || !buildingToLevelUp) {
 					throw new Error(`Building ${input.buildingId} doesn't exist`);
@@ -330,7 +341,7 @@ export const baseRouter = createTRPCRouter({
 	// Data getters
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const data = await getBaseDataFromUserGalaxy(ctx);
+		const data = await getBaseDataFromUser(ctx);
 		if (data != null) {
 			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...data });
 		}
