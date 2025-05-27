@@ -18,7 +18,7 @@ import GameSyncManager from '../manager/GameSyncManager';
 const fxConfig = {
 	fx: {
 		glow: {
-			distance: 10,
+			distance: 12,
 			quality: 0.1,
 		},
 	},
@@ -27,7 +27,7 @@ const fxConfig = {
 const gameConfig: Phaser.Types.Core.GameConfig = {
 	width: window?.innerWidth ?? '100%',
 	height: window?.innerHeight ?? '100%',
-	type: Phaser.AUTO,
+	type: Phaser.WEBGL,
 	scale: {
 		mode: Phaser.Scale.FIT,
 		autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,

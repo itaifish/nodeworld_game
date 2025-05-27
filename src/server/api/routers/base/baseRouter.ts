@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, adminProcedure } from '../../trpc';
-import type { Base, Building, Resource } from '@prisma/client';
+import type { Building, Resource } from '@prisma/client';
 import { Resource_Type } from '@prisma/client';
 import { Building_Type } from '@prisma/client';
 import BuildingManager from '../../../../game/logic/buildings/BuildingManager';
@@ -160,23 +160,21 @@ export const baseRouter = createTRPCRouter({
 		const { harvest, lastHarvested } = res;
 		const resourcesAfter = BaseManager.getModificationToResourceDelta(baseUser.resources, harvest);
 		const transactions = await ctx.prisma.$transaction([
-			...resourcesAfter.map((resource) =>
-				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: { increment: resource.amount } } }),
-			),
 			ctx.prisma.building.update({
 				where: { id: input.buildingId },
 				data: {
 					lastHarvest: lastHarvested,
 				},
 			}),
+			...resourcesAfter.map((resource) =>
+				ctx.prisma.resource.update({ where: { id: resource.id }, data: { amount: { increment: resource.amount } } }),
+			),
 		]);
 
-		const newBuilding = transactions[transactions.length - 1] as Building;
-		const newResources = transactions.slice(0, -1) as Resource[];
+		const [newBuilding, ...newResources] = transactions as [Building, ...Resource[]];
 
 		WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, newResources);
 		WS_EVENT_EMITTER.emit(`${WS_EVENTS.BuildingUpdate}${userId}`, { ...newBuilding, action: 'updated' });
-		return transactions;
 	}),
 
 	constructBuilding: protectedProcedure

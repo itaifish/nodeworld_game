@@ -15,8 +15,10 @@ const run = async () => {
 	});
 	const handler = applyWSSHandler({ wss, router: websocketsRouter, createContext: createContext });
 
-	wss.on('connection', (ws) => {
+	wss.on('connection', (ws, req) => {
 		log.info(`➕➕ Connection (${wss.clients.size})`);
+		const ip = req.socket.remoteAddress;
+		log.info(`${req.rawHeaders}`);
 		ws.once('close', () => {
 			log.info(`➖➖ Connection (${wss.clients.size})`);
 		});

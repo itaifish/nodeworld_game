@@ -1,3 +1,4 @@
+import { log } from 'src/utility/logger';
 import type GameSyncManager from './manager/GameSyncManager';
 import SceneManager from './manager/SceneManager';
 import BackgroundScene from './scene/BackgroundScene';
@@ -23,6 +24,8 @@ export default class NodeworldGame extends Phaser.Game {
 		const userInterfaceScene = new UIScene({}, gameSyncManager);
 		this.sceneManager.userInterfaceScene = userInterfaceScene;
 		this.scene.add('UIScene', userInterfaceScene, true);
+
+		log.debug('Nodeworld Game Created');
 
 		// Disable right click menu
 		this.canvas.oncontextmenu = (e: MouseEvent) => {

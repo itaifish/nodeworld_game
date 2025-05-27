@@ -62,6 +62,7 @@ export default class BaseBuilding {
 		this.sprite.setOrigin(0.5, 0.75);
 		const depth = building.x + building.y + size.width + size.height;
 		this.sprite.setDepth(depth);
+		this.sprite.preFX?.setPadding(32);
 		this.progressBar = new FillableBar(
 			scene,
 			{
@@ -92,11 +93,13 @@ export default class BaseBuilding {
 
 	setSelected(isSelected: boolean) {
 		this.isSelected = isSelected;
+		log.info(`Selected: ${this.isSelected}`);
 		if (this.isSelected) {
-			this.glowFx = this.sprite.preFX?.addGlow();
+			this.glowFx = this.sprite.postFX?.addGlow(0xffffff, 3);
 			this.sprite?.scene?.tweens.add({
 				targets: this.glowFx,
-				outerStrength: 5,
+				outerStrength: 1,
+				innerStrength: 0,
 				yoyo: true,
 				loop: -1,
 				ease: 'sine.inout',
@@ -109,7 +112,7 @@ export default class BaseBuilding {
 					tween.destroy();
 				});
 			}
-			this.sprite.preFX?.clear();
+			this.sprite.postFX?.clear();
 		}
 	}
 
