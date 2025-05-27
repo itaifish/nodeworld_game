@@ -121,6 +121,7 @@ export default class BaseBuilding {
 		const depth = building.x + building.y + size.width + size.height;
 		this.sprite.setDepth(depth);
 		this.sprite.preFX?.setPadding(32);
+		this.progressBar?.destroy();
 		this.progressBar = new FillableBar(
 			this.scene,
 			{
