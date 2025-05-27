@@ -16,6 +16,7 @@ import { TEXTURE_KEYS } from '../manager/keys/TextureKeyManager';
 import type BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
+import type { Building } from '@prisma/client';
 import { Building_Type } from '@prisma/client';
 import { HarvesterBuilding } from '../board/building/HarvesterBuilding';
 import { buildingTypeToBuilding } from '../board/building/building-utility';
@@ -138,6 +139,10 @@ export default class MainScene extends Phaser.Scene {
 		// 	layer.setScale(cellSize.width / map.tileWidth);
 		// });
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
+		// temporary fix while I figure out why textures don't load sometimes
+		setTimeout(() => this.updateBoard(), 1500);
+		setTimeout(() => this.updateBoard(), 4500);
 	}
 
 	update(time: number, delta: number) {
@@ -220,6 +225,44 @@ export default class MainScene extends Phaser.Scene {
 		} else {
 			this.dndData = { building: dragNDropBuilding, tilesOver: new Set(), placementCoord: null };
 		}
+	}
+
+	private updateBoard() {
+		const base = this.gameSyncManager.getBaseData();
+		if (this.rexBoard == null || base == null) {
+			log.warn(`Unable to find ${this.rexBoard == null ? 'rexBoard' : ''} ${base == null ? 'base' : ''}`);
+			return;
+		}
+
+		const accountedForBuildings = new Set<string>();
+		const unaccountedForBuildings = new Set<string>();
+		const buildingsMap: Record<string, Building> = base.buildings.reduce((accumulator, currBuilding) => {
+			unaccountedForBuildings.add(currBuilding.id);
+			return { ...accumulator, [currBuilding.id]: currBuilding };
+		}, {});
+		const newBuildings: BaseBuilding[] = [];
+		for (const buildingImage of this.buildings) {
+			const imageBuildingId = buildingImage.building.id;
+			const newBuilding = buildingsMap[imageBuildingId];
+			accountedForBuildings.add(imageBuildingId);
+			unaccountedForBuildings.delete(imageBuildingId);
+			if (newBuilding != undefined) {
+				buildingImage.setBuildingImage(newBuilding);
+				newBuildings.push(buildingImage);
+			}
+		}
+		unaccountedForBuildings.forEach((buildingId) => {
+			const building = buildingsMap[buildingId];
+			if (building) {
+				const size = BuildingManager.getBuildingData(building).size;
+				const position = this.board.tileXYToWorldXY(building.x, building.y);
+				const centeredPosition = {
+					x: position.x + cellSize.width * ((size.width - size.height) / 4),
+					y: position.y + cellSize.height * ((size.height + size.width) / 4 - 0.5),
+				};
+				newBuildings.push(buildingTypeToBuilding(building.type, building, this, centeredPosition));
+			}
+		});
 	}
 
 	private createBoard() {

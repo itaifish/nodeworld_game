@@ -20,7 +20,9 @@ const defaultAnimation: AnimationOptions = {
 };
 
 export default class BaseBuilding {
-	readonly sprite: Phaser.GameObjects.Sprite;
+	protected sprite: Phaser.GameObjects.Sprite;
+	protected readonly scene: Phaser.Scene;
+	protected readonly position: Position;
 	readonly building: Building;
 	progressBar: FillableBar | undefined;
 
@@ -32,12 +34,9 @@ export default class BaseBuilding {
 	constructor(building: Building, scene: Phaser.Scene, position: Position, animationOptions = defaultAnimation) {
 		this.isSelected = false;
 		this.building = building;
-		this.sprite = scene.add.sprite(
-			position.x,
-			position.y,
-			ConstructBuildingUIScene.Buildings[building.type].textureKey,
-			0,
-		);
+		this.scene = scene;
+		this.position = position;
+		this.setBuildingImage(building);
 		this.animationOptions = animationOptions;
 		this.sprite.setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 0.4 });
 		this.sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
@@ -122,10 +121,18 @@ export default class BaseBuilding {
 	}
 
 	delete() {
-		this.sprite.destroy();
-		if (this.progressBar) {
-			this.progressBar.destroy();
-		}
+		this.sprite?.destroy();
+		this.progressBar?.destroy();
+	}
+
+	setBuildingImage(building: Building) {
+		this.sprite?.destroy();
+		this.sprite = this.scene.add.sprite(
+			this.position.x,
+			this.position.y,
+			ConstructBuildingUIScene.Buildings[building.type].textureKey,
+			0,
+		);
 	}
 
 	update(_time: number, _delta: number) {
