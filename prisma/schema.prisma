@@ -124,6 +124,13 @@ model GuildMembership {
     @@id([userId])
 }
 
+model WorldMapHexTile {
+    positionX Int
+    positionY Int
+    
+    @@id([positionX, positionY])
+}
+
 // END GAME SECTION
 // LOGIN SECTION BELOW
 

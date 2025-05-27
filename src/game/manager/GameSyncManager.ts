@@ -15,13 +15,13 @@ import BaseManager from '../logic/base/BaseManager';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
 	private temporaryBuildings: Map<string, Building>;
-	private client;
+	private readonly client;
 	private readonly unsubscribableEvents: Unsubscribable[];
-	static EVENTS = {
+	static readonly EVENTS = {
 		BASE_GAME_STATE_UPDATED: 'BASE_GAME_STATE_UPDATED',
 	};
 
-	static instance = new GameSyncManager();
+	static readonly instance = new GameSyncManager();
 
 	private constructor() {
 		super();
