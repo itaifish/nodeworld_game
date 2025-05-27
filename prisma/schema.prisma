@@ -97,8 +97,8 @@ model Base {
     military         Unit[]
     inventory        InventoryItem[]
     establishedNode  Node?
-    owner            UserGalaxyInfo? @relation(fields: [userGalaxyInfoId], references: [id])
-    userGalaxyInfoId String?
+    owner            UserGalaxyInfo  @relation(fields: [userGalaxyInfoId], references: [id])
+    userGalaxyInfoId String          @unique
 }
 
 model Guild {
@@ -202,7 +202,7 @@ model User {
     account        Account?
     sessions       Session[]
     isAdmin        Boolean          @default(false)
-    UserGalaxyInfo UserGalaxyInfo[]
+    userGalaxyInfo UserGalaxyInfo[]
 }
 
 model UserGalaxyInfo {
@@ -211,11 +211,11 @@ model UserGalaxyInfo {
     userId          String
     galaxy          Galaxy                   @relation(fields: [galaxyId], references: [id])
     galaxyId        String
-    Base            Base[]
+    base            Base[]
     messageChannels UserMessageChannelLink[]
     messages        Message[]
-    Node            Node[]
-    GuildMembership GuildMembership[]
+    nodeAttacking   Node[]
+    guildMembership GuildMembership[]
 }
 
 model VerificationToken {

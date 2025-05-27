@@ -19,10 +19,10 @@ const BUILDING_ID_INPUT = z.object({ buildingId: z.string() });
 
 const RESOURCES_INPUT = z.record(z.enum(Object.keys(Resource_Type) as AtLeastOne<Resource_Type>), z.number().int());
 
-async function getBaseDataFromUser(ctx: tRPCContext) {
+async function getBaseDataFromUserGalaxy(ctx: tRPCContext) {
 	const id = ctx.session.user.id;
 	return ctx.prisma.base.findUnique({
-		where: { userId: id },
+		where: { userGalaxyInfoId: id },
 		include: baseInclude,
 	});
 }
@@ -36,14 +36,14 @@ export const baseRouter = createTRPCRouter({
 	giveUserResources: adminProcedure
 		.input(
 			z.object({
-				userId: z.string().optional(),
+				userGalaxyId: z.string().optional(),
 				resources: RESOURCES_INPUT,
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const userId = input.userId ?? ctx.session.user.id;
+			const userGalaxyId = input.userGalaxyId ?? ctx.session.user.id;
 			const currentResources = await ctx.prisma.base.findUnique({
-				where: { userId },
+				where: { userGalaxyInfoId: userGalaxyId },
 				include: baseInclude,
 			});
 			if (currentResources == null) {
@@ -54,7 +54,7 @@ export const baseRouter = createTRPCRouter({
 				where: { id: currentResources.id },
 				data: { resources: { set: currentResources.resources } },
 			});
-			WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, currentResources.resources);
+			WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userGalaxyId}`, currentResources.resources);
 			return update;
 		}),
 	// End User Resources
@@ -66,8 +66,8 @@ export const baseRouter = createTRPCRouter({
 	createBaseIfNotExists: protectedProcedure.mutation(async ({ ctx }) => {
 		const id = ctx.session.user.id;
 		const upsert = await ctx.prisma.base.upsert({
-			where: { userId: id },
-			create: { userId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
+			where: { userGalaxyInfoId: id },
+			create: { userGalaxyInfoId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
 			update: {},
 			include: baseInclude,
 		});
@@ -76,7 +76,7 @@ export const baseRouter = createTRPCRouter({
 
 	deleteBase: protectedProcedure.mutation(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
+		const baseUser: BaseDetails | null = await getBaseDataFromUserGalaxy(ctx);
 		if (baseUser == null) {
 			return null;
 		}
@@ -91,7 +91,7 @@ export const baseRouter = createTRPCRouter({
 		return WS_EVENT_EMITTER.getObservable(`${WS_EVENTS.BuildingUpdate}${id}`);
 	}),
 	scrapBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
-		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
+		const baseUser: BaseDetails | null = await getBaseDataFromUserGalaxy(ctx);
 		const userId = ctx.session.user.id;
 		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
 		if (baseUser == null || building == null) {
@@ -121,7 +121,7 @@ export const baseRouter = createTRPCRouter({
 
 	harvestAllBuildings: protectedProcedure.mutation(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const baseUser = await getBaseDataFromUser(ctx);
+		const baseUser = await getBaseDataFromUserGalaxy(ctx);
 		if (baseUser == null) {
 			return;
 		}
@@ -148,7 +148,7 @@ export const baseRouter = createTRPCRouter({
 
 	harvestBuilding: protectedProcedure.input(BUILDING_ID_INPUT).mutation(async ({ ctx, input }) => {
 		const userId = ctx.session.user.id;
-		const baseUser: BaseDetails | null = await getBaseDataFromUser(ctx);
+		const baseUser: BaseDetails | null = await getBaseDataFromUserGalaxy(ctx);
 		const building = baseUser?.buildings.find((building) => building.id == input.buildingId);
 		if (baseUser == null || building == null) {
 			return null;
@@ -187,7 +187,7 @@ export const baseRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.session.user.id;
-			const userBase: BaseDetails | null = await getBaseDataFromUser(ctx);
+			const userBase: BaseDetails | null = await getBaseDataFromUserGalaxy(ctx);
 			const newBuilding = input.building as Building_Type;
 			if (userBase == null) {
 				return null;
@@ -269,7 +269,7 @@ export const baseRouter = createTRPCRouter({
 		let transaction: Building | null | undefined = null;
 		try {
 			transaction = await ctx.prisma.$transaction(async (prismaTx) => {
-				const userBase: BaseDetails | null = await getBaseDataFromUser({ ...ctx, prisma: prismaTx as any });
+				const userBase: BaseDetails | null = await getBaseDataFromUserGalaxy({ ...ctx, prisma: prismaTx as any });
 				const buildingToLevelUp = userBase?.buildings.find((building) => building.id === input.buildingId);
 				if (!userBase || !buildingToLevelUp) {
 					throw new Error(`Building ${input.buildingId} doesn't exist`);
@@ -330,7 +330,7 @@ export const baseRouter = createTRPCRouter({
 	// Data getters
 	getBaseData: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const data = await getBaseDataFromUser(ctx);
+		const data = await getBaseDataFromUserGalaxy(ctx);
 		if (data != null) {
 			WS_EVENT_EMITTER.emit(`${WS_EVENTS.BaseUpdate}${userId}`, { action: 'created', ...data });
 		}
