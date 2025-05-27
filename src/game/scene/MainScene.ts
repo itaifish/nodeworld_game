@@ -6,8 +6,6 @@ import { log } from '../../utility/logger';
 import BaseManager from '../logic/base/BaseManager';
 import BaseGridBoard from '../board/BaseGridBoard';
 import { clamp, getDifferenceBetweenSets } from '../logic/general/math';
-import tileMap from '../resources/tileProjects/gameMap.json';
-import tilesImage from '../resources/images/tilemaps/space-blks-1.034.png';
 import backgroundTile from '../resources/images/buildings/isometric/Base_1x1.png';
 import type { Position, Size } from '../interfaces/general';
 import type DragNDropBuilding from '../board/DragNDropBuilding';
@@ -17,8 +15,6 @@ import type BaseBuilding from '../board/building/BaseBuilding';
 import BuildingManager from '../logic/buildings/BuildingManager';
 import SelectedBuildingManager from '../manager/SelectedBuildingManager';
 import type { Building } from '@prisma/client';
-import { Building_Type } from '@prisma/client';
-import { HarvesterBuilding } from '../board/building/HarvesterBuilding';
 import { buildingTypeToBuilding } from '../board/building/building-utility';
 
 export const cellSize: Size = {
@@ -187,6 +183,7 @@ export default class MainScene extends Phaser.Scene {
 					this.dndData.building.buildingType,
 					base.buildings,
 					BaseManager.getBaseSize(base.level),
+					this.dndData.building.isRotated,
 				);
 			if (!overEnoughTiles || !overEmptyTiles) {
 				isValidPlacement = false;
