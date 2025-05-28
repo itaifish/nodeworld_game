@@ -49,7 +49,14 @@ export default function SelectGalaxy() {
 
 	return (
 		<Background>
-			<GalaxySelectionTable galaxies={galaxies} joinGalaxyAction={(galaxyId) => console.log(`Joining ${galaxyId}`)} />
+			<GalaxySelectionTable
+				galaxies={galaxies}
+				joinGalaxyAction={async (galaxyId) => {
+					const client = trpcClientManager.getClient();
+					await client.galaxy.userJoinGalaxy.mutate({ galaxyId });
+					window.location.href = '/play';
+				}}
+			/>
 		</Background>
 	);
 }

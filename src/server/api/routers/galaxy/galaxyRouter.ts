@@ -8,7 +8,7 @@ export const galaxyRouter = createTRPCRouter({
 		.input(z.object({ cursor: z.string().optional() }))
 		.query(async ({ ctx, input }) => {
 			const cursorObj = input.cursor != undefined ? { cursor: { id: input.cursor } } : undefined;
-			return ctx.prisma.galaxy.findMany({
+			return await ctx.prisma.galaxy.findMany({
 				include: { linkedUsers: true },
 				take: 10,
 				orderBy: { id: 'desc' },
@@ -18,7 +18,6 @@ export const galaxyRouter = createTRPCRouter({
 	userJoinGalaxy: protectedProcedure.input(z.object({ galaxyId: z.string() })).mutation(async ({ ctx, input }) => {
 		const userId = ctx.session.user.id;
 		const { galaxyId } = input;
-		const userLinkObject: Prisma.UserCreateNestedOneWithoutUserGalaxyInfoInput = { connect: { id: userId } };
 		return ctx.prisma.$transaction([
 			// create userGalaxyInfo if not exists
 			ctx.prisma.userGalaxyInfo.upsert({
@@ -27,7 +26,6 @@ export const galaxyRouter = createTRPCRouter({
 					userId,
 					galaxyId,
 					base: { create: { resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } } },
-					user: userLinkObject as any, // not sure if this works
 				},
 				update: {},
 			}),

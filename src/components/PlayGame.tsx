@@ -1,5 +1,4 @@
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
 import { GameComponent } from '../game/ui/GameComponent';
 import { Background } from './Background';
 import { NotLoggedIn } from './NotLoggedIn';
