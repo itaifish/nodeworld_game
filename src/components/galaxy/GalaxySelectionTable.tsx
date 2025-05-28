@@ -123,7 +123,8 @@ export function GalaxySelectionTable({ galaxies, joinGalaxyAction, userCurrentGa
 	const joinGalaxy = async (galaxyId: string) => {
 		setLoadingGalaxy(galaxyId);
 		await joinGalaxyAction(galaxyId);
-		setLoadingGalaxy(null);
+		// uncommenting this makes the join buttons flash in again
+		// setLoadingGalaxy(null);
 	};
 	return (
 		<ListContainer>
