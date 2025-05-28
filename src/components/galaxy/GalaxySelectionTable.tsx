@@ -1,10 +1,44 @@
 import type { Galaxy } from '@prisma/client';
-import styled, { css } from 'styled-components';
+import { useState } from 'react';
+import styled, { css, keyframes } from 'styled-components';
+
+const spin = keyframes`
+	0%   { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+`;
+
+const Spinner = styled.div`
+	width: 34px;
+	height: 34px;
+	border: 4px solid #2bb7f667;
+	border-top: 4px solid #a749e4;
+	border-right: 4px solid #43e0f7;
+	border-bottom: 4px solid transparent;
+	border-left: 4px solid transparent;
+	border-radius: 50%;
+	background: none;
+	animation: ${spin} 1s linear infinite;
+	box-shadow: 0 0 12px #650be930;
+	display: inline-block;
+	margin-left: 6px;
+`;
+
+const Title = styled.h2`
+	text-align: center;
+	color: rgb(19, 238, 205);
+	font-size: 2rem;
+	margin-bottom: 1.5rem;
+	font: 800 40px 'Orbitron', Arial, sans-serif;
+	letter-spacing: 2px;
+	-webkit-text-fill-color: rgb(10, 35, 164);
+	-webkit-text-stroke: 1px;
+`;
 
 const ListContainer = styled.div`
 	background: linear-gradient(120deg, #6e21d1 0%, #2bb7f6 100%);
 	padding: 2rem;
 	border-radius: 2rem;
+	min-width: 450px;
 	max-width: 800px;
 	margin: 2rem auto;
 	box-shadow: 0 0 40px #9727e9, 0 0 80px #34f5ff30;
@@ -81,25 +115,36 @@ export type GalaxyWithLinkedUser = Galaxy & {
 type GalaxySelectionTableProps = {
 	galaxies: GalaxyWithLinkedUser[];
 	userCurrentGalaxy: Galaxy | null;
-	joinGalaxyAction: (galaxyId: string) => void;
+	joinGalaxyAction: (galaxyId: string) => Promise<void>;
 };
 
 export function GalaxySelectionTable({ galaxies, joinGalaxyAction, userCurrentGalaxy }: GalaxySelectionTableProps) {
+	const [loadingGalaxy, setLoadingGalaxy] = useState<string | null>(null);
+	const joinGalaxy = async (galaxyId: string) => {
+		setLoadingGalaxy(galaxyId);
+		await joinGalaxyAction(galaxyId);
+		setLoadingGalaxy(null);
+	};
 	return (
 		<ListContainer>
+			<Title>Choose a Galaxy</Title>
 			{userCurrentGalaxy && (
 				<SpecialGalaxyItem key={userCurrentGalaxy.id}>
 					<GalaxyInfo>
 						<GalaxyName>{userCurrentGalaxy.name}</GalaxyName>
 						<GalaxyCount>Your most recent Galaxy</GalaxyCount>
 					</GalaxyInfo>
-					<JoinButton
-						onClick={() => {
-							joinGalaxyAction(userCurrentGalaxy.id);
-						}}
-					>
-						Join
-					</JoinButton>
+					{loadingGalaxy === null ? (
+						<JoinButton
+							onClick={() => {
+								joinGalaxy(userCurrentGalaxy.id);
+							}}
+						>
+							Join
+						</JoinButton>
+					) : (
+						<>{userCurrentGalaxy.id === loadingGalaxy && <Spinner />}</>
+					)}
 				</SpecialGalaxyItem>
 			)}
 			{galaxies
@@ -112,13 +157,17 @@ export function GalaxySelectionTable({ galaxies, joinGalaxyAction, userCurrentGa
 								{galaxy.linkedUsers.length} / {galaxy.maxSize}
 							</GalaxyCount>
 						</GalaxyInfo>
-						<JoinButton
-							onClick={() => {
-								joinGalaxyAction(galaxy.id);
-							}}
-						>
-							Join
-						</JoinButton>
+						{loadingGalaxy === null ? (
+							<JoinButton
+								onClick={() => {
+									joinGalaxy(galaxy.id);
+								}}
+							>
+								Join
+							</JoinButton>
+						) : (
+							<>{galaxy.id === loadingGalaxy && <Spinner />}</>
+						)}
 					</GalaxyItem>
 				))}
 		</ListContainer>
