@@ -14,7 +14,7 @@ const LoginButton: React.FC = () => {
 				<button
 					className={styles.loginButton}
 					onClick={() => {
-						window.location.href = '/play';
+						window.location.href = '/select-galaxy';
 					}}
 				>
 					Enter Game

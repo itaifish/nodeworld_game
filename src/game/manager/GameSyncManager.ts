@@ -12,6 +12,7 @@ import { mergeInto } from 'src/utility/function-utils/function-utils';
 import { clientEnv } from 'src/env/schema.mjs';
 import type { Unsubscribable } from '@trpc/server/observable';
 import BaseManager from '../logic/base/BaseManager';
+import { trpcClientManager } from './TRPCClientManager';
 export default class GameSyncManager extends EventEmitter {
 	private baseGameState: BaseDetails | null;
 	private temporaryBuildings: Map<string, Building>;
@@ -28,34 +29,16 @@ export default class GameSyncManager extends EventEmitter {
 		this.baseGameState = null;
 		this.temporaryBuildings = new Map();
 		log.info('Game Sync Manager created');
-		const url = clientEnv.NEXT_PUBLIC_TRPC_WS_BASEURL ?? 'ws://localhost:3000';
-		const wsClient = createWSClient({
-			url: `${url}`,
-		});
-		this.client = createTRPCProxyClient<WebsocketsRouter>({
-			links: [
-				wsLink({
-					client: wsClient,
-				}),
-			],
-			transformer: superjson,
-		});
+		this.client = trpcClientManager.getClient();
 
 		// this.on(GameSyncManager.EVENTS.BASE_GAME_STATE_UPDATED, () => {
 		// 	log.trace('Base Game State Updated');
 		// });
 		this.unsubscribableEvents = this.initWebsocketEventListeners();
-		this.createBaseIfNotExists().then(() => {
-			this.client.base.getBaseData.query();
-		});
+		this.client.base.getBaseData.query();
 		setTimeout(() => {
 			this.client.base.getBaseData.query();
 		}, 1_000);
-	}
-
-	async createBaseIfNotExists() {
-		log.info(`Creating Base if not exists`);
-		this.client.base.createBaseIfNotExists.mutate();
 	}
 
 	async constructBuilding(building: Building_Type, position: Position, isRotated = false) {

@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../../trpc';
 import BaseManager from 'src/game/logic/base/BaseManager';
-import { update } from 'cypress/types/lodash';
 import type { Prisma } from '@prisma/client';
 
 export const galaxyRouter = createTRPCRouter({
@@ -9,7 +8,12 @@ export const galaxyRouter = createTRPCRouter({
 		.input(z.object({ cursor: z.string().optional() }))
 		.query(async ({ ctx, input }) => {
 			const cursorObj = input.cursor != undefined ? { cursor: { id: input.cursor } } : undefined;
-			return ctx.prisma.galaxy.findMany({ take: 10, orderBy: { id: 'desc' }, ...cursorObj });
+			return ctx.prisma.galaxy.findMany({
+				include: { linkedUsers: true },
+				take: 10,
+				orderBy: { id: 'desc' },
+				...cursorObj,
+			});
 		}),
 	userJoinGalaxy: protectedProcedure.input(z.object({ galaxyId: z.string() })).mutation(async ({ ctx, input }) => {
 		const userId = ctx.session.user.id;
