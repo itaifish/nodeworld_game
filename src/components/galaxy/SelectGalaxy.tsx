@@ -6,10 +6,12 @@ import { GalaxySelectionTable } from './GalaxySelectionTable';
 import { useEffect, useState } from 'react';
 import { trpcClientManager } from 'src/game/manager/TRPCClientManager';
 import { FancyLoadingText } from 'src/game/ui/loading/FancyLoadingText';
+import { Galaxy } from '@prisma/client';
 
 export default function SelectGalaxy() {
 	const { data: sessionData } = useSession();
 	const [galaxies, setGalaxies] = useState<GalaxyWithLinkedUser[]>([]);
+	const [userCurrentGalaxy, setUserCurrentGalaxy] = useState<Galaxy | null>(null);
 	const [showErrorIfNoSessionData, setShowErrorIfNoSessionData] = useState(false);
 
 	useEffect(() => {
@@ -18,8 +20,11 @@ export default function SelectGalaxy() {
 
 	useEffect(() => {
 		const loadGalaxies = async () => {
-			const galaxies = await trpcClientManager.getClient().galaxy.listAvailableGalaxies.query({ cursor: undefined });
+			const { galaxies, userCurrentGalaxy } = await trpcClientManager
+				.getClient()
+				.galaxy.listAvailableGalaxiesAndUserCurrentGalaxy.query({ cursor: undefined });
 			setGalaxies(galaxies);
+			setUserCurrentGalaxy(userCurrentGalaxy);
 		};
 		loadGalaxies();
 	}, [sessionData]);
@@ -51,6 +56,7 @@ export default function SelectGalaxy() {
 		<Background>
 			<GalaxySelectionTable
 				galaxies={galaxies}
+				userCurrentGalaxy={userCurrentGalaxy}
 				joinGalaxyAction={async (galaxyId) => {
 					const client = trpcClientManager.getClient();
 					await client.galaxy.userJoinGalaxy.mutate({ galaxyId });

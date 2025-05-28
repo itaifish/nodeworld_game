@@ -4,16 +4,24 @@ import BaseManager from 'src/game/logic/base/BaseManager';
 import type { Prisma } from '@prisma/client';
 
 export const galaxyRouter = createTRPCRouter({
-	listAvailableGalaxies: protectedProcedure
+	listAvailableGalaxiesAndUserCurrentGalaxy: protectedProcedure
 		.input(z.object({ cursor: z.string().optional() }))
 		.query(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
 			const cursorObj = input.cursor != undefined ? { cursor: { id: input.cursor } } : undefined;
-			return await ctx.prisma.galaxy.findMany({
-				include: { linkedUsers: true },
+			const existingGalaxiesTask = ctx.prisma.galaxy.findMany({
+				include: {linkedUsers: true},
 				take: 10,
 				orderBy: { id: 'desc' },
 				...cursorObj,
 			});
+			const currentUserInfoTask = ctx.prisma.user.findUnique({where: {id: userId}, include: {currentGalaxy: true}});
+			const existingGalaxies = await existingGalaxiesTask;
+			const currentUserInfo = await currentUserInfoTask;
+			return {
+				galaxies: existingGalaxies,
+				userCurrentGalaxy: currentUserInfo?.currentGalaxy ?? null
+			}
 		}),
 	userJoinGalaxy: protectedProcedure.input(z.object({ galaxyId: z.string() })).mutation(async ({ ctx, input }) => {
 		const userId = ctx.session.user.id;

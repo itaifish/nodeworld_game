@@ -1,5 +1,5 @@
 import type { Galaxy } from '@prisma/client';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 const ListContainer = styled.div`
 	background: linear-gradient(120deg, #6e21d1 0%, #2bb7f6 100%);
@@ -10,9 +10,7 @@ const ListContainer = styled.div`
 	box-shadow: 0 0 40px #9727e9, 0 0 80px #34f5ff30;
 `;
 
-const GalaxyItem = styled.div`
-	background: rgba(55, 0, 128, 0.7);
-	border: 1.5px solid #2bb7f6;
+const GalaxyItemStyles = css`
 	border-radius: 1rem;
 	margin-bottom: 1.25rem;
 	padding: 1.5rem 1rem;
@@ -21,6 +19,20 @@ const GalaxyItem = styled.div`
 	justify-content: space-between;
 	color: #e5dbfa;
 	box-shadow: 0 0 18px #9603e733;
+`;
+
+const GalaxyItem = styled.div`
+	${GalaxyItemStyles}
+	background: rgba(55, 0, 128, 0.7);
+	border: 1.5px solid #2bb7f6;
+`;
+
+const SpecialGalaxyItem = styled.div`
+	${GalaxyItemStyles}
+	background: linear-gradient(90deg, #fff9b2, 10%, ffe0fa, 100%);
+	border: 2px solid #ffd700;
+	box-shadow: 0 0 30px #ffeeff99, 0 0 60px #ffe34d30;
+	text-shadow: #42006e;
 `;
 
 const GalaxyInfo = styled.div`
@@ -68,29 +80,47 @@ export type GalaxyWithLinkedUser = Galaxy & {
 
 type GalaxySelectionTableProps = {
 	galaxies: GalaxyWithLinkedUser[];
+	userCurrentGalaxy: Galaxy | null;
 	joinGalaxyAction: (galaxyId: string) => void;
 };
 
-export function GalaxySelectionTable({ galaxies, joinGalaxyAction }: GalaxySelectionTableProps) {
+export function GalaxySelectionTable({ galaxies, joinGalaxyAction, userCurrentGalaxy }: GalaxySelectionTableProps) {
 	return (
 		<ListContainer>
-			{galaxies.map((galaxy) => (
-				<GalaxyItem key={galaxy.name}>
+			{userCurrentGalaxy && (
+				<SpecialGalaxyItem key={userCurrentGalaxy.id}>
 					<GalaxyInfo>
-						<GalaxyName>{galaxy.name}</GalaxyName>
-						<GalaxyCount>
-							{galaxy.linkedUsers.length} / {galaxy.maxSize}
-						</GalaxyCount>
+						<GalaxyName>{userCurrentGalaxy.name}</GalaxyName>
+						<GalaxyCount>Your most recent Galaxy</GalaxyCount>
 					</GalaxyInfo>
 					<JoinButton
 						onClick={() => {
-							joinGalaxyAction(galaxy.id);
+							joinGalaxyAction(userCurrentGalaxy.id);
 						}}
 					>
 						Join
 					</JoinButton>
-				</GalaxyItem>
-			))}
+				</SpecialGalaxyItem>
+			)}
+			{galaxies
+				.filter((galaxy) => galaxy.id != userCurrentGalaxy?.id)
+				.map((galaxy) => (
+					<GalaxyItem key={galaxy.name}>
+						<GalaxyInfo>
+							<GalaxyName>{galaxy.name}</GalaxyName>
+							<GalaxyCount>
+								{galaxy.linkedUsers.length} / {galaxy.maxSize}
+							</GalaxyCount>
+						</GalaxyInfo>
+						<JoinButton
+							onClick={() => {
+								joinGalaxyAction(galaxy.id);
+							}}
+						>
+							Join
+						</JoinButton>
+					</GalaxyItem>
+				))}
 		</ListContainer>
 	);
 }
