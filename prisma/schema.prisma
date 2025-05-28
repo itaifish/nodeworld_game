@@ -89,15 +89,16 @@ model InventoryItem {
 }
 
 model Base {
-    id        String          @id @unique @default(cuid())
-    userId    String          @unique
-    createdAt DateTime        @default(now())
-    level     Int             @default(1)
-    buildings Building[]
-    owner     User            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    resources Resource[]
-    military  Unit[]
-    inventory InventoryItem[]
+    id               String          @id @unique @default(cuid())
+    createdAt        DateTime        @default(now())
+    level            Int             @default(1)
+    buildings        Building[]
+    resources        Resource[]
+    military         Unit[]
+    inventory        InventoryItem[]
+    establishedNode  Node?
+    owner            UserGalaxyInfo  @relation(fields: [userGalaxyInfoId], references: [id])
+    userGalaxyInfoId String          @unique
 }
 
 model Guild {
@@ -111,17 +112,56 @@ model Guild {
     rival            Guild?            @relation("rival", fields: [rivalGuildId], references: [id])
     rivalGuildId     String?           @unique
     rivaledBy        Guild[]           @relation("rival")
+    nodes            Node[]
 }
 
 model GuildMembership {
-    user     User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    guild    Guild?  @relation(fields: [guildId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    guildId  String?
-    userId   String
-    isAdmin  Boolean @default(false)
-    isLeader Boolean @default(false)
+    id               String         @unique @default(cuid())
+    userGalaxyInfo   UserGalaxyInfo @relation(fields: [userGalaxyInfoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    userGalaxyInfoId String
+    guild            Guild?         @relation(fields: [guildId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    guildId          String?
+    isAdmin          Boolean        @default(false)
+    isLeader         Boolean        @default(false)
+}
 
-    @@id([userId])
+// World Map
+
+enum WorldTerrain {
+    MOUNTANS
+    MEADOWS
+    RADIOACTIVE
+    CAVES
+    DESERT
+}
+
+model Node {
+    x               Int
+    y               Int
+    galaxy          Galaxy          @relation(fields: [galaxyId], references: [id])
+    galaxyId        String
+    guildController Guild?          @relation(fields: [guildId], references: [id])
+    guildId         String?
+    baseNodeOf      Base?           @relation(fields: [baseId], references: [id])
+    baseId          String?         @unique
+    level           Int             @default(1)
+    terrain         WorldTerrain[]
+    takenOverAt     DateTime?
+    underAttackBy   UserGalaxyInfo? @relation(fields: [underAttackById], references: [id])
+    underAttackById String?
+
+    @@id([x, y, galaxyId])
+}
+
+// Galaxies
+
+model Galaxy {
+    id             String           @id @unique @default(cuid())
+    name           String           @unique
+    maxSize        Int
+    nodes          Node[]
+    linkedUsers    UserGalaxyInfo[]
+    connectedUsers User[]
 }
 
 // END GAME SECTION
@@ -130,7 +170,7 @@ model GuildMembership {
 // Necessary for Next auth
 model Account {
     id                String  @id @unique @default(cuid())
-    userId            String
+    userId            String  @unique
     type              String
     provider          String
     providerAccountId String
@@ -155,18 +195,32 @@ model Session {
 }
 
 model User {
-    id              String                   @id @unique @default(cuid())
+    id              String           @id @unique @default(cuid())
     name            String?
-    email           String?                  @unique
+    email           String?          @unique
     emailVerified   DateTime?
     image           String?
-    accounts        Account[]
+    account         Account?
     sessions        Session[]
-    Base            Base[]
-    isAdmin         Boolean                  @default(false)
+    isAdmin         Boolean          @default(false)
+    userGalaxyInfo  UserGalaxyInfo[]
+    currentGalaxy   Galaxy?          @relation(fields: [currentGalaxyId], references: [id])
+    currentGalaxyId String?
+}
+
+model UserGalaxyInfo {
+    id              String                   @id @unique @default(cuid())
+    user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    userId          String
+    galaxy          Galaxy                   @relation(fields: [galaxyId], references: [id])
+    galaxyId        String
+    base            Base?
     messageChannels UserMessageChannelLink[]
     messages        Message[]
-    guildMembership GuildMembership?
+    nodeAttacking   Node[]
+    guildMembership GuildMembership[]
+
+    @@unique([userId, galaxyId])
 }
 
 model VerificationToken {
@@ -189,12 +243,12 @@ model MessageChannel {
 }
 
 model UserMessageChannelLink {
-    User             User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    userId           String
     MessageChannel   MessageChannel @relation(fields: [messageChannelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     messageChannelId String
+    UserGalaxyInfo   UserGalaxyInfo @relation(fields: [userGalaxyInfoId], references: [id])
+    userGalaxyInfoId String
 
-    @@id([userId, messageChannelId])
+    @@id([userGalaxyInfoId, messageChannelId])
 }
 
 model Message {
@@ -202,8 +256,9 @@ model Message {
     createdAt        DateTime        @default(now())
     updatedAt        DateTime?
     text             String          @db.VarChar(500)
-    author           User            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     MessageChannel   MessageChannel? @relation(fields: [messageChannelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     messageChannelId String?
     userId           String
+    author           UserGalaxyInfo? @relation(fields: [userGalaxyInfoId], references: [id])
+    userGalaxyInfoId String?
 }

@@ -1,9 +1,9 @@
-import type { Base, Building, InventoryItem, Resource, Unit, User } from '@prisma/client';
+import type { Base, Building, InventoryItem, Resource, Unit, UserGalaxyInfo } from '@prisma/client';
 
 export type BaseDetails = Base & {
 	buildings: Building[];
 	resources: Resource[];
 	military: Unit[];
-	owner: User;
+	owner: UserGalaxyInfo;
 	inventory: InventoryItem[];
 };

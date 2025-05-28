@@ -13,6 +13,7 @@ import { getRandomElementInList } from '../logic/general/math';
 import styles from '../../pages/index.module.css';
 import { log } from '../../utility/logger';
 import GameSyncManager from '../manager/GameSyncManager';
+import { FancyLoadingText } from './loading/FancyLoadingText';
 
 // The gameConfig type currently does not have this field even though it should
 const fxConfig = {
@@ -95,7 +96,7 @@ export function GameComponent({}: GameComponentProps) {
 					textAlign: 'center',
 				}}
 			>
-				Loading
+				<FancyLoadingText />
 			</h2>
 		</div>
 	);

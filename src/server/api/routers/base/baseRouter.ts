@@ -21,8 +21,19 @@ const RESOURCES_INPUT = z.record(z.enum(Object.keys(Resource_Type) as AtLeastOne
 
 async function getBaseDataFromUser(ctx: tRPCContext) {
 	const id = ctx.session.user.id;
+	const userData = await ctx.prisma.user.findUnique({ where: { id } });
+	if (userData?.currentGalaxyId == null) {
+		return null;
+	}
+	const userGalaxyInfo = await ctx.prisma.userGalaxyInfo.findUnique({
+		where: { userId_galaxyId: { userId: id, galaxyId: userData.currentGalaxyId } },
+		include: { base: true },
+	});
+	if (userGalaxyInfo?.base?.id == null) {
+		return null;
+	}
 	return ctx.prisma.base.findUnique({
-		where: { userId: id },
+		where: { id: userGalaxyInfo.base.id },
 		include: baseInclude,
 	});
 }
@@ -36,14 +47,14 @@ export const baseRouter = createTRPCRouter({
 	giveUserResources: adminProcedure
 		.input(
 			z.object({
-				userId: z.string().optional(),
+				userGalaxyId: z.string().optional(),
 				resources: RESOURCES_INPUT,
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const userId = input.userId ?? ctx.session.user.id;
+			const userGalaxyId = input.userGalaxyId ?? ctx.session.user.id;
 			const currentResources = await ctx.prisma.base.findUnique({
-				where: { userId },
+				where: { userGalaxyInfoId: userGalaxyId },
 				include: baseInclude,
 			});
 			if (currentResources == null) {
@@ -54,7 +65,7 @@ export const baseRouter = createTRPCRouter({
 				where: { id: currentResources.id },
 				data: { resources: { set: currentResources.resources } },
 			});
-			WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userId}`, currentResources.resources);
+			WS_EVENT_EMITTER.emit(`${WS_EVENTS.UserResourceUpdate}${userGalaxyId}`, currentResources.resources);
 			return update;
 		}),
 	// End User Resources
@@ -66,8 +77,8 @@ export const baseRouter = createTRPCRouter({
 	createBaseIfNotExists: protectedProcedure.mutation(async ({ ctx }) => {
 		const id = ctx.session.user.id;
 		const upsert = await ctx.prisma.base.upsert({
-			where: { userId: id },
-			create: { userId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
+			where: { userGalaxyInfoId: id },
+			create: { userGalaxyInfoId: id, resources: { createMany: { data: BaseManager.STARTING_RESOURCES } } },
 			update: {},
 			include: baseInclude,
 		});
