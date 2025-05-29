@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../../trpc';
-import BaseManager from 'src/game/logic/base/BaseManager';
+import BaseManager from '../../../../game/logic/base/BaseManager';
 
 export const galaxyRouter = createTRPCRouter({
 	listAvailableGalaxiesAndUserCurrentGalaxy: protectedProcedure
