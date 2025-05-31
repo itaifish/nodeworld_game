@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../../trpc';
+import { adminProcedure, createTRPCRouter, protectedProcedure } from '../../trpc';
 import BaseManager from '../../../../game/logic/base/BaseManager';
+import { Galaxy } from 'src/server/galaxy/Galaxy';
 
 export const galaxyRouter = createTRPCRouter({
 	listAvailableGalaxiesAndUserCurrentGalaxy: protectedProcedure
@@ -46,4 +47,26 @@ export const galaxyRouter = createTRPCRouter({
 			}),
 		]);
 	}),
+	createNewGalaxy: adminProcedure
+		.input(
+			z.object({
+				galaxyName: z.string().min(2).max(15),
+				size: z.object({ width: z.number().min(5), height: z.number().min(5) }),
+				maxPlayers: z.number().min(2),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const newGalaxy = new Galaxy(input.size.width, input.size.height);
+			return ctx.prisma.galaxy.create({
+				data: {
+					name: input.galaxyName,
+					maxSize: input.maxPlayers,
+					nodes: {
+						createMany: {
+							data: newGalaxy.getNodes(),
+						},
+					},
+				},
+			});
+		}),
 });

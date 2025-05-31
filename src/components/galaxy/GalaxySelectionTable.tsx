@@ -86,7 +86,7 @@ const GalaxyCount = styled.span`
 	margin-top: 3px;
 `;
 
-const JoinButton = styled.button`
+export const JoinButton = styled.button`
 	background: linear-gradient(90deg, #a749e4 30%, #43e0f7 100%);
 	color: #fff;
 	border: none;
