@@ -8,6 +8,7 @@ import { trpcClientManager } from 'src/game/manager/TRPCClientManager';
 import { FancyLoadingText } from 'src/game/ui/loading/FancyLoadingText';
 import type { Galaxy } from '@prisma/client';
 import { log } from 'src/utility/logger';
+import { AdminOnlyGalaxyCreateForm } from './AdminOnlyGalaxyCreateForm';
 
 export default function SelectGalaxy() {
 	const { data: sessionData } = useSession();
@@ -64,23 +65,7 @@ export default function SelectGalaxy() {
 					window.location.href = '/play';
 				}}
 			/>
-			{sessionData?.user?.isAdmin && (
-				<JoinButton
-					onClick={() => {
-						try {
-							client.galaxy.createNewGalaxy.mutate({
-								galaxyName: 'BeezleBorp',
-								maxPlayers: 50,
-								size: { width: 50, height: 50 },
-							});
-						} catch (e) {
-							log.error(e);
-						}
-					}}
-				>
-					Create New Galaxy
-				</JoinButton>
-			)}
+			<AdminOnlyGalaxyCreateForm />
 		</Background>
 	);
 }
