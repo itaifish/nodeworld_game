@@ -45,7 +45,7 @@ export function gaussianRandomInRange(mean = 0, stdev = 1, max: number, min: num
 	let res;
 	do {
 		res = gaussianRandom(mean, stdev);
-	} while (res < min && res > max);
+	} while (res < min || res > max);
 	return res;
 }
 

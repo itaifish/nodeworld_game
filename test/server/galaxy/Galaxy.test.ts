@@ -1,7 +1,8 @@
 import { Galaxy } from '../../../src/server/galaxy/Galaxy';
 
 describe('Test that nodes created are valid for Galaxies', () => {
-	const galaxy = new Galaxy(50, 50);
+	const [galaxyWidth, galaxyHeight] = [150, 50];
+	const galaxy = new Galaxy(galaxyWidth, galaxyHeight);
 	it('Should create nodes that all have some terrain', () => {
 		expect(galaxy.getNodes().every((node) => node.terrain.length > 0)).toBe(true);
 	});
@@ -19,5 +20,8 @@ describe('Test that nodes created are valid for Galaxies', () => {
 			expect(qSet.has(node.r)).toBe(false);
 			qSet.add(node.r);
 		}
+	});
+	it('Should create the right nodes given the input size', () => {
+		expect(galaxy.getNodes().length).toBe(galaxyWidth * galaxyHeight);
 	});
 });
