@@ -26,3 +26,29 @@ export function getRandomElementInList<T>(list: Array<T>): T {
 export function getDifferenceBetweenSets<T>(a: Set<T>, b: Set<T>): T[] {
 	return [...a].filter((x) => !b.has(x));
 }
+/**
+ * Standard Normal variate using Box-Muller transform. Copied from
+ * https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
+ * @param mean
+ * @param stdev
+ * @returns
+ */
+export function gaussianRandom(mean = 0, stdev = 1) {
+	const u = 1 - Math.random(); // Converting [0,1) to (0,1]
+	const v = Math.random();
+	const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+	// Transform to the desired mean and standard deviation:
+	return z * stdev + mean;
+}
+
+export function gaussianRandomInRange(mean = 0, stdev = 1, max: number, min: number) {
+	let res;
+	do {
+		res = gaussianRandom(mean, stdev);
+	} while (res < min || res > max);
+	return res;
+}
+
+export function randomIntBetween(min: number, max: number) {
+	return Math.floor(Math.random() * (max - min + 1) + min);
+}

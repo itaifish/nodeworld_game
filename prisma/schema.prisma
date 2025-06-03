@@ -135,22 +135,31 @@ enum WorldTerrain {
     DESERT
 }
 
-model Node {
-    x               Int
-    y               Int
-    galaxy          Galaxy          @relation(fields: [galaxyId], references: [id])
-    galaxyId        String
-    guildController Guild?          @relation(fields: [guildId], references: [id])
-    guildId         String?
-    baseNodeOf      Base?           @relation(fields: [baseId], references: [id])
-    baseId          String?         @unique
-    level           Int             @default(1)
-    terrain         WorldTerrain[]
-    takenOverAt     DateTime?
-    underAttackBy   UserGalaxyInfo? @relation(fields: [underAttackById], references: [id])
-    underAttackById String?
+enum ResourceAvailability {
+    OPULENT
+    LUSH
+    STANDARD
+    LACKING
+    BARREN
+}
 
-    @@id([x, y, galaxyId])
+model Node {
+    q                    Int
+    r                    Int
+    galaxy               Galaxy               @relation(fields: [galaxyId], references: [id], onDelete: Cascade)
+    galaxyId             String
+    guildController      Guild?               @relation(fields: [guildId], references: [id])
+    guildId              String?
+    baseNodeOf           Base?                @relation(fields: [baseId], references: [id])
+    baseId               String?              @unique
+    level                Int                  @default(1)
+    terrain              WorldTerrain[]
+    resourceAvailability ResourceAvailability
+    takenOverAt          DateTime?
+    underAttackBy        UserGalaxyInfo?      @relation(fields: [underAttackById], references: [id])
+    underAttackById      String?
+
+    @@id([q, r, galaxyId])
 }
 
 // Galaxies

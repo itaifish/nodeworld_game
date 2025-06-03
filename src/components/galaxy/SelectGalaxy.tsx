@@ -2,31 +2,34 @@ import { useSession } from 'next-auth/react';
 import { Background } from '../Background';
 import { NotLoggedIn } from '../NotLoggedIn';
 import type { GalaxyWithLinkedUser } from './GalaxySelectionTable';
-import { GalaxySelectionTable } from './GalaxySelectionTable';
+import { GalaxySelectionTable, JoinButton } from './GalaxySelectionTable';
 import { useEffect, useState } from 'react';
 import { trpcClientManager } from 'src/game/manager/TRPCClientManager';
 import { FancyLoadingText } from 'src/game/ui/loading/FancyLoadingText';
-import { Galaxy } from '@prisma/client';
+import type { Galaxy } from '@prisma/client';
+import { log } from 'src/utility/logger';
+import { AdminOnlyGalaxyCreateForm } from './AdminOnlyGalaxyCreateForm';
 
 export default function SelectGalaxy() {
 	const { data: sessionData } = useSession();
-	const [galaxies, setGalaxies] = useState<GalaxyWithLinkedUser[]>([]);
+	const [galaxies, setGalaxies] = useState<GalaxyWithLinkedUser[] | null>(null);
 	const [userCurrentGalaxy, setUserCurrentGalaxy] = useState<Galaxy | null>(null);
 	const [showErrorIfNoSessionData, setShowErrorIfNoSessionData] = useState(false);
-
+	const client = trpcClientManager.getClient();
 	useEffect(() => {
 		setTimeout(() => setShowErrorIfNoSessionData(true), 2_000);
 	}, []);
 
 	useEffect(() => {
 		const loadGalaxies = async () => {
-			const { galaxies, userCurrentGalaxy } = await trpcClientManager
-				.getClient()
-				.galaxy.listAvailableGalaxiesAndUserCurrentGalaxy.query({ cursor: undefined });
+			const { galaxies, userCurrentGalaxy } = await client.galaxy.listAvailableGalaxiesAndUserCurrentGalaxy.query({
+				cursor: undefined,
+			});
 			setGalaxies(galaxies);
 			setUserCurrentGalaxy(userCurrentGalaxy);
 		};
 		loadGalaxies();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [sessionData]);
 
 	if (sessionData == null) {
@@ -44,7 +47,7 @@ export default function SelectGalaxy() {
 		);
 	}
 
-	if (galaxies.length === 0) {
+	if (galaxies === null) {
 		return (
 			<Background>
 				<FancyLoadingText />
@@ -58,11 +61,11 @@ export default function SelectGalaxy() {
 				galaxies={galaxies}
 				userCurrentGalaxy={userCurrentGalaxy}
 				joinGalaxyAction={async (galaxyId) => {
-					const client = trpcClientManager.getClient();
 					await client.galaxy.userJoinGalaxy.mutate({ galaxyId });
 					window.location.href = '/play';
 				}}
 			/>
+			<AdminOnlyGalaxyCreateForm />
 		</Background>
 	);
 }

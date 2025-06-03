@@ -38,6 +38,12 @@ module.exports = {
 				project: 'tsconfig.json',
 			},
 		},
+		{
+			files: ['tests/**/*'],
+			env: {
+				jest: true,
+			},
+		},
 	],
 	parser: '@typescript-eslint/parser',
 	plugins: ['@typescript-eslint'],
