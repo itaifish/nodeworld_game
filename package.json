@@ -15,6 +15,7 @@
 		"migrate": "prisma migrate dev",
 		"prisma:reset": "prisma migrate reset",
 		"prisma:studio": "prisma studio",
+		"prisma:superdangerous:resetdb": "prisma db push --force-reset",
 		"lint": "next lint --fix",
 		"start": "cross-env NODE_ENV=production node --experimental-specifier-resolution=node dist/src/server/prodServer.js",
 		"test": "jest"

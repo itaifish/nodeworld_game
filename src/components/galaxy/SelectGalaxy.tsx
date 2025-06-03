@@ -12,7 +12,7 @@ import { AdminOnlyGalaxyCreateForm } from './AdminOnlyGalaxyCreateForm';
 
 export default function SelectGalaxy() {
 	const { data: sessionData } = useSession();
-	const [galaxies, setGalaxies] = useState<GalaxyWithLinkedUser[]>([]);
+	const [galaxies, setGalaxies] = useState<GalaxyWithLinkedUser[] | null>(null);
 	const [userCurrentGalaxy, setUserCurrentGalaxy] = useState<Galaxy | null>(null);
 	const [showErrorIfNoSessionData, setShowErrorIfNoSessionData] = useState(false);
 	const client = trpcClientManager.getClient();
@@ -47,7 +47,7 @@ export default function SelectGalaxy() {
 		);
 	}
 
-	if (galaxies.length === 0) {
+	if (galaxies === null) {
 		return (
 			<Background>
 				<FancyLoadingText />
